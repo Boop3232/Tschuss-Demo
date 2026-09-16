@@ -56,6 +56,20 @@ export const ReservationDetailPage: React.FC = () => {
       }
     }
     load();
+
+    const handleUpdate = () => {
+      if (id) {
+        reservationService.getReservationById(id).then(res => {
+          if (res) setReservation(res);
+        });
+      }
+    };
+    window.addEventListener('tschuess_reservations_changed', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+    return () => {
+      window.removeEventListener('tschuess_reservations_changed', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    };
   }, [id]);
 
   const isActive = reservation 
@@ -100,7 +114,7 @@ export const ReservationDetailPage: React.FC = () => {
     return (
       <div className="max-w-md mx-auto px-4 py-16 text-center">
         <h2 className="text-xl font-bold text-stone-900 mb-2">Reservation Not Found</h2>
-        <Link to="/app/reservations" className="text-xs font-bold text-emerald-800 hover:underline">
+        <Link to="/app/reservations" className="text-xs font-bold text-emerald-800 hover:text-emerald-950 transition-colors">
           Back to Reservations
         </Link>
       </div>
@@ -386,7 +400,7 @@ export const ReservationDetailPage: React.FC = () => {
                     {reservation.storePhone && (
                       <p className="text-stone-500 pt-0.5">
                         If you cannot collect your order, please notify the store directly at{' '}
-                        <a href={`tel:${reservation.storePhone}`} className="font-bold text-emerald-800 hover:underline">
+                        <a href={`tel:${reservation.storePhone}`} className="font-bold text-emerald-800 hover:text-emerald-950 transition-colors">
                           {reservation.storePhone}
                         </a>.
                       </p>

@@ -167,7 +167,7 @@ export const VerifyEmailPage: React.FC = () => {
 
             <Link
               to="/app/discover"
-              className="text-emerald-700 font-bold hover:underline"
+              className="text-emerald-700 font-bold hover:text-emerald-900 transition-colors"
             >
               Continue to app
             </Link>

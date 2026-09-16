@@ -91,7 +91,7 @@ export const LandingPage: React.FC = () => {
           {/* Title & Cheerful Tagline */}
           <div className="max-w-3xl mx-auto space-y-4">
             <h1 className="text-4xl sm:text-6xl font-black font-display tracking-tight text-stone-900 leading-[1.08]">
-              Profit from <span className="text-emerald-700 underline decoration-emerald-200 decoration-wavy underline-offset-8">Near Food Expiry</span>.
+              Profit from <span className="text-emerald-600">Near Food Expiry</span>.
             </h1>
             <p className="text-base sm:text-lg text-stone-600 font-medium max-w-2xl mx-auto leading-relaxed">
               Tschüss brings local supermarkets, bakeries, and smart shoppers together. Retailers rescue lost margin — consumers enjoy up to 70% off high-quality, delicious goods.

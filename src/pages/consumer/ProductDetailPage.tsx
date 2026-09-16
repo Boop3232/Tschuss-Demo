@@ -201,7 +201,7 @@ export const ProductDetailPage: React.FC = () => {
             {/* Store & Distance Row */}
             <Link
               to={`/app/stores/${product.storeId}`}
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800 hover:underline mb-2"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800 hover:text-emerald-950 transition-colors mb-2"
             >
               <StoreIcon className="w-4 h-4" />
               <span>{product.storeName}</span>
@@ -277,7 +277,7 @@ export const ProductDetailPage: React.FC = () => {
                 href={`https://www.google.com/maps/dir/?api=1&destination=${fallbackStore.latitude},${fallbackStore.longitude}`}
                 target="_blank"
                 rel="noreferrer"
-                className="text-2xs font-bold text-emerald-800 hover:underline flex items-center gap-0.5"
+                className="text-2xs font-bold text-emerald-800 hover:text-emerald-950 transition-colors flex items-center gap-0.5"
               >
                 Directions
                 <ExternalLink className="w-3 h-3" />
@@ -325,7 +325,7 @@ export const ProductDetailPage: React.FC = () => {
             </h3>
             <Link
               to={`/app/discover?category=${product.category}`}
-              className="text-xs font-bold text-emerald-800 hover:underline"
+              className="text-xs font-bold text-emerald-800 hover:text-emerald-950 transition-colors"
             >
               View all
             </Link>

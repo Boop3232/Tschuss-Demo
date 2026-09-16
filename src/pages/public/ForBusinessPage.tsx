@@ -161,7 +161,7 @@ export const ForBusinessPage: React.FC = () => {
             </p>
             <button
               onClick={() => setSubmitted(false)}
-              className="mt-3 text-2xs font-bold text-emerald-900 hover:underline"
+              className="mt-3 text-2xs font-bold text-emerald-900 hover:text-emerald-950 transition-colors"
             >
               Submit another store
             </button>

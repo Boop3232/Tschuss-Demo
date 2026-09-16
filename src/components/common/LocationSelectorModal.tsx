@@ -169,7 +169,7 @@ export const LocationSelectorModal: React.FC<LocationSelectorModalProps> = ({ is
 
         <div className="mt-5 pt-3 border-t border-stone-100 flex items-center justify-between text-xs text-stone-600">
           <span>Current: <strong className="text-stone-800">{location.name}</strong></span>
-          <button onClick={onClose} className="hover:underline font-medium">Done</button>
+          <button onClick={onClose} className="px-3 py-1 bg-stone-100 hover:bg-stone-200 text-stone-800 rounded-full font-semibold text-xs transition-colors">Done</button>
         </div>
       </div>
     </div>

@@ -9,7 +9,8 @@ import {
   AlertCircle,
   Check,
   X,
-  Phone
+  Phone,
+  Store as StoreIcon
 } from 'lucide-react';
 import { Reservation, ReservationStatus } from '../../types';
 import { reservationService } from '../../services/reservationService';
@@ -17,46 +18,58 @@ import { StatusBadge } from '../../components/common/StatusBadge';
 import { formatCurrency } from '../../utils/businessLogic';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 
-export const RetailerReservationsPage: React.FC = () => {
-  const storeId = 'store_rewe_kleve';
+const PARTNER_STORES = [
+  { id: 'all', name: 'All Partner Stores' },
+  { id: 'store_rewe_kleve', name: 'REWE Kleve' },
+  { id: 'store_baeckerei_kleve', name: 'Bäckerei & Konditorei' },
+  { id: 'store_biomarkt_kleve', name: 'BioMarkt Kleve' },
+  { id: 'store_edeka_kleve', name: 'EDEKA Center' },
+  { id: 'store_blumen_kleve', name: 'Blumen Floristik' },
+];
 
+export const RetailerReservationsPage: React.FC = () => {
+  const [selectedStore, setSelectedStore] = useState<string>('all');
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [cancellingResId, setCancellingResId] = useState<string | null>(null);
 
-  const loadReservations = async () => {
-    setLoading(true);
-    try {
-      const list = await reservationService.getReservationsForStore(storeId);
-      setReservations(list);
-    } catch (err) {
-      console.error('Error fetching reservations:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Subscribe to persistent reservations with real-time updates across components
   useEffect(() => {
-    loadReservations();
-  }, []);
+    setLoading(true);
+    const unsubscribe = reservationService.subscribeToReservations(
+      { storeId: selectedStore },
+      (items) => {
+        setReservations(items);
+        setLoading(false);
+      }
+    );
+
+    return () => {
+      unsubscribe();
+    };
+  }, [selectedStore]);
 
   const handleUpdateStatus = async (id: string, newStatus: ReservationStatus) => {
+    // Optimistic immediate update in UI
+    setReservations(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r));
     await reservationService.updateReservationStatus(id, newStatus);
-    setReservations(reservations.map(r => r.id === id ? { ...r, status: newStatus } : r));
   };
 
   const handleCancelReservation = async () => {
     if (!cancellingResId) return;
-    await reservationService.updateReservationStatus(cancellingResId, 'CANCELLED', 'Cancelled by store manager');
-    setReservations(reservations.map(r => r.id === cancellingResId ? { ...r, status: 'CANCELLED' } : r));
+    const targetId = cancellingResId;
+    setReservations(prev => prev.map(r => r.id === targetId ? { ...r, status: 'CANCELLED' } : r));
+    await reservationService.updateReservationStatus(targetId, 'CANCELLED', 'Cancelled by store manager');
     setCancellingResId(null);
   };
 
   const filteredReservations = reservations.filter(r => {
     const matchesQuery = r.reservationCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         r.consumerName.toLowerCase().includes(searchQuery.toLowerCase());
+                         r.consumerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         r.storeName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         r.items.some(i => i.name.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesStatus = statusFilter === 'all' ? true : r.status === statusFilter;
     return matchesQuery && matchesStatus;
   });
@@ -69,8 +82,32 @@ export const RetailerReservationsPage: React.FC = () => {
           In-Store Pickups & Reservations
         </h1>
         <p className="text-xs text-stone-500 mt-0.5">
-          Verify customer pickup codes, pack reserved bags, and record in-store cash/card collections.
+          Verify customer pickup codes, pack reserved bags, and record in-store collections. Updates persist automatically.
         </p>
+      </div>
+
+      {/* Store Filter Tabs */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+        <span className="text-2xs font-bold text-stone-400 uppercase tracking-wider shrink-0 flex items-center gap-1">
+          <StoreIcon className="w-3.5 h-3.5 text-stone-500" />
+          Location:
+        </span>
+        <div className="flex items-center gap-1.5">
+          {PARTNER_STORES.map((st) => (
+            <button
+              key={st.id}
+              type="button"
+              onClick={() => setSelectedStore(st.id)}
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all border ${
+                selectedStore === st.id
+                  ? 'bg-emerald-800 text-white border-emerald-800 shadow-2xs'
+                  : 'bg-white hover:bg-stone-50 text-stone-600 border-stone-200'
+              }`}
+            >
+              {st.name}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Search and Filters */}
@@ -81,7 +118,7 @@ export const RetailerReservationsPage: React.FC = () => {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by code (e.g. TS-4829) or consumer name..."
+            placeholder="Search by code (e.g. TS-4829), customer name, or item..."
             className="w-full pl-10 pr-4 py-2 bg-white border border-stone-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-800"
           />
         </div>
@@ -90,6 +127,7 @@ export const RetailerReservationsPage: React.FC = () => {
           {['all', 'CONFIRMED', 'READY', 'COLLECTED', 'CANCELLED'].map((st) => (
             <button
               key={st}
+              type="button"
               onClick={() => setStatusFilter(st)}
               className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border ${
                 statusFilter === st
@@ -115,23 +153,26 @@ export const RetailerReservationsPage: React.FC = () => {
           {filteredReservations.map((res) => (
             <div
               key={res.id}
-              className="bg-white rounded-2xl border border-stone-200 p-5 shadow-2xs space-y-4"
+              className="bg-white rounded-2xl border border-stone-200 p-5 shadow-2xs space-y-4 transition-all hover:border-stone-300"
             >
-              {/* Top Row: Code, Status, Consumer, Total */}
+              {/* Top Row: Code, Status, Store, Pickup Window, Total */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-stone-100">
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-2.5">
                   <div className="px-3 py-1 bg-stone-900 text-white font-mono text-xs font-bold rounded-lg flex items-center gap-1.5">
                     <QrCode className="w-3.5 h-3.5 text-emerald-400" />
                     <span>#{res.reservationCode}</span>
                   </div>
                   <StatusBadge status={res.status} />
+                  <span className="px-2.5 py-0.5 rounded-full bg-stone-100 text-stone-700 text-2xs font-semibold border border-stone-200/80">
+                    {res.storeName}
+                  </span>
                   <span className="text-xs text-stone-400 font-medium">
                     Pickup: {res.pickupWindow}
                   </span>
                 </div>
 
                 <div className="flex items-center gap-4">
-                  <div className="text-right">
+                  <div className="text-left sm:text-right">
                     <span className="text-3xs text-stone-400 uppercase font-bold block">Collect at Counter</span>
                     <span className="text-lg font-black text-emerald-950">
                       {formatCurrency(res.totalAmount)}
@@ -181,7 +222,7 @@ export const RetailerReservationsPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => handleUpdateStatus(res.id, 'READY')}
-                      className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5"
+                      className="px-3.5 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5"
                     >
                       <Clock className="w-3.5 h-3.5" />
                       <span>Mark Ready for Pickup</span>
@@ -192,7 +233,7 @@ export const RetailerReservationsPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => handleUpdateStatus(res.id, 'COLLECTED')}
-                      className="px-4 py-1.5 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5"
+                      className="px-4 py-1.5 rounded-full bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5"
                     >
                       <CheckCircle2 className="w-3.5 h-3.5" />
                       <span>Confirm Handover & Collected</span>
@@ -203,7 +244,7 @@ export const RetailerReservationsPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setCancellingResId(res.id)}
-                      className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg text-xs"
+                      className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg text-xs transition-colors"
                       title="Cancel reservation"
                     >
                       <X className="w-4 h-4" />
@@ -219,7 +260,9 @@ export const RetailerReservationsPage: React.FC = () => {
           <ShoppingBag className="w-10 h-10 text-stone-300 mx-auto mb-3" />
           <h3 className="font-bold text-stone-900 text-base">No reservations found</h3>
           <p className="text-xs text-stone-500 mt-1">
-            New consumer reservations will arrive here in real-time.
+            {selectedStore === 'all' 
+              ? 'New consumer reservations will arrive here in real-time.' 
+              : 'No reservations for this store branch. Switch to "All Partner Stores" to see orders across all locations.'}
           </p>
         </div>
       )}

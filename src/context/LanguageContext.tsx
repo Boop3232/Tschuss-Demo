@@ -9,7 +9,6 @@ interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
   t: (path: string, fallback?: string) => string;
-  isApiTranslated: boolean;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -22,23 +21,16 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return navigator.language.startsWith('de') ? 'de' : 'en';
   });
 
-  const [isApiTranslated, setIsApiTranslated] = useState(language === 'de');
-
   // Sync translation engine on mount
   useEffect(() => {
-    translationService.initScript();
     if (language === 'de') {
       translationService.translateWholeWebsite('de');
-      setIsApiTranslated(true);
     }
-  }, []);
+  }, [language]);
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
     localStorage.setItem('tschuess_lang', lang);
-    setIsApiTranslated(lang === 'de');
-
-    // Trigger API translation for the whole website
     translationService.translateWholeWebsite(lang);
   };
 
@@ -51,6 +43,10 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       if (current && typeof current === 'object' && key in current) {
         current = current[key];
       } else {
+        if (language === 'de' && fallback) {
+          const dictTranslation = translationService.translateSync(fallback);
+          if (dictTranslation) return dictTranslation;
+        }
         return fallback || path;
       }
     }
@@ -58,7 +54,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t, isApiTranslated }}>
+    <LanguageContext.Provider value={{ language, setLanguage, t }}>
       {children}
     </LanguageContext.Provider>
   );

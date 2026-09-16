@@ -34,18 +34,15 @@ export const ReservationsListPage: React.FC = () => {
   const consumerId = currentUser?.uid || userProfile?.uid || 'demo_consumer_123';
 
   useEffect(() => {
-    async function load() {
-      setLoading(true);
-      try {
-        const items = await reservationService.getReservationsForConsumer(consumerId);
+    setLoading(true);
+    const unsubscribe = reservationService.subscribeToReservations(
+      { consumerId },
+      (items) => {
         setReservations(items);
-      } catch (err) {
-        console.error('Error fetching reservations:', err);
-      } finally {
         setLoading(false);
       }
-    }
-    load();
+    );
+    return () => unsubscribe();
   }, [consumerId]);
 
   const activeReservations = reservations.filter(

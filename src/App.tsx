@@ -2,7 +2,6 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 // Context Providers
-import { ThemeProvider } from './context/ThemeContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { LocationProvider } from './context/LocationContext';
 import { AuthProvider } from './context/AuthContext';
@@ -50,13 +49,15 @@ import { RetailerStorePage } from './pages/retailer/RetailerStorePage';
 // Admin Page
 import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
 
+// Development Helper
+import { DevRoleSwitcher } from './components/common/DevRoleSwitcher';
+
 export default function App() {
   return (
-    <ThemeProvider>
-      <LanguageProvider>
-        <LocationProvider>
-          <AuthProvider>
-            <BrowserRouter>
+    <LanguageProvider>
+      <LocationProvider>
+        <AuthProvider>
+          <BrowserRouter>
               <Routes>
               {/* Public & Consumer Routes under ConsumerLayout */}
               <Route path="/" element={<ConsumerLayout />}>
@@ -119,10 +120,12 @@ export default function App() {
               {/* Fallback */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
+
+            {/* Development Role Switcher Floating Widget */}
+            <DevRoleSwitcher />
           </BrowserRouter>
         </AuthProvider>
       </LocationProvider>
     </LanguageProvider>
-  </ThemeProvider>
   );
 }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink, Link } from 'react-router-dom';
+import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   Package, 
@@ -9,12 +9,14 @@ import {
   MessageSquare, 
   Store as StoreIcon, 
   ArrowLeft, 
-  ExternalLink 
+  ExternalLink,
+  Code2
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export const RetailerSidebar: React.FC = () => {
-  const { userProfile } = useAuth();
+  const navigate = useNavigate();
+  const { userProfile, isDevRoleActive, switchToConsumerDev } = useAuth();
 
   const navItems = [
     { label: 'Overview', path: '/business', icon: LayoutDashboard, end: true },
@@ -69,6 +71,33 @@ export const RetailerSidebar: React.FC = () => {
           })}
         </nav>
       </div>
+
+      {/* Dev Mode Banner & Switch in Retailer Sidebar */}
+      {isDevRoleActive && (
+        <div className="p-3 rounded-2xl bg-purple-50 border border-purple-200 space-y-2 mb-2">
+          <div className="flex items-center justify-between">
+            <span className="text-3xs font-black uppercase tracking-wider text-purple-800 bg-purple-200/80 px-1.5 py-0.5 rounded">
+              DEV MODE ACTIVE
+            </span>
+            <Code2 className="w-3.5 h-3.5 text-purple-700" />
+          </div>
+          <p className="text-3xs text-purple-900 leading-tight">
+            Operating as mock retailer. Click below to switch back to consumer.
+          </p>
+          <button
+            type="button"
+            id="btn-sidebar-dev-switch-consumer"
+            onClick={async () => {
+              await switchToConsumerDev();
+              navigate('/app/discover');
+            }}
+            className="w-full py-1.5 px-2.5 rounded-xl bg-purple-700 hover:bg-purple-600 active:scale-98 text-white text-xs font-bold transition-all shadow-2xs flex items-center justify-center gap-1.5"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Switch to Consumer</span>
+          </button>
+        </div>
+      )}
 
       {/* Switch to Consumer View footer */}
       <div className="pt-4 border-t border-stone-100 space-y-2">

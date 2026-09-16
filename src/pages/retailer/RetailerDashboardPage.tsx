@@ -12,7 +12,8 @@ import {
   ArrowRight,
   Sparkles,
   QrCode,
-  Tag
+  Tag,
+  Store as StoreIcon
 } from 'lucide-react';
 import { Product, Reservation, Store } from '../../types';
 import { productService } from '../../services/productService';
@@ -23,24 +24,32 @@ import { formatCurrency, formatExpiry } from '../../utils/businessLogic';
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { pricingRecommendationService } from '../../services/predictiveExpiryService';
 
+const DASHBOARD_STORES = [
+  { id: 'all', name: 'All Partner Stores' },
+  { id: 'store_rewe_kleve', name: 'REWE Kleve' },
+  { id: 'store_baeckerei_kleve', name: 'Bäckerei Derks' },
+  { id: 'store_biomarkt_kleve', name: 'BioMarkt Kleve' },
+  { id: 'store_edeka_kleve', name: 'EDEKA Center' },
+  { id: 'store_blumen_kleve', name: 'Blumen Floristik' },
+];
+
 export const RetailerDashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const { userProfile, currentUser } = useAuth();
 
+  const [selectedStoreId, setSelectedStoreId] = useState<string>('all');
   const [products, setProducts] = useState<Product[]>([]);
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [impact, setImpact] = useState<RetailerImpactStats | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const storeId = 'store_rewe_kleve'; // Demo store partner ID
-
   const loadDashboard = async () => {
     setLoading(true);
     try {
       const [prods, resList, impactData] = await Promise.all([
-        productService.getProducts({ storeId }),
-        reservationService.getReservationsForStore(storeId),
-        impactService.getRetailerImpact(storeId)
+        productService.getProducts({ storeId: selectedStoreId === 'all' ? undefined : selectedStoreId }),
+        reservationService.getReservationsForStore(selectedStoreId),
+        impactService.getRetailerImpact(selectedStoreId === 'all' ? 'store_rewe_kleve' : selectedStoreId)
       ]);
 
       setProducts(prods);
@@ -55,11 +64,20 @@ export const RetailerDashboardPage: React.FC = () => {
 
   useEffect(() => {
     loadDashboard();
-  }, []);
+    // Real-time synchronization for new reservations and status updates
+    const unsubscribe = reservationService.subscribeToReservations(
+      { storeId: selectedStoreId },
+      (items) => {
+        setReservations(items);
+      }
+    );
+    return () => unsubscribe();
+  }, [selectedStoreId]);
 
   const handleUpdateReservationStatus = async (id: string, status: any) => {
+    // Optimistic local state update
+    setReservations(prev => prev.map(r => r.id === id ? { ...r, status } : r));
     await reservationService.updateReservationStatus(id, status);
-    loadDashboard();
   };
 
   // Products expiring within 36 hours
@@ -79,13 +97,13 @@ export const RetailerDashboardPage: React.FC = () => {
         <div>
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-900/90 text-emerald-300 text-2xs font-bold uppercase tracking-wider mb-2">
             <Sparkles className="w-3.5 h-3.5" />
-            REWE Kleve (Demo Partner Station)
+            Partner Station Kleve
           </div>
           <h1 className="text-2xl sm:text-3xl font-black font-display tracking-tight">
             Store Overview & Rescue Operations
           </h1>
           <p className="text-stone-300 text-xs sm:text-sm mt-1">
-            Manage surplus food inventory, fulfill consumer reservations, and track recovered margin.
+            Manage surplus food inventory, fulfill consumer reservations, and track recovered margin in real-time.
           </p>
         </div>
 
@@ -96,6 +114,30 @@ export const RetailerDashboardPage: React.FC = () => {
           <PlusCircle className="w-4 h-4" />
           <span>Add Rescue Product</span>
         </Link>
+      </div>
+
+      {/* Store Branch Selector */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+        <span className="text-2xs font-bold text-stone-400 uppercase tracking-wider shrink-0 flex items-center gap-1">
+          <StoreIcon className="w-3.5 h-3.5 text-stone-500" />
+          Store View:
+        </span>
+        <div className="flex items-center gap-1.5">
+          {DASHBOARD_STORES.map((st) => (
+            <button
+              key={st.id}
+              type="button"
+              onClick={() => setSelectedStoreId(st.id)}
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all border ${
+                selectedStoreId === st.id
+                  ? 'bg-emerald-800 text-white border-emerald-800 shadow-2xs'
+                  : 'bg-white hover:bg-stone-50 text-stone-600 border-stone-200'
+              }`}
+            >
+              {st.name}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* KPI Cards Grid */}
@@ -113,10 +155,10 @@ export const RetailerDashboardPage: React.FC = () => {
           <span className="text-2xl font-black text-stone-900">
             {products.filter(p => p.status === 'active').length}
           </span>
-          <span className="text-3xs text-stone-500 block mt-1">Available for consumer reservation</span>
+          <span className="text-3xs text-stone-500 block mt-1">Surplus products rescue-ready</span>
         </div>
 
-        {/* Nearing Expiry Alert */}
+        {/* Urgent Expiry Action Needed */}
         <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-2xs">
           <div className="flex items-center justify-between mb-3">
             <span className="text-2xs font-bold text-stone-400 uppercase tracking-wider">
@@ -183,7 +225,7 @@ export const RetailerDashboardPage: React.FC = () => {
                 Products expiring today or tomorrow. Rule-based pricing suggestions available.
               </p>
             </div>
-            <Link to="/business/products" className="text-xs font-bold text-emerald-800 hover:underline">
+            <Link to="/business/products" className="text-xs font-bold text-emerald-800 hover:text-emerald-950 transition-colors">
               View all
             </Link>
           </div>
@@ -230,7 +272,7 @@ export const RetailerDashboardPage: React.FC = () => {
                       </span>
                       <Link
                         to={`/business/products`}
-                        className="mt-1.5 inline-block text-2xs font-bold text-emerald-800 hover:underline"
+                        className="mt-1.5 inline-block text-2xs font-bold text-emerald-800 hover:text-emerald-950 transition-colors"
                       >
                         Adjust
                       </Link>
@@ -258,24 +300,27 @@ export const RetailerDashboardPage: React.FC = () => {
                 Shoppers arriving to collect reserved surplus orders today.
               </p>
             </div>
-            <Link to="/business/reservations" className="text-xs font-bold text-emerald-800 hover:underline">
+            <Link to="/business/reservations" className="text-xs font-bold text-emerald-800 hover:text-emerald-950 transition-colors">
               Manage all ({reservations.length})
             </Link>
           </div>
 
           {pendingReservations.length > 0 ? (
             <div className="space-y-3">
-              {pendingReservations.slice(0, 3).map((res) => (
+              {pendingReservations.slice(0, 4).map((res) => (
                 <div
                   key={res.id}
                   className="p-4 rounded-2xl bg-stone-50 border border-stone-200/80 space-y-2 text-xs"
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className="font-mono font-bold text-xs bg-stone-200 text-stone-900 px-2 py-0.5 rounded-md">
                         #{res.reservationCode}
                       </span>
                       <StatusBadge status={res.status} />
+                      <span className="text-2xs px-2 py-0.5 rounded-full bg-stone-200/70 text-stone-700 border border-stone-300 font-semibold truncate max-w-[130px]">
+                        {res.storeName}
+                      </span>
                     </div>
                     <span className="font-extrabold text-stone-900 text-sm">
                       {formatCurrency(res.totalAmount)}
@@ -293,16 +338,18 @@ export const RetailerDashboardPage: React.FC = () => {
                     <div className="flex items-center gap-1.5">
                       {res.status === 'CONFIRMED' && (
                         <button
+                          type="button"
                           onClick={() => handleUpdateReservationStatus(res.id, 'READY')}
-                          className="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-2xs"
+                          className="px-3 py-1 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-2xs transition-all shadow-2xs"
                         >
                           Mark Ready
                         </button>
                       )}
                       {res.status === 'READY' && (
                         <button
+                          type="button"
                           onClick={() => handleUpdateReservationStatus(res.id, 'COLLECTED')}
-                          className="px-2.5 py-1 rounded-lg bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-2xs"
+                          className="px-3 py-1 rounded-full bg-emerald-800 hover:bg-emerald-700 text-white font-bold text-2xs transition-all shadow-2xs"
                         >
                           Mark Collected
                         </button>

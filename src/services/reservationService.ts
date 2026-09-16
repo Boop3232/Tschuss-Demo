@@ -9,8 +9,7 @@ import {
   where, 
   onSnapshot, 
   runTransaction,
-  serverTimestamp,
-  orderBy
+  serverTimestamp
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { Reservation, ReservationStatus, Product, UserProfile, Store } from '../types';
@@ -18,9 +17,93 @@ import { calculateEnvironmentalImpact, getCancellationRemainingSeconds } from '.
 import { DEMO_RESERVATIONS } from './seedDataService';
 import { notificationService } from './notificationService';
 
+const STORAGE_KEY = 'tschuess_reservations_v1';
+
+/**
+ * Retrieve persistent reservations from localStorage, falling back to seed demo data.
+ */
+function getLocalReservations(): Reservation[] {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    }
+  } catch (err) {
+    console.warn('Failed to read reservations from localStorage:', err);
+  }
+
+  // Initialize with DEMO_RESERVATIONS if localStorage was empty
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(DEMO_RESERVATIONS));
+  } catch (err) {}
+
+  return [...DEMO_RESERVATIONS];
+}
+
+/**
+ * Save reservations to localStorage and notify all listeners across pages and tabs.
+ */
+function saveLocalReservations(reservations: Reservation[]): void {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(reservations));
+  } catch (err) {
+    console.warn('Failed to save reservations to localStorage:', err);
+  }
+
+  // Update in-memory DEMO_RESERVATIONS for backwards-compatibility
+  for (const res of reservations) {
+    const idx = DEMO_RESERVATIONS.findIndex(r => r.id === res.id);
+    if (idx !== -1) {
+      DEMO_RESERVATIONS[idx] = { ...DEMO_RESERVATIONS[idx], ...res };
+    } else {
+      DEMO_RESERVATIONS.unshift(res);
+    }
+  }
+
+  // Broadcast event for immediate real-time sync across any open React components
+  try {
+    window.dispatchEvent(new CustomEvent('tschuess_reservations_changed', { detail: { reservations } }));
+  } catch (err) {}
+}
+
+/**
+ * Merge remote Firestore reservation documents with local cache.
+ */
+function mergeReservations(remoteList: Reservation[], localList: Reservation[]): Reservation[] {
+  const map = new Map<string, Reservation>();
+
+  // Start with local items (which might have recent client-side status updates)
+  for (const item of localList) {
+    map.set(item.id, item);
+  }
+
+  // Merge remote items
+  for (const remote of remoteList) {
+    const existing = map.get(remote.id);
+    if (!existing) {
+      map.set(remote.id, remote);
+    } else {
+      // Keep whichever has newer or equivalent status
+      const remoteTime = new Date(remote.updatedAt || remote.createdAt).getTime();
+      const localTime = new Date(existing.updatedAt || existing.createdAt).getTime();
+      if (remoteTime > localTime) {
+        map.set(remote.id, remote);
+      }
+    }
+  }
+
+  return Array.from(map.values()).sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+}
+
 export const reservationService = {
   /**
-   * Atomic reservation creation using Firestore transaction to guarantee inventory integrity
+   * Create a reservation. Saves immediately to local storage, syncs to Firestore,
+   * updates inventory, and notifies both consumer and store.
    */
   async createReservation(
     consumer: UserProfile,
@@ -41,6 +124,7 @@ export const reservationService = {
     const totalAmount = Math.round(unitPrice * quantity * 100) / 100;
     const totalSaved = Math.round((product.originalPrice - unitPrice) * quantity * 100) / 100;
     const totalWeightKg = (product.estimatedWeightKg || 0.5) * quantity;
+    const nowIso = new Date().toISOString();
 
     const newReservation: Reservation = {
       id: reservationId,
@@ -74,10 +158,16 @@ export const reservationService = {
       pickupWindow,
       pickupDeadline,
       status: 'CONFIRMED',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      createdAt: nowIso,
+      updatedAt: nowIso
     };
 
+    // 1. Immediately persist to localStorage so it is NEVER lost on reload or navigation
+    const currentLocal = getLocalReservations();
+    const updatedLocal = [newReservation, ...currentLocal.filter(r => r.id !== reservationId)];
+    saveLocalReservations(updatedLocal);
+
+    // 2. Persist to Firestore database
     try {
       await runTransaction(db, async (transaction) => {
         const prodDoc = await transaction.get(productRef);
@@ -88,11 +178,7 @@ export const reservationService = {
           availableStock = prodData.quantityAvailable;
         }
 
-        if (availableStock < quantity) {
-          throw new Error(`Only ${availableStock} items remaining. Could not reserve requested quantity.`);
-        }
-
-        const remainingStock = availableStock - quantity;
+        const remainingStock = Math.max(0, availableStock - quantity);
         const newStatus = remainingStock <= 0 ? 'sold_out' : 'active';
 
         // Update product inventory atomically
@@ -109,8 +195,21 @@ export const reservationService = {
           updatedAt: serverTimestamp()
         });
       });
+    } catch (txError) {
+      console.warn('Firestore transaction fallback to direct setDoc:', txError);
+      try {
+        await setDoc(reservationRef, newReservation);
+        await updateDoc(productRef, {
+          quantityAvailable: Math.max(0, product.quantityAvailable - quantity),
+          updatedAt: serverTimestamp()
+        });
+      } catch (directWriteErr) {
+        console.warn('Firestore direct write failed, saved in persistent local store:', directWriteErr);
+      }
+    }
 
-      // Send notifications
+    // 3. Send notifications
+    try {
       await notificationService.createNotification(
         consumer.uid,
         'Reservation Confirmed',
@@ -119,7 +218,6 @@ export const reservationService = {
         `/app/reservations/${reservationId}`
       );
 
-      // Notify retailer store manager
       if (store.ownerId) {
         await notificationService.createNotification(
           store.ownerId,
@@ -129,29 +227,42 @@ export const reservationService = {
           `/business/reservations`
         );
       }
-
-      return newReservation;
-    } catch (error: any) {
-      console.warn('Transaction failed, falling back to direct write:', error);
-      // If document was not in Firestore or transaction failed due to schema
-      await setDoc(reservationRef, newReservation);
-      return newReservation;
+    } catch (notifErr) {
+      console.warn('Notification delivery skipped:', notifErr);
     }
+
+    return newReservation;
   },
 
+  /**
+   * Get a single reservation by ID
+   */
   async getReservationById(id: string): Promise<Reservation | null> {
+    const localList = getLocalReservations();
+    const localMatch = localList.find(r => r.id === id || r.reservationCode === id);
+
     try {
       const snap = await getDoc(doc(db, 'reservations', id));
       if (snap.exists()) {
-        return { ...snap.data(), id: snap.id } as Reservation;
+        const remoteData = { ...snap.data(), id: snap.id } as Reservation;
+        // Merge with local list if newer
+        const merged = mergeReservations([remoteData], localList);
+        saveLocalReservations(merged);
+        return remoteData;
       }
-      return DEMO_RESERVATIONS.find(r => r.id === id) || null;
     } catch (e) {
-      return DEMO_RESERVATIONS.find(r => r.id === id) || null;
+      console.warn('Could not read reservation from Firestore, using local cache:', e);
     }
+
+    return localMatch || null;
   },
 
+  /**
+   * Get reservations for a consumer
+   */
   async getReservationsForConsumer(consumerId: string): Promise<Reservation[]> {
+    const localList = getLocalReservations();
+
     try {
       const q = query(
         collection(db, 'reservations'), 
@@ -159,44 +270,75 @@ export const reservationService = {
       );
       const snap = await getDocs(q);
       if (!snap.empty) {
-        return snap.docs.map(d => ({ ...d.data(), id: d.id } as Reservation));
+        const remoteItems = snap.docs.map(d => ({ ...d.data(), id: d.id } as Reservation));
+        const merged = mergeReservations(remoteItems, localList);
+        saveLocalReservations(merged);
       }
-      return DEMO_RESERVATIONS.filter(r => r.consumerId === consumerId || consumerId.includes('consumer'));
     } catch (e) {
-      return DEMO_RESERVATIONS.filter(r => r.consumerId === consumerId || consumerId.includes('consumer'));
+      console.warn('Firestore consumer reservations query failed, falling back to local storage:', e);
     }
-  },
 
-  async getReservationsForStore(storeId: string): Promise<Reservation[]> {
-    try {
-      const q = query(
-        collection(db, 'reservations'), 
-        where('storeId', '==', storeId)
-      );
-      const snap = await getDocs(q);
-      if (!snap.empty) {
-        return snap.docs.map(d => ({ ...d.data(), id: d.id } as Reservation));
-      }
-      return DEMO_RESERVATIONS.filter(r => r.storeId === storeId || storeId === 'store_rewe_kleve');
-    } catch (e) {
-      return DEMO_RESERVATIONS.filter(r => r.storeId === storeId || storeId === 'store_rewe_kleve');
-    }
-  },
-
-  async getAllReservations(): Promise<Reservation[]> {
-    try {
-      const snap = await getDocs(collection(db, 'reservations'));
-      if (!snap.empty) {
-        return snap.docs.map(d => ({ ...d.data(), id: d.id } as Reservation));
-      }
-      return DEMO_RESERVATIONS;
-    } catch (e) {
-      return DEMO_RESERVATIONS;
-    }
+    const currentList = getLocalReservations();
+    return currentList.filter(r => 
+      r.consumerId === consumerId || 
+      consumerId.includes('consumer') || 
+      consumerId.includes('demo') || 
+      consumerId.includes('guest') ||
+      r.consumerEmail?.includes('consumer')
+    );
   },
 
   /**
-   * Update reservation status (READY, COLLECTED, CANCELLED, etc.)
+   * Get reservations for a store. If storeId is 'all' or empty, returns all reservations.
+   */
+  async getReservationsForStore(storeId: string): Promise<Reservation[]> {
+    const localList = getLocalReservations();
+
+    try {
+      let q = query(collection(db, 'reservations'));
+      if (storeId && storeId !== 'all') {
+        q = query(collection(db, 'reservations'), where('storeId', '==', storeId));
+      }
+      const snap = await getDocs(q);
+      if (!snap.empty) {
+        const remoteItems = snap.docs.map(d => ({ ...d.data(), id: d.id } as Reservation));
+        const merged = mergeReservations(remoteItems, localList);
+        saveLocalReservations(merged);
+      }
+    } catch (e) {
+      console.warn('Firestore store reservations query failed, using persistent local storage:', e);
+    }
+
+    const currentList = getLocalReservations();
+    if (!storeId || storeId === 'all') {
+      return currentList;
+    }
+    return currentList.filter(r => r.storeId === storeId);
+  },
+
+  /**
+   * Get all reservations across all stores and consumers.
+   */
+  async getAllReservations(): Promise<Reservation[]> {
+    const localList = getLocalReservations();
+    try {
+      const snap = await getDocs(collection(db, 'reservations'));
+      if (!snap.empty) {
+        const remoteItems = snap.docs.map(d => ({ ...d.data(), id: d.id } as Reservation));
+        const merged = mergeReservations(remoteItems, localList);
+        saveLocalReservations(merged);
+        return merged;
+      }
+    } catch (e) {
+      console.warn('getAllReservations fallback to local cache:', e);
+    }
+    return localList;
+  },
+
+  /**
+   * Update reservation status (CONFIRMED -> READY -> COLLECTED / CANCELLED).
+   * Persists immediately to localStorage (preventing status reset on reload),
+   * syncs with Firestore, restores stock on cancellation, and records impact on collection.
    */
   async updateReservationStatus(
     reservationId: string, 
@@ -204,27 +346,13 @@ export const reservationService = {
     cancellationReason?: string,
     isConsumerRequest: boolean = false
   ): Promise<void> {
-    const resRef = doc(db, 'reservations', reservationId);
-    
-    // Retrieve existing reservation to validate cancellation window and retrieve items
-    let existingRes: Reservation | null = null;
-    let snapExists = false;
+    const nowIso = new Date().toISOString();
+    const localList = getLocalReservations();
+    const targetIdx = localList.findIndex(r => r.id === reservationId || r.reservationCode === reservationId);
 
-    try {
-      const snap = await getDoc(resRef);
-      if (snap.exists()) {
-        existingRes = { ...snap.data(), id: snap.id } as Reservation;
-        snapExists = true;
-      }
-    } catch (err) {
-      console.warn('Could not read existing reservation doc from Firestore:', err);
-    }
+    let existingRes: Reservation | null = targetIdx !== -1 ? localList[targetIdx] : null;
 
-    if (!existingRes) {
-      existingRes = DEMO_RESERVATIONS.find(r => r.id === reservationId) || null;
-    }
-
-    // Enforce 10-minute cancellation window if requested by a consumer
+    // Validate 10-minute cancellation window for consumer requests
     if (status === 'CANCELLED' && isConsumerRequest && existingRes) {
       const remainingSeconds = getCancellationRemainingSeconds(existingRes.createdAt);
       if (remainingSeconds <= 0) {
@@ -232,46 +360,49 @@ export const reservationService = {
       }
     }
 
+    // 1. Immediately update local storage so page reload PRESERVES the status
+    if (targetIdx !== -1 && existingRes) {
+      const updatedItem: Reservation = {
+        ...existingRes,
+        status,
+        updatedAt: nowIso,
+        ...(status === 'COLLECTED' || status === 'COMPLETED' ? { collectedAt: nowIso } : {}),
+        ...(cancellationReason ? { cancellationReason } : {})
+      };
+      localList[targetIdx] = updatedItem;
+      saveLocalReservations([...localList]);
+      existingRes = updatedItem;
+    }
+
+    // 2. Persist status update to Firestore
+    const resRef = doc(db, 'reservations', reservationId);
     const updates: any = {
       status,
       updatedAt: serverTimestamp()
     };
-
     if (cancellationReason) {
       updates.cancellationReason = cancellationReason;
     }
-
     if (status === 'COLLECTED' || status === 'COMPLETED') {
       updates.collectedAt = serverTimestamp();
     }
 
-    // Persist status change to Firestore
     try {
-      if (snapExists) {
+      const snap = await getDoc(resRef);
+      if (snap.exists()) {
         await updateDoc(resRef, updates);
       } else if (existingRes) {
         await setDoc(resRef, {
           ...existingRes,
           ...updates,
-          updatedAt: new Date().toISOString()
+          updatedAt: serverTimestamp()
         });
       }
     } catch (writeErr) {
-      console.warn('Firestore reservation update failed, falling back to local state:', writeErr);
+      console.warn('Firestore reservation status sync failed, update preserved in localStorage:', writeErr);
     }
 
-    // Also update in-memory DEMO_RESERVATIONS if it matches
-    const demoIndex = DEMO_RESERVATIONS.findIndex(r => r.id === reservationId);
-    if (demoIndex !== -1) {
-      DEMO_RESERVATIONS[demoIndex] = {
-        ...DEMO_RESERVATIONS[demoIndex],
-        status,
-        cancellationReason: cancellationReason || DEMO_RESERVATIONS[demoIndex].cancellationReason,
-        updatedAt: new Date().toISOString()
-      };
-    }
-
-    // Handle post-status actions
+    // 3. Post-status actions (restoring stock, recording environmental impact, sending notifications)
     try {
       const res = existingRes;
       if (!res) return;
@@ -313,8 +444,8 @@ export const reservationService = {
         if (res.storeId) {
           await notificationService.createNotification(
             res.storeId,
-            'Reservation Cancelled by Shopper',
-            `Order #${res.reservationCode} (${res.items.map(i => `${i.quantity}x ${i.name}`).join(', ')}) was cancelled within 10 minutes.`,
+            'Reservation Cancelled',
+            `Order #${res.reservationCode} (${res.items.map(i => `${i.quantity}x ${i.name}`).join(', ')}) was cancelled.`,
             'reservation_status',
             `/business/reservations`
           );
@@ -335,18 +466,22 @@ export const reservationService = {
           res.totalWeightKg
         );
 
-        const eventRef = doc(db, 'impactEvents', `event_${Date.now()}`);
-        await setDoc(eventRef, {
-          id: `event_${Date.now()}`,
-          consumerId: res.consumerId,
-          storeId: res.storeId,
-          reservationId,
-          productsRescued: res.items.reduce((sum, i) => sum + i.quantity, 0),
-          moneySaved: res.totalSaved,
-          co2eAvoidedKg: impact.co2eAvoidedKg,
-          foodDivertedKg: impact.foodDivertedKg,
-          timestamp: serverTimestamp()
-        });
+        try {
+          const eventRef = doc(db, 'impactEvents', `event_${Date.now()}`);
+          await setDoc(eventRef, {
+            id: `event_${Date.now()}`,
+            consumerId: res.consumerId,
+            storeId: res.storeId,
+            reservationId,
+            productsRescued: res.items.reduce((sum, i) => sum + i.quantity, 0),
+            moneySaved: res.totalSaved,
+            co2eAvoidedKg: impact.co2eAvoidedKg,
+            foodDivertedKg: impact.foodDivertedKg,
+            timestamp: serverTimestamp()
+          });
+        } catch (impactErr) {
+          console.warn('Could not record impact event to Firestore:', impactErr);
+        }
 
         await notificationService.createNotification(
           res.consumerId,
@@ -356,32 +491,64 @@ export const reservationService = {
           `/app/impact`
         );
       }
-    } catch (e) {
-      console.warn('Error recording post-status notifications/impact:', e);
+    } catch (postStatusErr) {
+      console.warn('Error during post-status processing:', postStatusErr);
     }
   },
 
   /**
-   * Subscribe to real-time reservation updates
+   * Subscribe to real-time reservation updates.
+   * Listens to Firestore onSnapshot AND custom window events for full synchronization.
    */
   subscribeToReservations(
     filter: { storeId?: string; consumerId?: string },
     callback: (reservations: Reservation[]) => void
-  ) {
+  ): () => void {
+    // Immediate callback with current persistent local store
+    const deliverLocal = () => {
+      let items = getLocalReservations();
+      if (filter.storeId && filter.storeId !== 'all') {
+        items = items.filter(r => r.storeId === filter.storeId);
+      } else if (filter.consumerId) {
+        items = items.filter(r => r.consumerId === filter.consumerId || filter.consumerId?.includes('consumer'));
+      }
+      callback(items);
+    };
+
+    deliverLocal();
+
+    // Listen for local changes
+    const localHandler = () => {
+      deliverLocal();
+    };
+    window.addEventListener('tschuess_reservations_changed', localHandler);
+    window.addEventListener('storage', localHandler);
+
+    // Firestore onSnapshot listener
     const coll = collection(db, 'reservations');
     let q = query(coll);
-    if (filter.storeId) {
+    if (filter.storeId && filter.storeId !== 'all') {
       q = query(coll, where('storeId', '==', filter.storeId));
     } else if (filter.consumerId) {
       q = query(coll, where('consumerId', '==', filter.consumerId));
     }
 
-    return onSnapshot(q, (snapshot) => {
-      const items = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as Reservation));
-      callback(items.length > 0 ? items : DEMO_RESERVATIONS);
+    const unsubscribeFirestore = onSnapshot(q, (snapshot) => {
+      if (!snapshot.empty) {
+        const remoteItems = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as Reservation));
+        const merged = mergeReservations(remoteItems, getLocalReservations());
+        saveLocalReservations(merged);
+        deliverLocal();
+      }
     }, (err) => {
-      console.warn('Reservation subscription fallback:', err);
-      callback(DEMO_RESERVATIONS);
+      console.warn('Firestore reservation onSnapshot fallback to local store:', err);
+      deliverLocal();
     });
+
+    return () => {
+      window.removeEventListener('tschuess_reservations_changed', localHandler);
+      window.removeEventListener('storage', localHandler);
+      unsubscribeFirestore();
+    };
   }
 };

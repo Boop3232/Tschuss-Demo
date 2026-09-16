@@ -249,7 +249,7 @@ export const RegisterPage: React.FC = () => {
               Already have an account?{' '}
               <Link 
                 to="/login" 
-                className="font-bold text-emerald-700 hover:text-emerald-800 hover:underline"
+                className="font-bold text-emerald-700 hover:text-emerald-900 transition-colors"
               >
                 Log in here
               </Link>

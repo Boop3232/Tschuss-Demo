@@ -74,7 +74,7 @@ export const ForgotPasswordPage: React.FC = () => {
               <div className="pt-2 border-t border-emerald-200/70">
                 <Link
                   to="/login"
-                  className="inline-flex items-center gap-1.5 font-bold text-emerald-900 hover:text-emerald-950 underline"
+                  className="inline-flex items-center gap-1.5 font-bold text-emerald-900 hover:text-emerald-950 no-underline hover:opacity-85"
                 >
                   <ArrowLeft className="w-4 h-4" />
                   <span>Return to Log in</span>

@@ -61,7 +61,7 @@ export const StoreDetailPage: React.FC = () => {
     return (
       <div className="max-w-md mx-auto px-4 py-16 text-center">
         <h2 className="text-xl font-bold text-stone-900 mb-2">Store Not Found</h2>
-        <Link to="/app/discover" className="text-xs font-bold text-emerald-800 hover:underline">
+        <Link to="/app/discover" className="text-xs font-bold text-emerald-800 hover:text-emerald-950 transition-colors">
           Return to Marketplace
         </Link>
       </div>
@@ -89,7 +89,7 @@ export const StoreDetailPage: React.FC = () => {
             alt={store.name}
             className="w-full h-full object-cover opacity-85"
           />
-          <div className="absolute inset-0 bg-linear-to-t from-stone-950/80 via-stone-950/30 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-stone-950/80 via-stone-950/30 to-transparent" />
 
           <div className="absolute bottom-5 left-5 right-5 flex flex-col sm:flex-row sm:items-end justify-between gap-3 text-white">
             <div>

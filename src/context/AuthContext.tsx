@@ -29,6 +29,12 @@ export interface AuthContextType {
   resendVerificationEmail: () => Promise<void>;
   updateUserProfile: (data: Partial<UserProfile>) => Promise<void>;
   refreshUserProfile: () => Promise<UserProfile | null>;
+  // Development Role Switching
+  devRole: UserRole | null;
+  isDevRoleActive: boolean;
+  switchToRetailerDev: () => Promise<void>;
+  switchToConsumerDev: () => Promise<void>;
+  setDevRole: (role: UserRole | null) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -37,6 +43,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [devRoleOverride, setDevRoleOverride] = useState<UserRole | null>(() => {
+    const saved = localStorage.getItem('tschuess_dev_role');
+    if (saved === 'retailer' || saved === 'consumer' || saved === 'admin') {
+      return saved as UserRole;
+    }
+    return null;
+  });
 
   // Helper to fetch or create user profile from Firestore
   const fetchUserProfile = useCallback(async (firebaseUser: User): Promise<UserProfile | null> => {
@@ -89,17 +102,122 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Listen to centralized Firebase Auth state changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setCurrentUser(user);
       if (user) {
+        setCurrentUser(user);
         await fetchUserProfile(user);
       } else {
-        setUserProfile(null);
+        // Check if dev mock retailer session was active
+        const isMock = localStorage.getItem('tschuess_dev_mock_user');
+        const savedDevRole = localStorage.getItem('tschuess_dev_role');
+        if (isMock === 'true' && savedDevRole === 'retailer') {
+          const devMockUser = {
+            uid: 'dev_retailer_kleve',
+            email: 'partner.kleve@rewe-group.de',
+            displayName: 'REWE Kleve (Dev Partner)',
+            emailVerified: true
+          } as unknown as User;
+          const devMockProfile: UserProfile = {
+            uid: 'dev_retailer_kleve',
+            name: 'REWE Kleve (Dev Partner)',
+            email: 'partner.kleve@rewe-group.de',
+            role: 'retailer',
+            language: 'de',
+            notificationPreferences: {
+              email: true,
+              push: true,
+              dealsNearMe: true,
+              reservationUpdates: true,
+              savedPriceDrops: true
+            }
+          };
+          setCurrentUser(devMockUser);
+          setUserProfile(devMockProfile);
+        } else {
+          setCurrentUser(null);
+          setUserProfile(null);
+        }
       }
       setLoading(false);
     });
 
     return () => unsubscribe();
   }, [fetchUserProfile]);
+
+  // Development Role Switching Methods
+  const switchToRetailerDev = useCallback(async () => {
+    localStorage.setItem('tschuess_dev_role', 'retailer');
+    setDevRoleOverride('retailer');
+
+    if (currentUser) {
+      setUserProfile((prev) => {
+        if (!prev) return null;
+        return { ...prev, role: 'retailer' };
+      });
+    } else {
+      const devMockUser = {
+        uid: 'dev_retailer_kleve',
+        email: 'partner.kleve@rewe-group.de',
+        displayName: 'REWE Kleve (Dev Partner)',
+        emailVerified: true
+      } as unknown as User;
+      const devMockProfile: UserProfile = {
+        uid: 'dev_retailer_kleve',
+        name: 'REWE Kleve (Dev Partner)',
+        email: 'partner.kleve@rewe-group.de',
+        role: 'retailer',
+        language: 'de',
+        notificationPreferences: {
+          email: true,
+          push: true,
+          dealsNearMe: true,
+          reservationUpdates: true,
+          savedPriceDrops: true
+        }
+      };
+      localStorage.setItem('tschuess_dev_mock_user', 'true');
+      setCurrentUser(devMockUser);
+      setUserProfile(devMockProfile);
+    }
+  }, [currentUser]);
+
+  const switchToConsumerDev = useCallback(async () => {
+    localStorage.setItem('tschuess_dev_role', 'consumer');
+    setDevRoleOverride('consumer');
+
+    if (currentUser) {
+      setUserProfile((prev) => {
+        if (!prev) return null;
+        return { ...prev, role: 'consumer' };
+      });
+    }
+    if (localStorage.getItem('tschuess_dev_mock_user') === 'true' && currentUser?.uid === 'dev_retailer_kleve') {
+      setUserProfile((prev) => (prev ? { ...prev, role: 'consumer', name: 'Dev Consumer' } : null));
+    }
+  }, [currentUser]);
+
+  const setDevRole = useCallback(async (newRole: UserRole | null) => {
+    if (newRole === 'retailer') {
+      await switchToRetailerDev();
+    } else if (newRole === 'consumer') {
+      await switchToConsumerDev();
+    } else if (newRole === 'admin') {
+      localStorage.setItem('tschuess_dev_role', 'admin');
+      setDevRoleOverride('admin');
+      if (currentUser) {
+        setUserProfile((prev) => (prev ? { ...prev, role: 'admin' } : null));
+      }
+    } else {
+      localStorage.removeItem('tschuess_dev_role');
+      localStorage.removeItem('tschuess_dev_mock_user');
+      setDevRoleOverride(null);
+      if (currentUser && currentUser.uid !== 'dev_retailer_kleve') {
+        await fetchUserProfile(currentUser);
+      } else {
+        setCurrentUser(null);
+        setUserProfile(null);
+      }
+    }
+  }, [currentUser, fetchUserProfile, switchToConsumerDev, switchToRetailerDev]);
 
   // Real Email/Password login
   const login = async (email: string, pass: string): Promise<UserProfile | null> => {
@@ -165,6 +283,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = async () => {
     setLoading(true);
     try {
+      localStorage.removeItem('tschuess_dev_role');
+      localStorage.removeItem('tschuess_dev_mock_user');
+      setDevRoleOverride(null);
       await firebaseSignOut(auth);
       setCurrentUser(null);
       setUserProfile(null);
@@ -216,15 +337,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUserProfile(prev => prev ? ({ ...prev, ...safeData } as UserProfile) : null);
   };
 
+  const effectiveRole: UserRole | null = devRoleOverride || userProfile?.role || null;
+  const effectiveProfile: UserProfile | null = userProfile
+    ? {
+        ...userProfile,
+        role: effectiveRole || userProfile.role,
+      }
+    : null;
+
   return (
     <AuthContext.Provider
       value={{
         currentUser,
         user: currentUser,
         firebaseUser: currentUser,
-        userProfile,
+        userProfile: effectiveProfile,
         loading,
-        role: userProfile?.role || null,
+        role: effectiveRole,
         isAuthenticated: !!currentUser,
         isEmailVerified: !!currentUser?.emailVerified,
         login,
@@ -233,7 +362,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         resetPassword,
         resendVerificationEmail,
         updateUserProfile,
-        refreshUserProfile
+        refreshUserProfile,
+        devRole: devRoleOverride,
+        isDevRoleActive: !!devRoleOverride,
+        switchToRetailerDev,
+        switchToConsumerDev,
+        setDevRole,
       }}
     >
       {children}

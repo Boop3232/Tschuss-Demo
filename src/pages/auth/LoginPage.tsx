@@ -182,7 +182,7 @@ export const LoginPage: React.FC = () => {
                     setForgotEmail(email);
                     setShowForgotModal(true);
                   }}
-                  className="text-2xs font-bold text-emerald-700 hover:text-emerald-800 hover:underline"
+                  className="text-2xs font-bold text-emerald-700 hover:text-emerald-900 transition-colors"
                 >
                   Forgot password?
                 </button>
@@ -238,7 +238,7 @@ export const LoginPage: React.FC = () => {
               Don't have an account?{' '}
               <Link 
                 to="/register" 
-                className="font-bold text-emerald-700 hover:text-emerald-800 hover:underline"
+                className="font-bold text-emerald-700 hover:text-emerald-900 transition-colors"
               >
                 Sign up as a consumer
               </Link>

@@ -33,7 +33,7 @@ export const AdminDashboardPage: React.FC = () => {
       const [s, p, r] = await Promise.all([
         storeService.getStores(),
         productService.getProducts(),
-        reservationService.getReservationsForStore('store_rewe_kleve')
+        reservationService.getAllReservations()
       ]);
       setStores(s);
       setProducts(p);

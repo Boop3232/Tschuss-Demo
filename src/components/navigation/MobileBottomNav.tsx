@@ -24,7 +24,7 @@ export const MobileBottomNav: React.FC = () => {
               key={item.path}
               to={item.path}
               className={({ isActive }) =>
-                `flex flex-col items-center justify-center py-1.5 px-2 rounded-xl transition-all ${
+                `no-underline flex flex-col items-center justify-center py-1.5 px-2 rounded-xl transition-all ${
                   isActive
                     ? 'text-emerald-900 font-bold'
                     : 'text-stone-400 hover:text-stone-600 font-medium'
