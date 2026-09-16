@@ -1,0 +1,6 @@
+{
+  "name": "Tschüss",
+  "description": "Connecting Retailers and Consumers to Profit from Near Food Expiry",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

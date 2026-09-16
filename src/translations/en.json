@@ -1,0 +1,110 @@
+{
+  "brand": {
+    "name": "Tschüss",
+    "tagline": "Connecting Retailers and Consumers to Profit from Near Food Expiry",
+    "subTagline": "Good products deserve a second chance."
+  },
+  "nav": {
+    "discover": "Discover",
+    "search": "Search",
+    "map": "Map",
+    "saved": "Saved",
+    "reservations": "Reservations",
+    "impact": "Impact",
+    "notifications": "Notifications",
+    "profile": "Profile",
+    "businessPortal": "Retailer Portal",
+    "howItWorks": "How it Works",
+    "forBusiness": "For Businesses",
+    "faq": "FAQ",
+    "about": "About",
+    "login": "Log in",
+    "register": "Sign up",
+    "logout": "Log out",
+    "admin": "Admin",
+    "switchRole": "Switch Role (Demo)"
+  },
+  "categories": {
+    "all": "All categories",
+    "grocery": "Grocery",
+    "bakery": "Bakery",
+    "cosmetics": "Cosmetics",
+    "flowers": "Flowers",
+    "drinks": "Drinks",
+    "household": "Household",
+    "other": "Other"
+  },
+  "actions": {
+    "reserveNow": "Reserve now",
+    "confirmReservation": "Confirm Reservation",
+    "save": "Save",
+    "saved": "Saved",
+    "getDirections": "Get directions",
+    "cancel": "Cancel",
+    "applyFilters": "Apply filters",
+    "clearAll": "Clear all",
+    "viewDetails": "View details",
+    "addProduct": "Add product",
+    "publish": "Publish product",
+    "saveChanges": "Save changes",
+    "markReady": "Mark ready",
+    "markCollected": "Mark collected",
+    "useCurrentLocation": "Use my current location",
+    "searchLocation": "Search city or address"
+  },
+  "status": {
+    "pending": "Pending",
+    "confirmed": "Confirmed",
+    "ready": "Ready for pickup",
+    "collected": "Collected",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "expired": "Expired",
+    "active": "Active",
+    "draft": "Draft",
+    "paused": "Paused",
+    "soldOut": "Sold out"
+  },
+  "discover": {
+    "greeting": "Good afternoon",
+    "dealsNearYou": "Deals near you",
+    "recommendedDeals": "Recommended rescue deals",
+    "searchPlaceholder": "Search products, stores or categories...",
+    "left": "left",
+    "off": "OFF",
+    "rescuePrice": "Rescue price",
+    "originalPrice": "Original price",
+    "noDeals": "No rescue deals found matching your criteria in this area."
+  },
+  "reservation": {
+    "chooseQuantity": "Choose quantity",
+    "pickupWindow": "Pickup window",
+    "pickupDeadline": "Pickup deadline",
+    "total": "Total",
+    "confirmedTitle": "Reservation Confirmed!",
+    "confirmedSubtitle": "Show this code to store staff upon collection.",
+    "code": "Reservation Code",
+    "successMessage": "Your items have been safely reserved in the retailer inventory.",
+    "cancelReservation": "Cancel reservation"
+  },
+  "retailer": {
+    "dashboardTitle": "Overview",
+    "dashboardSubtitle": "Here's what's happening in your store today.",
+    "activeProducts": "Active products",
+    "productsRescued": "Products rescued",
+    "revenueRecovered": "Revenue recovered",
+    "co2eAvoided": "CO2e avoided",
+    "nearingExpiry": "Products nearing expiry",
+    "newProduct": "Add Rescue Product"
+  },
+  "impact": {
+    "title": "Your Tschüss Impact",
+    "subtitle": "Track the verified environmental and financial value generated through food rescue.",
+    "productsRescued": "Products rescued",
+    "moneySaved": "Money saved",
+    "co2eAvoided": "Estimated CO2e avoided",
+    "storesSupported": "Stores supported",
+    "reservationsCompleted": "Reservations completed",
+    "disclaimer": "Impact values are estimates based on platform activity and configurable methodology (2.5 kg CO2e / kg diverted)."
+  }
+}

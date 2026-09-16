@@ -1,0 +1,94 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile document for consumers, retailers, and admins",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "role": { "type": "string", "enum": ["consumer", "retailer", "admin"] },
+        "photoURL": { "type": "string" },
+        "phone": { "type": "string" },
+        "language": { "type": "string", "enum": ["en", "de"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "name", "email", "role"]
+    },
+    "Store": {
+      "title": "Store",
+      "description": "Participating retail store profile",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "ownerId": { "type": "string" },
+        "address": { "type": "string" },
+        "latitude": { "type": "number" },
+        "longitude": { "type": "number" },
+        "phone": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "paused", "pending"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "ownerId", "address", "latitude", "longitude"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Rescue product approaching expiry",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "storeId": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "category": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "originalPrice": { "type": "number" },
+        "discountPercent": { "type": "number" },
+        "rescuePrice": { "type": "number" },
+        "quantityAvailable": { "type": "integer" },
+        "expiryAt": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["draft", "active", "paused", "sold_out", "expired"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "storeId", "name", "category", "originalPrice", "discountPercent", "rescuePrice", "quantityAvailable", "expiryAt", "status"]
+    },
+    "Reservation": {
+      "title": "Reservation",
+      "description": "Consumer reservation of rescue products",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "consumerId": { "type": "string" },
+        "storeId": { "type": "string" },
+        "totalAmount": { "type": "number" },
+        "status": { "type": "string", "enum": ["PENDING", "CONFIRMED", "READY", "COLLECTED", "COMPLETED", "CANCELLED", "EXPIRED"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "consumerId", "storeId", "totalAmount", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile collection"
+    },
+    "/stores/{storeId}": {
+      "schema": "Store",
+      "description": "Participating retail stores"
+    },
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Products approaching expiry available for rescue"
+    },
+    "/reservations/{reservationId}": {
+      "schema": "Reservation",
+      "description": "Product reservations by consumers"
+    }
+  }
+}

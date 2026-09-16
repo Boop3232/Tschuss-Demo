@@ -1,0 +1,110 @@
+{
+  "brand": {
+    "name": "Tschüss",
+    "tagline": "Einzelhändler und Konsumenten verbinden, um von Lebensmitteln kurz vor dem Verfallsdatum zu profitieren",
+    "subTagline": "Gute Produkte verdienen eine zweite Chance."
+  },
+  "nav": {
+    "discover": "Entdecken",
+    "search": "Suche",
+    "map": "Karte",
+    "saved": "Gemerkt",
+    "reservations": "Reservierungen",
+    "impact": "Nachhaltigkeit",
+    "notifications": "Mitteilungen",
+    "profile": "Profil",
+    "businessPortal": "Händlerportal",
+    "howItWorks": "So funktioniert's",
+    "forBusiness": "Für Händler",
+    "faq": "FAQ",
+    "about": "Über uns",
+    "login": "Anmelden",
+    "register": "Registrieren",
+    "logout": "Abmelden",
+    "admin": "Admin",
+    "switchRole": "Rolle wechseln (Demo)"
+  },
+  "categories": {
+    "all": "Alle Kategorien",
+    "grocery": "Lebensmittel",
+    "bakery": "Bäckerei",
+    "cosmetics": "Kosmetik",
+    "flowers": "Blumen",
+    "drinks": "Getränke",
+    "household": "Haushalt",
+    "other": "Sonstiges"
+  },
+  "actions": {
+    "reserveNow": "Jetzt reservieren",
+    "confirmReservation": "Reservierung bestätigen",
+    "save": "Merken",
+    "saved": "Gemerkt",
+    "getDirections": "Route anzeigen",
+    "cancel": "Abbrechen",
+    "applyFilters": "Filter anwenden",
+    "clearAll": "Zurücksetzen",
+    "viewDetails": "Details anzeigen",
+    "addProduct": "Produkt hinzufügen",
+    "publish": "Produkt veröffentlichen",
+    "saveChanges": "Änderungen speichern",
+    "markReady": "Abholbereit",
+    "markCollected": "Abgeholt",
+    "useCurrentLocation": "Meinen aktuellen Standort nutzen",
+    "searchLocation": "Stadt oder Adresse suchen"
+  },
+  "status": {
+    "pending": "Ausstehend",
+    "confirmed": "Bestätigt",
+    "ready": "Abholbereit",
+    "collected": "Abgeholt",
+    "completed": "Abgeschlossen",
+    "cancelled": "Storniert",
+    "expired": "Abgelaufen",
+    "active": "Aktiv",
+    "draft": "Entwurf",
+    "paused": "Pausiert",
+    "soldOut": "Ausverkauft"
+  },
+  "discover": {
+    "greeting": "Guten Tag",
+    "dealsNearYou": "Angebote in deiner Nähe",
+    "recommendedDeals": "Empfohlene Rettungs-Deals",
+    "searchPlaceholder": "Produkte, Märkte oder Kategorien durchsuchen...",
+    "left": "übrig",
+    "off": "RABATT",
+    "rescuePrice": "Rettungspreis",
+    "originalPrice": "UVP",
+    "noDeals": "Keine passenden Rettungs-Deals in diesem Umkreis gefunden."
+  },
+  "reservation": {
+    "chooseQuantity": "Menge auswählen",
+    "pickupWindow": "Abholzeitfenster",
+    "pickupDeadline": "Abholfrist",
+    "total": "Gesamtbetrag",
+    "confirmedTitle": "Reservierung erfolgreich!",
+    "confirmedSubtitle": "Zeige diesen Abholcode beim Marktpersonal vor.",
+    "code": "Reservierungscode",
+    "successMessage": "Deine Artikel wurden sicher im Marktbestand für dich reserviert.",
+    "cancelReservation": "Reservierung stornieren"
+  },
+  "retailer": {
+    "dashboardTitle": "Übersicht",
+    "dashboardSubtitle": "Hier siehst du den aktuellen Status deines Marktes.",
+    "activeProducts": "Aktive Produkte",
+    "productsRescued": "Gerettete Artikel",
+    "revenueRecovered": "Geretteter Umsatz",
+    "co2eAvoided": "Vermeidetes CO2e",
+    "nearingExpiry": "Produkte kurz vor Ablauf",
+    "newProduct": "Rettungsartikel einstellen"
+  },
+  "impact": {
+    "title": "Deine Tschüss Nachhaltigkeitsbilanz",
+    "subtitle": "Verfolge deinen positiven ökologischen und finanziellen Beitrag durch Lebensmittelrettung.",
+    "productsRescued": "Produkte gerettet",
+    "moneySaved": "Geld gespart",
+    "co2eAvoided": "Geschätztes vermiedenes CO2e",
+    "storesSupported": "Unterstützte Märkte",
+    "reservationsCompleted": "Abgeschlossene Reservierungen",
+    "disclaimer": "Werte sind Schätzungen basierend auf Plattformaktivität und transparenter Methodik (2,5 kg CO2e / kg geretteter Lebensmittel)."
+  }
+}
