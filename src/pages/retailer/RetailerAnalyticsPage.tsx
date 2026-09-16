@@ -24,7 +24,7 @@ import {
   Legend
 } from 'recharts';
 import { impactService, RetailerImpactStats } from '../../services/impactService';
-import { formatCurrency, IMPACT_CONFIG } from '../../utils/businessLogic';
+import { formatCurrency, formatKg, IMPACT_CONFIG } from '../../utils/businessLogic';
 
 export const RetailerAnalyticsPage: React.FC = () => {
   const storeId = 'store_rewe_kleve';
@@ -127,7 +127,7 @@ export const RetailerAnalyticsPage: React.FC = () => {
             Surplus Food Rescued
           </span>
           <span className="text-2xl font-black text-stone-900">
-            {impact?.foodSavedKg || 310} <span className="text-sm font-normal text-stone-500">kg</span>
+            {formatKg(impact?.foodDivertedKg || 310)} <span className="text-sm font-normal text-stone-500">kg</span>
           </span>
           <span className="text-3xs text-stone-500 block mt-1">
             Diverted from waste containers
@@ -139,7 +139,7 @@ export const RetailerAnalyticsPage: React.FC = () => {
             CO2e Emissions Diverted
           </span>
           <span className="text-2xl font-black text-teal-950">
-            {impact?.co2eAvoidedKg || 775} <span className="text-sm font-normal text-stone-500">kg</span>
+            {formatKg(impact?.co2eAvoidedKg || 775)} <span className="text-sm font-normal text-stone-500">kg</span>
           </span>
           <span className="text-3xs text-stone-500 block mt-1">
             Corporate ESG benchmark

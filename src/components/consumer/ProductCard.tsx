@@ -50,17 +50,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickReserv
   const expiryInfo = formatExpiry(product.expiryAt);
 
   const expiryStyles = {
-    critical: 'bg-rose-50 text-rose-700 border-rose-200/80 font-semibold',
-    warning: 'bg-amber-50 text-amber-800 border-amber-200/80 font-semibold',
-    normal: 'bg-emerald-50 text-emerald-800 border-emerald-200/70 font-medium',
-    expired: 'bg-stone-100 text-stone-500 border-stone-200 font-medium'
+    critical: 'bg-stone-100 text-stone-900 border-stone-300 font-semibold',
+    warning: 'bg-stone-50 text-stone-700 border-stone-200/90 font-medium',
+    normal: 'bg-stone-50 text-stone-600 border-stone-200/70 font-medium',
+    expired: 'bg-stone-100 text-stone-400 border-stone-200 font-medium'
   }[expiryInfo.urgency];
 
   return (
     <div
       id={`product-card-${product.id}`}
       onClick={handleCardClick}
-      className="group bg-white rounded-3xl border border-stone-200/70 shadow-2xs hover:shadow-md hover:border-emerald-300 transition-all duration-200 overflow-hidden flex flex-col cursor-pointer text-left"
+      className="group bg-white rounded-3xl border border-stone-200/80 shadow-2xs hover:shadow-md hover:border-stone-300 transition-all duration-200 overflow-hidden flex flex-col cursor-pointer text-left"
     >
       {/* Image Container with Badges */}
       <div className="relative aspect-4/3 w-full bg-stone-50 overflow-hidden">
@@ -95,7 +95,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickReserv
         </button>
 
         {/* Stock Pill */}
-        <div className="absolute bottom-2.5 right-2.5 bg-stone-900/70 backdrop-blur-xs text-white text-2xs font-semibold px-2 py-0.5 rounded-lg shadow-2xs">
+        <div className="absolute bottom-2.5 right-2.5 bg-stone-900/80 backdrop-blur-xs text-white text-2xs font-semibold px-2 py-0.5 rounded-lg shadow-2xs">
           {product.quantityAvailable} left
         </div>
       </div>
@@ -105,20 +105,20 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickReserv
         <div>
           {/* Store & Distance Row */}
           <div className="flex items-center justify-between text-xs text-stone-500 mb-1.5 gap-2">
-            <span className="font-semibold text-emerald-800 truncate flex items-center gap-1">
-              <Store className="w-3.5 h-3.5 shrink-0 text-emerald-600" />
+            <span className="font-medium text-stone-700 truncate flex items-center gap-1">
+              <Store className="w-3.5 h-3.5 shrink-0 text-stone-500" />
               {product.storeName}
             </span>
             {(product as any).calculatedDistance !== undefined && (
-              <span className="shrink-0 flex items-center gap-0.5 font-medium text-stone-600 bg-stone-50 border border-stone-200/60 px-2 py-0.5 rounded-lg text-2xs">
-                <MapPin className="w-3 h-3 text-emerald-600" />
+              <span className="shrink-0 flex items-center gap-0.5 font-medium text-stone-600 bg-stone-100/70 border border-stone-200/60 px-2 py-0.5 rounded-lg text-2xs">
+                <MapPin className="w-3 h-3 text-stone-500" />
                 {formatDistance((product as any).calculatedDistance)}
               </span>
             )}
           </div>
 
           {/* Product Name */}
-          <h4 className="font-bold text-stone-900 text-base leading-snug line-clamp-2 group-hover:text-emerald-800 transition-colors">
+          <h4 className="font-bold text-stone-900 text-base leading-snug line-clamp-2 group-hover:text-stone-700 transition-colors">
             {product.name}
           </h4>
 
@@ -143,7 +143,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickReserv
             type="button"
             id={`btn-reserve-${product.id}`}
             onClick={handleReserveClick}
-            className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 whitespace-nowrap"
+            className="px-3.5 py-1.5 rounded-xl bg-stone-900 hover:bg-stone-800 active:scale-95 text-white text-xs font-semibold transition-all shadow-2xs flex items-center gap-1.5 whitespace-nowrap cursor-pointer"
           >
             <ShoppingBag className="w-3.5 h-3.5" />
             Reserve

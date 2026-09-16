@@ -10,7 +10,10 @@ import {
   ChevronRight,
   Check,
   ExternalLink,
-  Filter
+  Filter,
+  CheckCircle2,
+  AlertCircle,
+  XCircle
 } from 'lucide-react';
 import { AppNotification } from '../../types';
 import { notificationService } from '../../services/notificationService';
@@ -62,57 +65,160 @@ export const NotificationsPage: React.FC = () => {
     }
   };
 
-  const getTypeMeta = (type: AppNotification['type']) => {
-    switch (type) {
-      case 'reservation_status':
+  /**
+   * Status-dependent badge coloring, icon, and localized label
+   */
+  const getNotificationTagMeta = (notif: AppNotification) => {
+    const textLower = `${notif.title} ${notif.message}`.toLowerCase();
+
+    if (notif.type === 'reservation_status') {
+      // 1. Cancelled / Expired
+      if (textLower.includes('cancel') || textLower.includes('storniert') || textLower.includes('expired') || textLower.includes('abgelaufen')) {
         return {
-          icon: ShoppingBag,
-          label: language === 'de' ? 'Abholstatus' : 'Pickup Status',
-          badgeBg: 'bg-emerald-100 text-emerald-900 border-emerald-200/80',
-          iconBg: 'bg-emerald-900 text-white'
+          icon: AlertCircle,
+          label: language === 'de' ? 'Storniert' : 'Cancelled',
+          badgeBg: 'bg-rose-50 text-rose-800 border-rose-200/90',
+          iconColor: 'text-rose-600'
         };
-      case 'deal_alert':
+      }
+
+      // 2. Ready for Pickup
+      if (textLower.includes('ready') || textLower.includes('abholbereit') || textLower.includes('packed') || textLower.includes('gepackt')) {
         return {
-          icon: Tag,
-          label: language === 'de' ? 'Rettungs-Deal' : 'Rescue Deal',
-          badgeBg: 'bg-amber-100 text-amber-900 border-amber-200/80',
-          iconBg: 'bg-amber-800 text-white'
+          icon: Sparkles,
+          label: language === 'de' ? 'Abholbereit' : 'Ready for Pickup',
+          badgeBg: 'bg-emerald-100 text-emerald-950 border-emerald-300 font-black',
+          iconColor: 'text-emerald-700'
         };
-      case 'stock_alert':
+      }
+
+      // 3. Rescued / Collected / Completed
+      if (textLower.includes('collected') || textLower.includes('rescued') || textLower.includes('completed') || textLower.includes('abgeholt') || textLower.includes('gerettet')) {
         return {
-          icon: Clock,
-          label: language === 'de' ? 'Bestandswarnung' : 'Stock Alert',
-          badgeBg: 'bg-rose-100 text-rose-900 border-rose-200/80',
-          iconBg: 'bg-rose-800 text-white'
+          icon: CheckCheck,
+          label: language === 'de' ? 'Abgeholt' : 'Collected',
+          badgeBg: 'bg-teal-50 text-teal-900 border-teal-200/90',
+          iconColor: 'text-teal-700'
         };
-      default:
+      }
+
+      // 4. Confirmed / Booked
+      if (textLower.includes('confirmed') || textLower.includes('bestätigt') || textLower.includes('booked') || textLower.includes('gebucht') || textLower.includes('#ts-')) {
         return {
-          icon: Bell,
-          label: language === 'de' ? 'Neuigkeit' : 'Update',
-          badgeBg: 'bg-stone-100 text-stone-800 border-stone-200/80',
-          iconBg: 'bg-stone-800 text-white'
+          icon: CheckCircle2,
+          label: language === 'de' ? 'Bestätigt' : 'Confirmed',
+          badgeBg: 'bg-sky-50 text-sky-900 border-sky-200/90',
+          iconColor: 'text-sky-700'
         };
+      }
+
+      // 5. Default Pickup Status
+      return {
+        icon: ShoppingBag,
+        label: language === 'de' ? 'Abholstatus' : 'Pickup Status',
+        badgeBg: 'bg-emerald-50 text-emerald-900 border-emerald-200/80',
+        iconColor: 'text-emerald-700'
+      };
     }
+
+    if (notif.type === 'deal_alert' || notif.type === 'price_drop') {
+      return {
+        icon: Tag,
+        label: language === 'de' ? 'Rettungs-Deal' : 'Rescue Deal',
+        badgeBg: 'bg-amber-50 text-amber-900 border-amber-200/90',
+        iconColor: 'text-amber-700'
+      };
+    }
+
+    if (notif.type === 'stock_alert') {
+      return {
+        icon: Clock,
+        label: language === 'de' ? 'Bestandswarnung' : 'Stock Alert',
+        badgeBg: 'bg-orange-50 text-orange-900 border-orange-200/90',
+        iconColor: 'text-orange-700'
+      };
+    }
+
+    return {
+      icon: Bell,
+      label: language === 'de' ? 'Neuigkeit' : 'Update',
+      badgeBg: 'bg-stone-100 text-stone-800 border-stone-200/90',
+      iconColor: 'text-stone-600'
+    };
   };
 
-  const formatRelativeTime = (timestamp?: string) => {
-    if (!timestamp) return language === 'de' ? 'Gerade eben' : 'Just now';
+  /**
+   * Format accurate local timestamp with local time instead of 'just now'
+   */
+  const formatLocalTimestamp = (rawTimestamp?: string | number | { seconds?: number; toDate?: () => Date } | any) => {
+    let date: Date;
     try {
-      const date = new Date(timestamp);
-      if (isNaN(date.getTime())) return timestamp;
-      const diffMs = Date.now() - date.getTime();
-      const diffMinutes = Math.floor(diffMs / 60000);
-      const diffHours = Math.floor(diffMinutes / 60);
-      const diffDays = Math.floor(diffHours / 24);
+      if (!rawTimestamp) {
+        date = new Date();
+      } else if (typeof rawTimestamp === 'object') {
+        if (typeof rawTimestamp.toDate === 'function') {
+          date = rawTimestamp.toDate();
+        } else if (typeof rawTimestamp.seconds === 'number') {
+          date = new Date(rawTimestamp.seconds * 1000);
+        } else {
+          date = new Date();
+        }
+      } else if (typeof rawTimestamp === 'number') {
+        date = new Date(rawTimestamp);
+      } else if (typeof rawTimestamp === 'string') {
+        date = new Date(rawTimestamp);
+      } else {
+        date = new Date();
+      }
 
-      if (diffMinutes < 1) return language === 'de' ? 'Gerade eben' : 'Just now';
-      if (diffMinutes < 60) return `${diffMinutes}m ${language === 'de' ? 'vor' : 'ago'}`;
-      if (diffHours < 24) return `${diffHours}h ${language === 'de' ? 'vor' : 'ago'}`;
-      if (diffDays === 1) return language === 'de' ? 'Gestern' : 'Yesterday';
-      return `${diffDays}d ${language === 'de' ? 'vor' : 'ago'}`;
+      if (isNaN(date.getTime())) {
+        date = new Date();
+      }
     } catch {
-      return timestamp;
+      date = new Date();
     }
+
+    const now = new Date();
+    const timeStr = date.toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+
+    const isToday = 
+      date.getDate() === now.getDate() &&
+      date.getMonth() === now.getMonth() &&
+      date.getFullYear() === now.getFullYear();
+
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+    const isYesterday = 
+      date.getDate() === yesterday.getDate() &&
+      date.getMonth() === yesterday.getMonth() &&
+      date.getFullYear() === yesterday.getFullYear();
+
+    const isThisYear = date.getFullYear() === now.getFullYear();
+
+    if (isToday) {
+      return language === 'de' ? `Heute, ${timeStr}` : `Today, ${timeStr}`;
+    }
+    if (isYesterday) {
+      return language === 'de' ? `Gestern, ${timeStr}` : `Yesterday, ${timeStr}`;
+    }
+    if (isThisYear) {
+      const dateStr = date.toLocaleDateString(language === 'de' ? 'de-DE' : 'en-US', {
+        day: 'numeric',
+        month: 'short'
+      });
+      return `${dateStr}, ${timeStr}`;
+    }
+
+    const fullDateStr = date.toLocaleDateString(language === 'de' ? 'de-DE' : 'en-US', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    });
+    return `${fullDateStr}, ${timeStr}`;
   };
 
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -159,6 +265,7 @@ export const NotificationsPage: React.FC = () => {
       <div className="flex items-center gap-2">
         <button
           type="button"
+          id="filter-all-notifications"
           onClick={() => setFilter('all')}
           className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
             filter === 'all'
@@ -170,6 +277,7 @@ export const NotificationsPage: React.FC = () => {
         </button>
         <button
           type="button"
+          id="filter-unread-notifications"
           onClick={() => setFilter('unread')}
           className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
             filter === 'unread'
@@ -191,8 +299,9 @@ export const NotificationsPage: React.FC = () => {
       ) : filteredNotifications.length > 0 ? (
         <div className="space-y-3">
           {filteredNotifications.map((notif) => {
-            const meta = getTypeMeta(notif.type);
+            const meta = getNotificationTagMeta(notif);
             const Icon = meta.icon;
+            const localTimeString = formatLocalTimestamp(notif.createdAt);
 
             return (
               <div
@@ -201,16 +310,16 @@ export const NotificationsPage: React.FC = () => {
                 onClick={() => handleClickNotification(notif)}
                 className={`group relative rounded-2xl border transition-all cursor-pointer p-4 sm:p-5 flex flex-col gap-2.5 ${
                   !notif.read 
-                    ? 'bg-emerald-50/50 hover:bg-emerald-50/80 border-emerald-200/90 shadow-xs' 
+                    ? 'bg-emerald-50/40 hover:bg-emerald-50/70 border-emerald-200/90 shadow-xs' 
                     : 'bg-white hover:bg-stone-50/90 border-stone-200/80 shadow-2xs'
                 }`}
               >
                 {/* Top Row: Meta Badge, Subject/Title Preview, Time & Status */}
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2 min-w-0 flex-wrap">
-                    {/* Category/Subject Tag */}
-                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-3xs font-black uppercase tracking-wider border shrink-0 ${meta.badgeBg}`}>
-                      <Icon className="w-3 h-3" />
+                    {/* Category/Subject Tag with Status-Dependent Color */}
+                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-3xs font-black uppercase tracking-wider border shrink-0 ${meta.badgeBg}`}>
+                      <Icon className={`w-3.5 h-3.5 ${meta.iconColor}`} />
                       <span>{meta.label}</span>
                     </span>
 
@@ -221,8 +330,11 @@ export const NotificationsPage: React.FC = () => {
                   </div>
 
                   <div className="flex items-center gap-2 shrink-0">
-                    <span className="text-3xs font-medium text-stone-400 whitespace-nowrap">
-                      {formatRelativeTime(typeof notif.createdAt === 'string' ? notif.createdAt : undefined)}
+                    <span 
+                      className="text-xs font-semibold text-stone-500 whitespace-nowrap"
+                      title={notif.createdAt ? new Date(notif.createdAt).toLocaleString() : ''}
+                    >
+                      {localTimeString}
                     </span>
                     {!notif.read && (
                       <span 
@@ -252,6 +364,7 @@ export const NotificationsPage: React.FC = () => {
                   {!notif.read ? (
                     <button
                       type="button"
+                      id={`btn-mark-read-${notif.id}`}
                       onClick={(e) => handleToggleRead(e, notif)}
                       className="inline-flex items-center gap-1 text-stone-500 hover:text-emerald-800 font-semibold px-2 py-0.5 rounded-md hover:bg-emerald-100/50 transition-colors"
                     >
@@ -278,3 +391,4 @@ export const NotificationsPage: React.FC = () => {
     </div>
   );
 };
+

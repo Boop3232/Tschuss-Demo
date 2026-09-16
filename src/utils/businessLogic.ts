@@ -131,16 +131,24 @@ export function calculateEnvironmentalImpact(
   moneySaved: number;
 } {
   const foodDivertedKg = knownWeightKg && knownWeightKg > 0
-    ? knownWeightKg
+    ? Math.round(knownWeightKg * 100) / 100
     : Math.round(productsCount * IMPACT_CONFIG.DEFAULT_WEIGHT_KG * 100) / 100;
 
   const co2eAvoidedKg = Math.round(foodDivertedKg * IMPACT_CONFIG.CO2E_PER_KG_FOOD * 100) / 100;
 
   return {
-    co2eAvoidedKg,
-    foodDivertedKg,
+    co2eAvoidedKg: Math.round(co2eAvoidedKg * 100) / 100,
+    foodDivertedKg: Math.round(foodDivertedKg * 100) / 100,
     moneySaved: Math.round(totalSavedEuros * 100) / 100
   };
+}
+
+/**
+ * Formats kilogram values cleanly with at most 2 decimal places and no trailing float noise.
+ */
+export function formatKg(val: number | undefined | null): string {
+  if (val === undefined || val === null || isNaN(val)) return '0';
+  return Number(val.toFixed(2)).toString();
 }
 
 /**

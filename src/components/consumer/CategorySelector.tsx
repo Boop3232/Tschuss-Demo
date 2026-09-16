@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'motion/react';
 import { 
   ShoppingBag, 
   Apple, 
@@ -53,14 +54,23 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
               key={cat.id}
               id={`cat-btn-${cat.id.toLowerCase()}`}
               onClick={() => onSelectCategory(cat.id)}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border cursor-pointer ${
+              className={`relative flex items-center gap-2 px-3.5 py-2 rounded-2xl text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer border ${
                 isSelected
-                  ? 'bg-emerald-900 text-white border-emerald-900 shadow-xs font-bold'
-                  : 'bg-white hover:bg-stone-50 text-stone-700 border-stone-200 hover:border-stone-300'
+                  ? 'text-white font-bold border-stone-900 shadow-xs'
+                  : 'bg-white/80 hover:bg-white text-stone-700 border-stone-200/80 hover:border-stone-300'
               }`}
             >
-              <Icon className={`w-4 h-4 ${isSelected ? 'text-emerald-300' : 'text-stone-500'}`} />
-              <span>{label}</span>
+              {isSelected && (
+                <motion.div
+                  layoutId="category-active-pill"
+                  className="absolute inset-0 bg-stone-900 rounded-2xl -z-10"
+                  transition={{ type: 'spring', stiffness: 500, damping: 36 }}
+                />
+              )}
+              <span className="relative z-10 flex items-center gap-2">
+                <Icon className={`w-4 h-4 ${isSelected ? 'text-stone-300' : 'text-stone-500'}`} />
+                <span>{label}</span>
+              </span>
             </button>
           );
         })}
@@ -68,3 +78,4 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
     </div>
   );
 };
+

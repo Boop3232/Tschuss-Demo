@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { motion } from 'motion/react';
 import { 
   Calendar, 
   Clock, 
@@ -69,28 +70,42 @@ export const ReservationsListPage: React.FC = () => {
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex items-center bg-stone-100 p-1 rounded-2xl border border-stone-200/80 self-start sm:self-auto">
+        <div className="flex items-center bg-stone-200/50 backdrop-blur-md p-1 rounded-2xl border border-white/60 self-start sm:self-auto relative">
           <button
             type="button"
             onClick={() => setActiveTab('active')}
-            className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all ${
+            className={`relative px-4 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
               activeTab === 'active'
-                ? 'bg-white text-stone-900 shadow-xs'
+                ? 'text-stone-900 font-extrabold'
                 : 'text-stone-500 hover:text-stone-800'
             }`}
           >
-            Active ({activeReservations.length})
+            {activeTab === 'active' && (
+              <motion.div
+                layoutId="reservations-tab-active-pill"
+                className="absolute inset-0 bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,1)]"
+                transition={{ type: 'spring', stiffness: 500, damping: 36 }}
+              />
+            )}
+            <span className="relative z-10">Active ({activeReservations.length})</span>
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('past')}
-            className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all ${
+            className={`relative px-4 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
               activeTab === 'past'
-                ? 'bg-white text-stone-900 shadow-xs'
+                ? 'text-stone-900 font-extrabold'
                 : 'text-stone-500 hover:text-stone-800'
             }`}
           >
-            Past History ({pastReservations.length})
+            {activeTab === 'past' && (
+              <motion.div
+                layoutId="reservations-tab-active-pill"
+                className="absolute inset-0 bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,1)]"
+                transition={{ type: 'spring', stiffness: 500, damping: 36 }}
+              />
+            )}
+            <span className="relative z-10">Past History ({pastReservations.length})</span>
           </button>
         </div>
       </div>

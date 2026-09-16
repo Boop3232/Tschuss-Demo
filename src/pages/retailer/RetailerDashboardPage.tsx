@@ -20,7 +20,7 @@ import { productService } from '../../services/productService';
 import { reservationService } from '../../services/reservationService';
 import { impactService, RetailerImpactStats } from '../../services/impactService';
 import { useAuth } from '../../context/AuthContext';
-import { formatCurrency, formatExpiry } from '../../utils/businessLogic';
+import { formatCurrency, formatExpiry, formatKg } from '../../utils/businessLogic';
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { pricingRecommendationService } from '../../services/predictiveExpiryService';
 
@@ -205,7 +205,7 @@ export const RetailerDashboardPage: React.FC = () => {
             </div>
           </div>
           <span className="text-2xl font-black text-teal-950">
-            {impact?.co2eAvoidedKg || 18.5} <span className="text-xs font-normal text-stone-500">kg</span>
+            {formatKg(impact?.co2eAvoidedKg || 18.5)} <span className="text-xs font-normal text-stone-500">kg</span>
           </span>
           <span className="text-3xs text-stone-500 block mt-1">Verified diverted footprint</span>
         </div>

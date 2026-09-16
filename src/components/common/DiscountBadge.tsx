@@ -11,30 +11,26 @@ export const DiscountBadge: React.FC<DiscountBadgeProps> = ({
   size = 'md',
   className = '' 
 }) => {
-  // Soft pastel colors matching minimalist aesthetic:
-  // High: >= 60% soft pastel rose/coral
-  // Medium: 40-59% soft pastel apricot/peach
-  // Low: < 40% soft pastel mint/sage
-  let colorStyles = 'bg-emerald-50 text-emerald-800 border border-emerald-200/70 font-semibold';
-  if (percent >= 60) {
-    colorStyles = 'bg-rose-50 text-rose-700 border border-rose-200/80 font-bold';
-  } else if (percent >= 40) {
-    colorStyles = 'bg-amber-50 text-amber-800 border border-amber-200/80 font-semibold';
-  } else {
-    colorStyles = 'bg-emerald-50 text-emerald-800 border border-emerald-200/70 font-semibold';
-  }
+  // Sustainable, minimalist badges:
+  // High discount (>= 50%): deep charcoal/forest badge with high contrast white text
+  // Moderate discount (< 50%): warm stone badge with dark charcoal text
+  const isHighDiscount = percent >= 50;
+  const colorStyles = isHighDiscount
+    ? 'bg-stone-900/90 text-white font-bold backdrop-blur-md shadow-xs'
+    : 'bg-white/95 text-stone-800 border border-stone-200/90 font-semibold backdrop-blur-md shadow-2xs';
 
   const sizeStyles = {
     sm: 'text-2xs px-2 py-0.5 rounded-lg tracking-tight',
-    md: 'text-xs px-2.5 py-1 rounded-xl font-bold tracking-tight',
-    lg: 'text-sm px-3 py-1.5 rounded-2xl font-bold tracking-tight'
+    md: 'text-xs px-2.5 py-1 rounded-xl tracking-tight',
+    lg: 'text-sm px-3 py-1.5 rounded-2xl tracking-tight'
   }[size];
 
   return (
     <span 
-      className={`inline-flex items-center justify-center uppercase whitespace-nowrap shadow-2xs backdrop-blur-xs transition-transform ${colorStyles} ${sizeStyles} ${className}`}
+      className={`inline-flex items-center justify-center uppercase whitespace-nowrap transition-all ${colorStyles} ${sizeStyles} ${className}`}
     >
       -{Math.round(percent)}%
     </span>
   );
 };
+

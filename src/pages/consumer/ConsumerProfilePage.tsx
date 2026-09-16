@@ -264,34 +264,34 @@ export const ConsumerProfilePage: React.FC = () => {
       </form>
 
       {/* Development Mode Role Switcher */}
-      <div className="p-6 rounded-3xl bg-purple-50/50 dark:bg-purple-950/20 border border-purple-200/80 dark:border-purple-800/60 space-y-4 shadow-xs">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-purple-100 dark:bg-purple-900/60 text-purple-800 dark:text-purple-300 flex items-center justify-center">
-              <Store className="w-4 h-4 text-purple-700 dark:text-purple-300" />
+      <div className="p-6 rounded-3xl bg-white/80 backdrop-blur-xl border border-stone-200/80 space-y-4 shadow-xs">
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-2xl bg-stone-900 text-white flex items-center justify-center shadow-xs">
+              <Store className="w-4.5 h-4.5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-bold text-stone-900 dark:text-white">
+                <h3 className="text-sm font-bold text-stone-900">
                   Developer Mode: Role Switcher
                 </h3>
-                <span className="px-1.5 py-0.5 rounded text-3xs font-black bg-purple-600 text-white uppercase">
+                <span className="px-1.5 py-0.5 rounded-md text-3xs font-black bg-stone-200 text-stone-800 uppercase shadow-2xs">
                   DEV
                 </span>
               </div>
-              <p className="text-2xs text-stone-500 dark:text-stone-400">
+              <p className="text-xs text-stone-500 font-normal mt-0.5">
                 Instant development simulation to toggle between Consumer and Retailer portal with mock inventory access.
               </p>
             </div>
           </div>
 
-          <span className="px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-900/50 text-purple-900 dark:text-purple-200 text-xs font-bold uppercase tracking-wider border border-purple-300 dark:border-purple-700">
+          <span className="px-3.5 py-1.5 rounded-full bg-stone-100 text-stone-800 text-xs font-semibold uppercase tracking-wider border border-stone-200">
             Active Role: {role || 'consumer'}
           </span>
         </div>
 
-        <div className="pt-3 border-t border-purple-100 dark:border-purple-900/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <p className="text-xs text-stone-600 dark:text-stone-300">
+        <div className="pt-3.5 border-t border-stone-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <p className="text-xs text-stone-500">
             Test business workflows, product uploads, and reservation management:
           </p>
           <div className="flex items-center gap-2">
@@ -303,7 +303,7 @@ export const ConsumerProfilePage: React.FC = () => {
                   await switchToRetailerDev();
                   navigate('/business');
                 }}
-                className="px-4 py-2 rounded-xl bg-purple-700 hover:bg-purple-600 active:scale-98 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-2"
+                className="px-4 py-2.5 rounded-2xl bg-stone-900 hover:bg-stone-800 active:scale-95 text-white text-xs font-semibold transition-all shadow-xs flex items-center gap-2 cursor-pointer"
               >
                 <Store className="w-4 h-4" />
                 <span>Switch to Retailer & Open Portal</span>
@@ -316,7 +316,7 @@ export const ConsumerProfilePage: React.FC = () => {
                   await switchToConsumerDev();
                   navigate('/app/discover');
                 }}
-                className="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 active:scale-98 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-2"
+                className="px-4 py-2.5 rounded-2xl bg-stone-900 hover:bg-stone-800 active:scale-95 text-white text-xs font-semibold transition-all shadow-xs flex items-center gap-2 cursor-pointer"
               >
                 <User className="w-4 h-4" />
                 <span>Switch back to Consumer</span>
@@ -326,42 +326,25 @@ export const ConsumerProfilePage: React.FC = () => {
         </div>
       </div>
 
-      {/* Account Security & Sign Out */}
-      <div className="p-6 rounded-3xl bg-white border border-stone-200/80 space-y-4 shadow-xs">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center">
-              <Shield className="w-4 h-4 text-emerald-700" />
-            </div>
-            <div>
-              <h3 className="text-sm font-bold text-stone-900">
-                Account Security & Access Role
-              </h3>
-              <p className="text-2xs text-stone-500">
-                Your role is enforced server-side via Firebase Authentication and Firestore Security Rules.
-              </p>
-            </div>
-          </div>
-
-          <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-xs font-bold uppercase tracking-wider border border-emerald-200">
-            {role || 'consumer'}
-          </span>
-        </div>
-
-        <div className="pt-3 border-t border-stone-100 flex items-center justify-between">
-          <p className="text-xs text-stone-500">
+      {/* Sign Out Card */}
+      <div className="p-5 rounded-3xl glass-surface border border-white/80 flex items-center justify-between shadow-xs">
+        <div>
+          <h3 className="text-xs font-bold text-stone-900">
+            Account Session
+          </h3>
+          <p className="text-2xs text-stone-500">
             Finished your session on this device?
           </p>
-          <button
-            type="button"
-            id="btn-profile-logout"
-            onClick={handleLogout}
-            className="px-4 py-2 rounded-xl border border-rose-200 bg-rose-50/60 hover:bg-rose-100/80 text-rose-700 text-xs font-bold transition-all flex items-center gap-2"
-          >
-            <LogOut className="w-3.5 h-3.5 text-rose-600" />
-            <span>Sign Out</span>
-          </button>
         </div>
+        <button
+          type="button"
+          id="btn-profile-logout"
+          onClick={handleLogout}
+          className="px-4.5 py-2.5 rounded-2xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition-all shadow-2xs flex items-center gap-2 cursor-pointer active:scale-95"
+        >
+          <LogOut className="w-4 h-4 text-rose-600" />
+          <span>Sign Out</span>
+        </button>
       </div>
     </div>
   );

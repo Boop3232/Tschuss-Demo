@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation as useRouterLocation, useNavigate } from 'react-router-dom';
+import { motion } from 'motion/react';
 import { 
   MapPin, 
   Heart, 
@@ -74,21 +75,21 @@ export const Navbar: React.FC = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-white/85 backdrop-blur-xl backdrop-saturate-150 border-b border-stone-200/60 shadow-[0_4px_24px_rgba(0,0,0,0.03)] transition-all w-full overflow-x-clip">
+      <header className="sticky top-0 z-40 bg-white/70 backdrop-blur-2xl backdrop-saturate-200 border-b border-white/60 shadow-[0_4px_30px_rgba(0,0,0,0.03),inset_0_-1px_0_rgba(0,0,0,0.03)] transition-all w-full overflow-x-clip">
         <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
           <div className="flex items-center justify-between h-16 w-full min-w-0 gap-2 sm:gap-4">
             
             {/* Left: Brand Logo & Optional Location */}
             <div className="flex items-center gap-2 sm:gap-3 shrink-0 min-w-0">
-              <Link to="/" className="flex items-center gap-2 group shrink-0 no-underline">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center font-black text-xl shadow-xs group-hover:scale-105 transition-all duration-200">
+              <Link to="/" className="flex items-center gap-2.5 group shrink-0 no-underline">
+                <div className="w-9 h-9 rounded-2xl bg-[#23382b] text-white flex items-center justify-center font-bold text-lg shadow-xs group-hover:scale-105 group-active:scale-95 transition-all duration-200">
                   T
                 </div>
                 <div className="flex flex-col">
                   <span className="font-extrabold text-lg sm:text-xl tracking-tight text-stone-900 font-display leading-none">
                     Tschüss
                   </span>
-                  <span className="text-3xs font-semibold text-emerald-700 tracking-tight hidden xl:block leading-none mt-0.5">
+                  <span className="text-3xs font-semibold text-stone-500 tracking-tight hidden xl:block leading-none mt-0.5 opacity-90">
                     Surplus Food Rescue
                   </span>
                 </div>
@@ -99,18 +100,18 @@ export const Navbar: React.FC = () => {
                 type="button"
                 id="btn-navbar-location"
                 onClick={() => setIsLocationModalOpen(true)}
-                className="hidden lg:flex items-center gap-1.5 px-3.5 h-9 rounded-full bg-emerald-50/70 hover:bg-emerald-100/80 text-emerald-950 border border-emerald-200/50 text-xs font-semibold transition-all max-w-[135px] xl:max-w-[150px] truncate shadow-2xs cursor-pointer"
+                className="hidden lg:flex items-center gap-1.5 px-3.5 h-8.5 rounded-full bg-white/70 hover:bg-white text-stone-800 hover:text-stone-950 border border-stone-200/80 hover:border-stone-300 text-xs font-semibold transition-all max-w-[135px] xl:max-w-[150px] truncate shadow-2xs hover:shadow-xs active:scale-95 cursor-pointer backdrop-blur-md"
                 title="Change location"
               >
-                <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <MapPin className="w-3.5 h-3.5 text-stone-500 shrink-0" />
                 <span className="truncate">{location.name}</span>
-                <ChevronDown className="w-3 h-3 text-emerald-600/70 shrink-0" />
+                <ChevronDown className="w-3 h-3 text-stone-400 shrink-0" />
               </button>
             </div>
 
-            {/* Center: Desktop Navigation Links (Proper spacing, zero overlap) */}
+            {/* Center: Desktop Navigation Links (Apple segmented glass pill with sliding animation) */}
             {!isBusinessRoute && !isAdminRoute && (
-              <nav className="hidden lg:flex items-center gap-1 xl:gap-1.5 shrink-0">
+              <nav className="hidden lg:flex items-center gap-1 p-1 bg-stone-200/40 backdrop-blur-md rounded-full border border-white/60 shadow-[inset_0_1px_2px_rgba(0,0,0,0.04)] shrink-0 relative">
                 {navLinks.map((item) => {
                   const isActive = routerLocation.pathname === item.path;
                   const Icon = item.icon;
@@ -118,14 +119,23 @@ export const Navbar: React.FC = () => {
                     <Link
                       key={item.path}
                       to={item.path}
-                      className={`flex items-center gap-1.5 px-3 xl:px-3.5 h-9 rounded-full text-xs font-semibold whitespace-nowrap transition-all no-underline ${
+                      className={`relative flex items-center gap-1.5 px-3.5 h-7.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors no-underline ${
                         isActive
-                          ? 'bg-emerald-100/80 text-emerald-950 font-bold border border-emerald-200/70 shadow-2xs'
-                          : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100/80'
+                          ? 'text-stone-900 font-bold'
+                          : 'text-stone-600 hover:text-stone-900 hover:bg-white/40'
                       }`}
                     >
-                      <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-emerald-700' : 'text-stone-400'}`} />
-                      <span>{item.name}</span>
+                      {isActive && (
+                        <motion.div
+                          layoutId="desktop-nav-active-pill"
+                          className="absolute inset-0 bg-white rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,1)]"
+                          transition={{ type: 'spring', stiffness: 500, damping: 36 }}
+                        />
+                      )}
+                      <span className="relative z-10 flex items-center gap-1.5">
+                        <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-stone-900' : 'text-stone-400'}`} />
+                        <span>{item.name}</span>
+                      </span>
                     </Link>
                   );
                 })}
@@ -135,39 +145,57 @@ export const Navbar: React.FC = () => {
             {/* Right: Actions Bar */}
             <div className="flex items-center gap-2 shrink-0 ms-auto">
               
-              {/* Language Switcher (DE / EN) */}
+              {/* Language Switcher (DE / EN with sliding pill animation) */}
               <div 
                 id="lang-switcher-container"
-                className="relative flex items-center h-9 bg-stone-100/80 backdrop-blur-sm p-0.5 rounded-full border border-stone-200/60 text-2xs font-bold shadow-2xs shrink-0"
+                className="relative flex items-center h-8.5 bg-stone-200/40 backdrop-blur-md p-0.5 rounded-full border border-white/60 text-2xs font-bold shadow-[inset_0_1px_2px_rgba(0,0,0,0.04)] shrink-0"
                 title="Language / Sprache"
               >
                 <button
                   type="button"
                   id="btn-lang-de"
                   onClick={() => setLanguage('de')}
-                  className={`px-3 h-full rounded-full transition-all flex items-center gap-1 cursor-pointer ${
+                  className={`relative px-2.5 h-full rounded-full transition-colors flex items-center gap-1 cursor-pointer ${
                     language === 'de'
-                      ? 'bg-white text-emerald-900 shadow-2xs font-bold'
+                      ? 'text-stone-900 font-bold'
                       : 'text-stone-500 hover:text-stone-800'
                   }`}
                   title="Deutsch"
                 >
-                  <span>DE</span>
-                  {language === 'de' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />}
+                  {language === 'de' && (
+                    <motion.div
+                      layoutId="lang-switcher-active-pill"
+                      className="absolute inset-0 bg-white rounded-full shadow-[0_2px_6px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,1)]"
+                      transition={{ type: 'spring', stiffness: 500, damping: 36 }}
+                    />
+                  )}
+                  <span className="relative z-10 flex items-center gap-1">
+                    <span>DE</span>
+                    {language === 'de' && <span className="w-1.5 h-1.5 rounded-full bg-stone-800 shadow-xs" />}
+                  </span>
                 </button>
                 <button
                   type="button"
                   id="btn-lang-en"
                   onClick={() => setLanguage('en')}
-                  className={`px-3 h-full rounded-full transition-all flex items-center gap-1 cursor-pointer ${
+                  className={`relative px-2.5 h-full rounded-full transition-colors flex items-center gap-1 cursor-pointer ${
                     language === 'en'
-                      ? 'bg-white text-emerald-900 shadow-2xs font-bold'
+                      ? 'text-stone-900 font-bold'
                       : 'text-stone-500 hover:text-stone-800'
                   }`}
                   title="English"
                 >
-                  <span>EN</span>
-                  {language === 'en' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />}
+                  {language === 'en' && (
+                    <motion.div
+                      layoutId="lang-switcher-active-pill"
+                      className="absolute inset-0 bg-white rounded-full shadow-[0_2px_6px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,1)]"
+                      transition={{ type: 'spring', stiffness: 500, damping: 36 }}
+                    />
+                  )}
+                  <span className="relative z-10 flex items-center gap-1">
+                    <span>EN</span>
+                    {language === 'en' && <span className="w-1.5 h-1.5 rounded-full bg-stone-800 shadow-xs" />}
+                  </span>
                 </button>
               </div>
 
@@ -175,12 +203,12 @@ export const Navbar: React.FC = () => {
               <Link
                 to="/app/notifications"
                 id="btn-nav-notifications"
-                className="relative w-9 h-9 rounded-full flex items-center justify-center text-stone-600 hover:text-emerald-900 hover:bg-white bg-stone-100/80 backdrop-blur-sm transition-all border border-stone-200/60 shadow-2xs shrink-0 no-underline"
+                className="relative w-8.5 h-8.5 rounded-full flex items-center justify-center text-stone-600 hover:text-stone-900 bg-white/70 hover:bg-white border border-white/80 shadow-[0_2px_8px_rgba(0,0,0,0.03),inset_0_1px_0_rgba(255,255,255,0.9)] backdrop-blur-md transition-all shrink-0 no-underline active:scale-95"
                 aria-label="Notifications"
               >
                 <Bell className="w-4 h-4" />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 bg-emerald-600 text-white rounded-full text-[10px] leading-none flex items-center justify-center font-black shadow-2xs animate-in zoom-in-50">
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 bg-stone-900 text-white rounded-full text-[10px] leading-none flex items-center justify-center font-bold shadow-xs animate-in zoom-in-50">
                     {unreadCount > 99 ? '99+' : unreadCount}
                   </span>
                 )}
@@ -195,11 +223,11 @@ export const Navbar: React.FC = () => {
                     await switchToRetailerDev();
                     navigate('/business');
                   }}
-                  className="hidden 2xl:inline-flex items-center gap-2 px-3.5 h-9 rounded-full bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-200/60 text-xs font-bold transition-all shadow-2xs whitespace-nowrap cursor-pointer shrink-0"
+                  className="hidden 2xl:inline-flex items-center gap-2 px-3.5 h-8.5 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-800 border border-stone-200 text-xs font-semibold transition-all shadow-2xs whitespace-nowrap cursor-pointer shrink-0 backdrop-blur-md active:scale-95"
                   title="Development Tool: Switch to Retailer portal"
                 >
-                  <span className="px-1.5 py-0.5 rounded-full text-3xs font-black bg-purple-600 text-white uppercase">DEV</span>
-                  <Store className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+                  <span className="px-1.5 py-0.2 rounded-full text-3xs font-black bg-stone-800 text-white uppercase shadow-xs">DEV</span>
+                  <Store className="w-3.5 h-3.5 text-stone-600 shrink-0" />
                   <span>Switch to Retailer</span>
                 </button>
               ) : (
@@ -210,22 +238,21 @@ export const Navbar: React.FC = () => {
                     await switchToConsumerDev();
                     navigate('/app/discover');
                   }}
-                  className="hidden 2xl:inline-flex items-center gap-2 px-3.5 h-9 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200/60 text-xs font-bold transition-all shadow-2xs whitespace-nowrap cursor-pointer shrink-0"
+                  className="hidden 2xl:inline-flex items-center gap-2 px-3.5 h-8.5 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-800 border border-stone-200 text-xs font-semibold transition-all shadow-2xs whitespace-nowrap cursor-pointer shrink-0 backdrop-blur-md active:scale-95"
                   title="Development Tool: Switch back to Consumer view"
                 >
-                  <span className="px-1.5 py-0.5 rounded-full text-3xs font-black bg-emerald-600 text-white uppercase">DEV</span>
-                  <User className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span className="px-1.5 py-0.2 rounded-full text-3xs font-black bg-stone-800 text-white uppercase shadow-xs">DEV</span>
+                  <User className="w-3.5 h-3.5 text-stone-600 shrink-0" />
                   <span>Switch to Consumer</span>
                 </button>
               )}
-
-              {/* Retailer Portal Link (Visible on 2xl+ screens) */}
+                  {/* Retailer Portal Link (Visible on 2xl+ screens) */}
               {currentUser && (role === 'retailer' || role === 'admin') && !isBusinessRoute && (
                 <Link
                   to="/business"
-                  className="hidden 2xl:flex items-center gap-1.5 px-3.5 h-9 rounded-full bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200/60 text-xs font-semibold transition-all shadow-2xs whitespace-nowrap no-underline shrink-0"
+                  className="hidden 2xl:flex items-center gap-1.5 px-3.5 h-8.5 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-800 border border-stone-200 text-xs font-semibold transition-all shadow-2xs whitespace-nowrap no-underline shrink-0 backdrop-blur-md active:scale-95"
                 >
-                  <Store className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+                  <Store className="w-3.5 h-3.5 text-stone-600 shrink-0" />
                   <span>Retailer</span>
                 </Link>
               )}
@@ -237,11 +264,11 @@ export const Navbar: React.FC = () => {
                     type="button"
                     id="btn-user-menu-toggle"
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                    className="flex items-center gap-2 h-9 pl-1 pr-3 rounded-full bg-stone-100/80 hover:bg-white border border-stone-200/60 shadow-2xs transition-all text-xs cursor-pointer"
+                    className="flex items-center gap-2 h-8.5 pl-1 pr-3 rounded-full bg-white/70 hover:bg-white border border-white/80 shadow-[0_2px_8px_rgba(0,0,0,0.03),inset_0_1px_0_rgba(255,255,255,0.9)] backdrop-blur-md transition-all text-xs cursor-pointer active:scale-95"
                     aria-expanded={isUserMenuOpen}
                     aria-label="User menu"
                   >
-                    <div className="w-7 h-7 rounded-full bg-emerald-600 text-white font-bold flex items-center justify-center text-xs uppercase shadow-2xs shrink-0">
+                    <div className="w-6.5 h-6.5 rounded-full bg-stone-800 text-white font-bold flex items-center justify-center text-xs uppercase shadow-xs shrink-0">
                       {userProfile?.name?.charAt(0) || currentUser.displayName?.charAt(0) || currentUser.email?.charAt(0) || 'U'}
                     </div>
                     <span className="hidden md:inline font-bold text-stone-900 text-xs truncate max-w-[90px]">
@@ -250,103 +277,111 @@ export const Navbar: React.FC = () => {
                     <ChevronDown className="w-3 h-3 text-stone-400 shrink-0" />
                   </button>
 
-                  {/* Dropdown Menu */}
+                  {/* Dropdown Menu Liquid Glass Modal */}
                   {isUserMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-64 bg-white/95 backdrop-blur-xl rounded-3xl shadow-[0_16px_40px_rgba(0,0,0,0.08)] border border-stone-100 p-2.5 z-50 animate-in fade-in zoom-in-95">
-                      <div className="p-2.5 border-b border-stone-100">
-                        <p className="font-bold text-xs text-stone-900 truncate">
-                          {userProfile?.name || currentUser.displayName || 'Tschüss User'}
-                        </p>
-                        <p className="text-2xs text-stone-500 truncate">
-                          {currentUser.email}
-                        </p>
-                        <div className="mt-1 inline-flex items-center gap-1 text-3xs px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 font-bold uppercase border border-emerald-200/60">
-                          Role: {role || 'consumer'}
+                    <>
+                      {/* Invisible backdrop to dismiss on click outside */}
+                      <div 
+                        className="fixed inset-0 z-40" 
+                        onClick={() => setIsUserMenuOpen(false)} 
+                      />
+                      
+                      <div className="absolute right-0 mt-2 w-68 bg-white/95 backdrop-blur-3xl backdrop-saturate-200 rounded-3xl p-3 z-50 border border-white/90 shadow-[0_25px_60px_-10px_rgba(0,0,0,0.18),0_8px_24px_-4px_rgba(0,0,0,0.06),inset_0_1px_1px_rgba(255,255,255,1)] animate-in fade-in zoom-in-95 origin-top-right">
+                        <div className="p-3 bg-stone-100/70 rounded-2xl border border-stone-200/60 mb-2">
+                          <p className="font-bold text-xs text-stone-900 truncate">
+                            {userProfile?.name || currentUser.displayName || (language === 'de' ? 'Tschüss Benutzer' : 'Tschüss User')}
+                          </p>
+                          <p className="text-2xs text-stone-500 truncate mt-0.5">
+                            {currentUser.email}
+                          </p>
+                          <div className="mt-2 inline-flex items-center gap-1.5 text-3xs px-2.5 py-0.5 rounded-full bg-stone-200/80 text-stone-800 font-bold uppercase tracking-wider border border-stone-300 shadow-2xs">
+                            <span>{language === 'de' ? 'Rolle' : 'Role'}: {role === 'retailer' ? (language === 'de' ? 'Händler' : 'Retailer') : (role === 'admin' ? 'Admin' : (language === 'de' ? 'Käufer' : 'Consumer'))}</span>
+                          </div>
                         </div>
-                      </div>
 
-                      <div className="p-1 space-y-0.5 text-xs">
-                        <Link
-                          to="/app/profile"
-                          onClick={() => setIsUserMenuOpen(false)}
-                          className="w-full px-3 py-2 rounded-2xl font-medium text-stone-700 hover:bg-stone-100/80 flex items-center gap-2 transition-colors"
-                        >
-                          <User className="w-3.5 h-3.5 text-stone-400" />
-                          <span>My Profile</span>
-                        </Link>
-
-                        {(role === 'retailer' || role === 'admin') && (
+                        <div className="space-y-1 text-xs">
                           <Link
-                            to="/business"
+                            to="/app/profile"
                             onClick={() => setIsUserMenuOpen(false)}
-                            className="w-full px-3 py-2 rounded-2xl font-medium text-amber-800 hover:bg-amber-50 flex items-center gap-2 transition-colors"
+                            className="w-full px-3 py-2 rounded-2xl font-semibold text-stone-700 hover:text-stone-900 hover:bg-stone-100/80 flex items-center gap-2.5 transition-colors no-underline"
                           >
-                            <Store className="w-3.5 h-3.5 text-amber-600" />
-                            <span>Retailer Portal</span>
+                            <User className="w-4 h-4 text-stone-500" />
+                            <span>{language === 'de' ? 'Mein Profil' : 'My Profile'}</span>
                           </Link>
-                        )}
 
-                        {role === 'admin' && (
-                          <Link
-                            to="/admin"
-                            onClick={() => setIsUserMenuOpen(false)}
-                            className="w-full px-3 py-2 rounded-2xl font-medium text-purple-800 hover:bg-purple-50 flex items-center gap-2 transition-colors"
-                          >
-                            <Shield className="w-3.5 h-3.5 text-purple-600" />
-                            <span>Admin Center</span>
-                          </Link>
-                        )}
-
-                        {/* Development Role Switch in Dropdown */}
-                        <div className="pt-1 mt-1 border-t border-stone-100">
-                          {role !== 'retailer' ? (
-                            <button
-                              type="button"
-                              id="btn-dropdown-dev-switch-retailer"
-                              onClick={async () => {
-                                setIsUserMenuOpen(false);
-                                await switchToRetailerDev();
-                                navigate('/business');
-                              }}
-                              className="w-full px-3 py-2 rounded-2xl font-bold text-purple-800 hover:bg-purple-50 flex items-center justify-between text-xs transition-colors text-left"
+                          {(role === 'retailer' || role === 'admin') && (
+                            <Link
+                              to="/business"
+                              onClick={() => setIsUserMenuOpen(false)}
+                              className="w-full px-3 py-2 rounded-2xl font-semibold text-stone-800 hover:bg-stone-100 flex items-center gap-2.5 transition-colors no-underline"
                             >
-                              <span className="flex items-center gap-2">
-                                <Store className="w-3.5 h-3.5 text-purple-600 shrink-0" />
-                                <span>Switch to Retailer</span>
-                              </span>
-                              <span className="text-3xs px-2 py-0.5 rounded-full bg-purple-600 text-white uppercase font-black">DEV</span>
-                            </button>
-                          ) : (
-                            <button
-                              type="button"
-                              id="btn-dropdown-dev-switch-consumer"
-                              onClick={async () => {
-                                setIsUserMenuOpen(false);
-                                await switchToConsumerDev();
-                                navigate('/app/discover');
-                              }}
-                              className="w-full px-3 py-2 rounded-2xl font-bold text-emerald-800 hover:bg-emerald-50 flex items-center justify-between text-xs transition-colors text-left"
-                            >
-                              <span className="flex items-center gap-2">
-                                <User className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                                <span>Switch to Consumer</span>
-                              </span>
-                              <span className="text-3xs px-2 py-0.5 rounded-full bg-emerald-600 text-white uppercase font-black">DEV</span>
-                            </button>
+                              <Store className="w-4 h-4 text-stone-600" />
+                              <span>{language === 'de' ? 'Händlerportal' : 'Retailer Portal'}</span>
+                            </Link>
                           )}
-                        </div>
 
-                        <button
-                          type="button"
-                          id="btn-navbar-logout"
-                          onClick={handleLogout}
-                          className="w-full px-3 py-2 rounded-2xl font-medium text-rose-700 hover:bg-rose-50 flex items-center gap-2 transition-colors"
-                        >
-                          <LogOut className="w-3.5 h-3.5 text-rose-500" />
-                          <span>Log Out</span>
-                        </button>
+                          {role === 'admin' && (
+                            <Link
+                              to="/admin"
+                              onClick={() => setIsUserMenuOpen(false)}
+                              className="w-full px-3 py-2 rounded-2xl font-semibold text-stone-800 hover:bg-stone-100 flex items-center gap-2.5 transition-colors no-underline"
+                            >
+                              <Shield className="w-4 h-4 text-stone-600" />
+                              <span>{language === 'de' ? 'Admin-Bereich' : 'Admin Center'}</span>
+                            </Link>
+                          )}
+
+                          {/* Development Role Switch in Dropdown */}
+                          <div className="pt-1.5 mt-1.5 border-t border-stone-200/60">
+                            {role !== 'retailer' ? (
+                              <button
+                                type="button"
+                                id="btn-dropdown-dev-switch-retailer"
+                                onClick={async () => {
+                                  setIsUserMenuOpen(false);
+                                  await switchToRetailerDev();
+                                  navigate('/business');
+                                }}
+                                className="w-full px-3 py-2 rounded-2xl font-semibold text-stone-800 hover:bg-stone-100 flex items-center justify-between text-xs transition-colors text-left cursor-pointer"
+                              >
+                                <span className="flex items-center gap-2.5">
+                                  <Store className="w-4 h-4 text-stone-600 shrink-0" />
+                                  <span>{language === 'de' ? 'Zu Händler wechseln' : 'Switch to Retailer'}</span>
+                                </span>
+                                <span className="text-3xs px-2 py-0.5 rounded-full bg-stone-800 text-white uppercase font-bold shadow-2xs">DEV</span>
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                id="btn-dropdown-dev-switch-consumer"
+                                onClick={async () => {
+                                  setIsUserMenuOpen(false);
+                                  await switchToConsumerDev();
+                                  navigate('/app/discover');
+                                }}
+                                className="w-full px-3 py-2 rounded-2xl font-semibold text-stone-800 hover:bg-stone-100 flex items-center justify-between text-xs transition-colors text-left cursor-pointer"
+                              >
+                                <span className="flex items-center gap-2.5">
+                                  <User className="w-4 h-4 text-stone-600 shrink-0" />
+                                  <span>{language === 'de' ? 'Zu Käufer wechseln' : 'Switch to Consumer'}</span>
+                                </span>
+                                <span className="text-3xs px-2 py-0.5 rounded-full bg-stone-800 text-white uppercase font-bold shadow-2xs">DEV</span>
+                              </button>
+                            )}
+                          </div>
+
+                          <button
+                            type="button"
+                            id="btn-navbar-logout"
+                            onClick={handleLogout}
+                            className="w-full px-3 py-2 rounded-2xl font-semibold text-stone-700 hover:bg-stone-100 flex items-center gap-2.5 transition-colors cursor-pointer"
+                          >
+                            <LogOut className="w-4 h-4 text-stone-500" />
+                            <span>{language === 'de' ? 'Abmelden' : 'Log Out'}</span>
+                          </button>
+                        </div>
                       </div>
-                    </div>
+                    </>
                   )}
                 </div>
               ) : (
@@ -354,16 +389,16 @@ export const Navbar: React.FC = () => {
                   <Link
                     to="/login"
                     id="btn-nav-login"
-                    className="px-3.5 h-9 flex items-center justify-center text-xs font-bold text-stone-700 hover:text-stone-900 rounded-full hover:bg-stone-100/80 transition-all whitespace-nowrap no-underline cursor-pointer"
+                    className="px-3.5 h-8.5 flex items-center justify-center text-xs font-semibold text-stone-700 hover:text-stone-900 rounded-full hover:bg-white/70 border border-transparent hover:border-white/80 transition-all whitespace-nowrap no-underline cursor-pointer"
                   >
-                    Log in
+                    {language === 'de' ? 'Anmelden' : 'Log in'}
                   </Link>
                   <Link
                     to="/register"
                     id="btn-nav-register"
-                    className="px-4 h-9 flex items-center justify-center text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 rounded-full shadow-2xs transition-all whitespace-nowrap no-underline cursor-pointer"
+                    className="px-4 h-8.5 flex items-center justify-center text-xs font-semibold text-white bg-stone-900 hover:bg-stone-800 active:scale-95 rounded-full shadow-xs transition-all whitespace-nowrap no-underline cursor-pointer"
                   >
-                    Sign up
+                    {language === 'de' ? 'Registrieren' : 'Sign up'}
                   </Link>
                 </div>
               )}
@@ -371,8 +406,9 @@ export const Navbar: React.FC = () => {
               {/* Mobile/Tablet Menu Toggle */}
               <button
                 type="button"
+                id="btn-hamburger-menu"
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="lg:hidden w-9 h-9 rounded-full flex items-center justify-center text-stone-700 hover:bg-stone-100/80 bg-stone-100/60 border border-stone-200/50 shadow-xs"
+                className="lg:hidden w-8.5 h-8.5 rounded-full flex items-center justify-center text-stone-700 hover:bg-white bg-white/60 border border-white/80 shadow-[0_2px_8px_rgba(0,0,0,0.03),inset_0_1px_0_rgba(255,255,255,0.9)] backdrop-blur-md cursor-pointer active:scale-95"
                 aria-label="Toggle navigation menu"
               >
                 {isMobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
@@ -382,22 +418,26 @@ export const Navbar: React.FC = () => {
           </div>
         </div>
 
-        {/* Mobile/Tablet Drawer Menu */}
+        {/* Mobile/Tablet Drawer Menu Liquid Glass */}
         {isMobileMenuOpen && (
-          <div className="lg:hidden border-t border-stone-100 bg-white/95 backdrop-blur-xl p-4 space-y-3 animate-in slide-in-from-top-2 shadow-lg">
+          <div className="lg:hidden border-t border-white/60 bg-white/80 backdrop-blur-2xl p-4 space-y-3 animate-in slide-in-from-top-2 shadow-xl">
             {/* Location selector in mobile drawer */}
             <button
+              type="button"
+              id="btn-mobile-location"
               onClick={() => {
                 setIsLocationModalOpen(true);
                 setIsMobileMenuOpen(false);
               }}
-              className="w-full flex items-center justify-between p-3 rounded-2xl bg-emerald-50/70 border border-emerald-200/60 text-xs font-semibold text-emerald-950"
+              className="w-full flex items-center justify-between p-3.5 rounded-2xl glass-surface text-xs font-semibold text-emerald-950 cursor-pointer active:scale-98"
             >
               <div className="flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-emerald-600" />
-                <span>Standort: {location.name}</span>
+                <span>{language === 'de' ? 'Standort' : 'Location'}: {location.name}</span>
               </div>
-              <span className="text-emerald-700 text-2xs font-bold">Ändern</span>
+              <span className="text-emerald-700 text-2xs font-bold">
+                {language === 'de' ? 'Ändern' : 'Change'}
+              </span>
             </button>
 
             {/* Nav links grid */}
@@ -409,7 +449,7 @@ export const Navbar: React.FC = () => {
                     key={item.path}
                     to={item.path}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center gap-2 p-2.5 rounded-2xl border border-stone-100 bg-stone-50/80 text-xs font-semibold text-stone-800 hover:bg-emerald-50"
+                    className="flex items-center gap-2 p-3 rounded-2xl glass-pill text-xs font-semibold text-stone-800 hover:text-emerald-950 transition-colors shadow-2xs"
                   >
                     <Icon className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span className="truncate">{item.name}</span>
@@ -419,7 +459,7 @@ export const Navbar: React.FC = () => {
               <Link
                 to="/app/notifications"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center justify-between p-2.5 rounded-2xl border border-stone-100 bg-stone-50/80 text-xs font-semibold text-stone-800 hover:bg-emerald-50"
+                className="flex items-center justify-between p-3 rounded-2xl glass-pill text-xs font-semibold text-stone-800 hover:text-emerald-950 transition-colors shadow-2xs"
               >
                 <div className="flex items-center gap-2 min-w-0">
                   <Bell className="w-4 h-4 text-emerald-600 shrink-0" />
@@ -433,24 +473,61 @@ export const Navbar: React.FC = () => {
               </Link>
             </div>
 
-            {/* Quick settings in drawer: Language */}
-            <div className="pt-2 border-t border-stone-100 flex items-center justify-between">
-              <span className="text-xs text-stone-500 font-medium">Sprache / Language:</span>
-              <button
-                type="button"
-                onClick={() => setLanguage(language === 'de' ? 'en' : 'de')}
-                className="px-3.5 py-1.5 rounded-full bg-emerald-50 text-emerald-900 text-xs font-bold border border-emerald-200/70"
-              >
-                {language === 'de' ? 'Deutsch (DE)' : 'English (EN)'}
-              </button>
+            {/* Quick settings in drawer: Language Switcher */}
+            <div className="pt-2 border-t border-stone-200/50 flex items-center justify-between">
+              <span className="text-xs text-stone-500 font-medium">
+                {language === 'de' ? 'Sprache' : 'Language'}:
+              </span>
+              <div className="flex items-center gap-1 p-0.5 bg-stone-200/40 rounded-full border border-white/60 relative">
+                <button
+                  type="button"
+                  id="btn-drawer-lang-de"
+                  onClick={() => setLanguage('de')}
+                  className={`relative px-3 py-1 rounded-full text-xs transition-colors cursor-pointer ${
+                    language === 'de'
+                      ? 'text-emerald-950 font-extrabold'
+                      : 'text-stone-500 hover:text-stone-900'
+                  }`}
+                >
+                  {language === 'de' && (
+                    <motion.div
+                      layoutId="drawer-lang-switcher-active-pill"
+                      className="absolute inset-0 bg-white rounded-full shadow-xs"
+                      transition={{ type: 'spring', stiffness: 500, damping: 36 }}
+                    />
+                  )}
+                  <span className="relative z-10">Deutsch (DE)</span>
+                </button>
+                <button
+                  type="button"
+                  id="btn-drawer-lang-en"
+                  onClick={() => setLanguage('en')}
+                  className={`relative px-3 py-1 rounded-full text-xs transition-colors cursor-pointer ${
+                    language === 'en'
+                      ? 'text-emerald-950 font-extrabold'
+                      : 'text-stone-500 hover:text-stone-900'
+                  }`}
+                >
+                  {language === 'en' && (
+                    <motion.div
+                      layoutId="drawer-lang-switcher-active-pill"
+                      className="absolute inset-0 bg-white rounded-full shadow-xs"
+                      transition={{ type: 'spring', stiffness: 500, damping: 36 }}
+                    />
+                  )}
+                  <span className="relative z-10">English (EN)</span>
+                </button>
+              </div>
             </div>
 
             {/* Development Role Switcher in Mobile Drawer */}
-            <div className="p-3 rounded-2xl bg-purple-50/90 border border-purple-200/70 flex items-center justify-between gap-2">
+            <div className="p-3 rounded-2xl glass-surface flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 min-w-0">
-                <span className="px-2 py-0.5 rounded-full text-3xs font-black bg-purple-600 text-white uppercase">DEV</span>
+                <span className="px-2 py-0.5 rounded-full text-3xs font-black bg-purple-600 text-white uppercase shadow-xs">DEV</span>
                 <span className="text-xs font-bold text-stone-900 truncate">
-                  Role: <span className="text-purple-700 capitalize">{role || 'consumer'}</span>
+                  {language === 'de' ? 'Rolle' : 'Role'}: <span className="text-purple-700 capitalize">
+                    {role === 'retailer' ? (language === 'de' ? 'Händler' : 'Retailer') : (role === 'admin' ? 'Admin' : (language === 'de' ? 'Käufer' : 'Consumer'))}
+                  </span>
                 </span>
               </div>
 
@@ -463,10 +540,10 @@ export const Navbar: React.FC = () => {
                     await switchToRetailerDev();
                     navigate('/business');
                   }}
-                  className="px-3 py-1.5 rounded-full bg-purple-700 hover:bg-purple-600 text-white text-xs font-bold flex items-center gap-1 shadow-xs shrink-0"
+                  className="px-3 py-1.5 rounded-full bg-purple-700 hover:bg-purple-600 active:scale-95 text-white text-xs font-bold flex items-center gap-1 shadow-xs shrink-0 cursor-pointer"
                 >
                   <Store className="w-3.5 h-3.5" />
-                  <span>Switch to Retailer</span>
+                  <span>{language === 'de' ? 'Zu Händler' : 'Switch to Retailer'}</span>
                 </button>
               ) : (
                 <button
@@ -477,30 +554,32 @@ export const Navbar: React.FC = () => {
                     await switchToConsumerDev();
                     navigate('/app/discover');
                   }}
-                  className="px-3 py-1.5 rounded-full bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold flex items-center gap-1 shadow-xs shrink-0"
+                  className="px-3 py-1.5 rounded-full bg-emerald-700 hover:bg-emerald-600 active:scale-95 text-white text-xs font-bold flex items-center gap-1 shadow-xs shrink-0 cursor-pointer"
                 >
                   <User className="w-3.5 h-3.5" />
-                  <span>Switch to Consumer</span>
+                  <span>{language === 'de' ? 'Zu Käufer' : 'Switch to Consumer'}</span>
                 </button>
               )}
             </div>
 
             {/* Auth actions in drawer */}
-            <div className="pt-2 border-t border-stone-100 flex flex-col gap-2">
+            <div className="pt-2 border-t border-stone-200/50 flex flex-col gap-2">
               {currentUser ? (
                 <div className="flex items-center justify-between pt-1">
                   <Link
                     to="/app/profile"
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="text-xs font-bold text-stone-700"
+                    className="text-xs font-bold text-stone-700 hover:text-stone-900"
                   >
-                    Mein Profil ({userProfile?.name || 'Konto'})
+                    {language === 'de' ? 'Mein Profil' : 'My Profile'} ({userProfile?.name || (language === 'de' ? 'Konto' : 'Account')})
                   </Link>
                   <button
+                    type="button"
+                    id="btn-mobile-logout"
                     onClick={handleLogout}
-                    className="text-xs font-bold text-rose-600"
+                    className="text-xs font-bold text-rose-600 hover:text-rose-700 cursor-pointer"
                   >
-                    Abmelden
+                    {language === 'de' ? 'Abmelden' : 'Log out'}
                   </button>
                 </div>
               ) : (
@@ -508,16 +587,16 @@ export const Navbar: React.FC = () => {
                   <Link
                     to="/login"
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="p-2.5 text-center text-xs font-bold rounded-full border border-stone-200 text-stone-800 hover:bg-stone-50"
+                    className="p-2.5 text-center text-xs font-bold rounded-full glass-pill text-stone-800 hover:bg-white"
                   >
-                    Anmelden
+                    {language === 'de' ? 'Anmelden' : 'Log in'}
                   </Link>
                   <Link
                     to="/register"
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="p-2.5 text-center text-xs font-bold rounded-full bg-emerald-600 text-white shadow-xs"
                   >
-                    Registrieren
+                    {language === 'de' ? 'Registrieren' : 'Sign up'}
                   </Link>
                 </div>
               )}

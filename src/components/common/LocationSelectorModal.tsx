@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { MapPin, Navigation, Search, X, Check, Loader2 } from 'lucide-react';
 import { useLocation } from '../../context/LocationContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { UserLocation } from '../../types';
 
 interface LocationSelectorModalProps {
@@ -18,6 +19,7 @@ export const LocationSelectorModal: React.FC<LocationSelectorModalProps> = ({ is
     popularLocations,
     searchLocations
   } = useLocation();
+  const { language, t } = useLanguage();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<UserLocation[]>([]);
@@ -58,13 +60,17 @@ export const LocationSelectorModal: React.FC<LocationSelectorModalProps> = ({ is
               <MapPin className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-bold text-lg text-stone-900">Select Location</h3>
-              <p className="text-xs text-stone-500">Discover rescue food deals near you</p>
+              <h3 className="font-bold text-lg text-stone-900">
+                {language === 'de' ? 'Standort wählen' : 'Select Location'}
+              </h3>
+              <p className="text-xs text-stone-500">
+                {language === 'de' ? 'Entdecke Rettungsangebote in deiner Nähe' : 'Discover rescue food deals near you'}
+              </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors"
+            className="w-8 h-8 rounded-full flex items-center justify-center text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors cursor-pointer"
             aria-label="Close modal"
           >
             <X className="w-5 h-5" />
@@ -78,7 +84,7 @@ export const LocationSelectorModal: React.FC<LocationSelectorModalProps> = ({ is
             id="btn-use-current-gps"
             onClick={handleUseCurrentLocation}
             disabled={isLoadingLocation}
-            className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-emerald-50 hover:bg-emerald-100/80 text-emerald-900 border border-emerald-200/60 transition-colors text-left group"
+            className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-emerald-50 hover:bg-emerald-100/80 text-emerald-900 border border-emerald-200/60 transition-colors text-left group cursor-pointer"
           >
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs">
@@ -89,12 +95,16 @@ export const LocationSelectorModal: React.FC<LocationSelectorModalProps> = ({ is
                 )}
               </div>
               <div>
-                <span className="text-sm font-bold block">Use my current location</span>
-                <span className="text-xs text-emerald-700/90">Detect GPS via browser</span>
+                <span className="text-sm font-bold block">
+                  {language === 'de' ? 'Meinen aktuellen Standort nutzen' : 'Use my current location'}
+                </span>
+                <span className="text-xs text-emerald-700/90">
+                  {language === 'de' ? 'GPS über Browser erkennen' : 'Detect GPS via browser'}
+                </span>
               </div>
             </div>
             <span className="text-xs font-semibold bg-emerald-200/60 px-2 py-1 rounded-md text-emerald-800">
-              Auto-detect
+              {language === 'de' ? 'Automatisch' : 'Auto-detect'}
             </span>
           </button>
 
@@ -112,15 +122,15 @@ export const LocationSelectorModal: React.FC<LocationSelectorModalProps> = ({ is
               id="input-city-search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search German city or district (e.g., Kleve, Emmerich)..."
+              placeholder={language === 'de' ? 'Stadt oder PLZ suchen (z.B. Kleve, Emmerich)...' : 'Search German city or district (e.g., Kleve, Emmerich)...'}
               className="w-full pl-10 pr-20 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:bg-white transition-all"
             />
             <button
               type="submit"
               disabled={isSearching}
-              className="absolute right-1.5 top-1/2 -translate-y-1/2 px-3 py-1 bg-emerald-800 text-white rounded-lg text-xs font-semibold hover:bg-emerald-900 transition-colors"
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 px-3 py-1 bg-emerald-800 text-white rounded-lg text-xs font-semibold hover:bg-emerald-900 transition-colors cursor-pointer"
             >
-              {isSearching ? 'Searching...' : 'Search'}
+              {isSearching ? (language === 'de' ? 'Suchen...' : 'Searching...') : (language === 'de' ? 'Suchen' : 'Search')}
             </button>
           </div>
         </form>
@@ -132,10 +142,12 @@ export const LocationSelectorModal: React.FC<LocationSelectorModalProps> = ({ is
               <button
                 key={i}
                 onClick={() => handleSelect(res)}
-                className="w-full text-left p-2 rounded-lg hover:bg-white hover:shadow-xs flex items-center justify-between text-xs text-stone-800 transition-colors"
+                className="w-full text-left p-2 rounded-lg hover:bg-white hover:shadow-xs flex items-center justify-between text-xs text-stone-800 transition-colors cursor-pointer"
               >
                 <span className="truncate font-medium">{res.name} — {res.address}</span>
-                <span className="text-emerald-700 font-semibold text-2xs uppercase">Select</span>
+                <span className="text-emerald-700 font-semibold text-2xs uppercase">
+                  {language === 'de' ? 'Auswählen' : 'Select'}
+                </span>
               </button>
             ))}
           </div>
@@ -144,7 +156,7 @@ export const LocationSelectorModal: React.FC<LocationSelectorModalProps> = ({ is
         {/* Popular Locations */}
         <div className="mt-5">
           <p className="text-2xs font-bold text-stone-400 uppercase tracking-wider mb-2">
-            Popular Pilot Locations
+            {language === 'de' ? 'Beliebte Pilot-Standorte' : 'Popular Pilot Locations'}
           </p>
           <div className="grid grid-cols-2 gap-2">
             {popularLocations.map((loc) => {
@@ -153,7 +165,7 @@ export const LocationSelectorModal: React.FC<LocationSelectorModalProps> = ({ is
                 <button
                   key={loc.name}
                   onClick={() => handleSelect(loc)}
-                  className={`flex items-center justify-between p-2.5 rounded-xl border text-xs text-left transition-all ${
+                  className={`flex items-center justify-between p-2.5 rounded-xl border text-xs text-left transition-all cursor-pointer ${
                     isSelected
                       ? 'bg-emerald-900 text-white border-emerald-900 shadow-xs'
                       : 'bg-white hover:bg-stone-50 border-stone-200 text-stone-700'
@@ -168,8 +180,10 @@ export const LocationSelectorModal: React.FC<LocationSelectorModalProps> = ({ is
         </div>
 
         <div className="mt-5 pt-3 border-t border-stone-100 flex items-center justify-between text-xs text-stone-600">
-          <span>Current: <strong className="text-stone-800">{location.name}</strong></span>
-          <button onClick={onClose} className="px-3 py-1 bg-stone-100 hover:bg-stone-200 text-stone-800 rounded-full font-semibold text-xs transition-colors">Done</button>
+          <span>{language === 'de' ? 'Aktuell' : 'Current'}: <strong className="text-stone-800">{location.name}</strong></span>
+          <button onClick={onClose} className="px-3 py-1 bg-stone-100 hover:bg-stone-200 text-stone-800 rounded-full font-semibold text-xs transition-colors cursor-pointer">
+            {language === 'de' ? 'Fertig' : 'Done'}
+          </button>
         </div>
       </div>
     </div>

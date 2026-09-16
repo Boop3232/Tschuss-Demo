@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { motion } from 'motion/react';
 import { 
   Search, 
   SlidersHorizontal, 
@@ -119,40 +120,40 @@ export const DiscoverPage: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-      {/* Top Banner / Location Header in Soft Pastel */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-emerald-50/95 via-teal-50/60 to-amber-50/50 border border-emerald-200/70 p-6 sm:p-8 rounded-3xl relative overflow-hidden shadow-2xs">
+      {/* Top Banner / Location Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white border border-stone-200/80 p-6 sm:p-8 rounded-3xl relative overflow-hidden shadow-xs">
         <div className="relative z-10 max-w-xl">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white text-emerald-800 text-2xs font-bold uppercase tracking-wider mb-2 border border-emerald-200/80 shadow-2xs">
-            <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-100 text-stone-700 text-2xs font-semibold uppercase tracking-wider mb-2 border border-stone-200">
+            <Sparkles className="w-3.5 h-3.5 text-stone-500" />
             Near-Expiry Rescue Marketplace
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black font-display tracking-tight leading-tight text-stone-900">
+          <h1 className="text-2xl sm:text-3xl font-bold font-display tracking-tight leading-tight text-stone-900">
             Rescue Delicious Food in {location.name}
           </h1>
-          <p className="text-stone-600 text-xs sm:text-sm mt-1.5 leading-relaxed">
+          <p className="text-stone-500 text-xs sm:text-sm mt-1.5 leading-relaxed">
             Partner retailers reduce prices by up to 70% before expiry. Reserve online, collect in-store, prevent food waste.
           </p>
         </div>
 
         {/* Quick Highlights Pill Box */}
-        <div className="relative z-10 flex items-center gap-3 self-start md:self-auto bg-white/90 backdrop-blur-xs p-3 rounded-2xl border border-emerald-200/70 text-xs shadow-2xs">
-          <div className="text-center px-2">
-            <span className="block font-black text-xl text-emerald-700">
+        <div className="relative z-10 flex items-center gap-3 self-start md:self-auto bg-stone-50 p-3.5 rounded-2xl border border-stone-200/80 text-xs shadow-2xs">
+          <div className="text-center px-3">
+            <span className="block font-black text-xl text-stone-900">
               {products.length}
             </span>
-            <span className="text-3xs text-stone-500 uppercase font-semibold">Active Deals</span>
+            <span className="text-3xs text-stone-400 uppercase font-semibold">Active Deals</span>
           </div>
-          <div className="h-8 w-px bg-emerald-200/70" />
-          <div className="text-center px-2">
-            <span className="block font-black text-xl text-emerald-700">
+          <div className="h-8 w-px bg-stone-200" />
+          <div className="text-center px-3">
+            <span className="block font-black text-xl text-stone-900">
               {stores.length}
             </span>
-            <span className="text-3xs text-stone-500 uppercase font-semibold">Stores</span>
+            <span className="text-3xs text-stone-400 uppercase font-semibold">Stores</span>
           </div>
         </div>
 
         {/* Decorative subtle background pattern */}
-        <div className="absolute right-0 bottom-0 translate-x-12 translate-y-12 w-64 h-64 bg-emerald-200/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute right-0 bottom-0 translate-x-12 translate-y-12 w-64 h-64 bg-stone-100/60 rounded-full blur-3xl pointer-events-none" />
       </div>
 
       {/* Search & Control Toolbar */}
@@ -166,7 +167,7 @@ export const DiscoverPage: React.FC = () => {
             value={filters.searchQuery || ''}
             onChange={(e) => setFilters({ ...filters, searchQuery: e.target.value })}
             placeholder="Search rescue products, bakeries, supermarkets..."
-            className="w-full pl-10 pr-4 py-2.5 bg-white border border-stone-200/70 rounded-2xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-2xs transition-all"
+            className="w-full pl-10 pr-4 py-2.5 bg-white border border-stone-200/80 rounded-2xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-stone-800 shadow-2xs transition-all placeholder:text-stone-400"
           />
         </form>
 
@@ -177,48 +178,66 @@ export const DiscoverPage: React.FC = () => {
             type="button"
             id="btn-open-filter-drawer"
             onClick={() => setIsFilterOpen(true)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl border text-xs font-semibold transition-all shadow-2xs ${
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl border text-xs font-semibold transition-all shadow-2xs cursor-pointer ${
               activeFilterCount > 0
-                ? 'bg-emerald-100 text-emerald-950 border-emerald-300 font-bold'
+                ? 'bg-stone-900 text-white border-stone-900'
                 : 'bg-white hover:bg-stone-50 border-stone-200/80 text-stone-700'
             }`}
           >
             <SlidersHorizontal className="w-4 h-4" />
             <span>Filters</span>
             {activeFilterCount > 0 && (
-              <span className="w-4 h-4 rounded-full bg-emerald-600 text-white text-2xs font-extrabold flex items-center justify-center">
+              <span className="w-4 h-4 rounded-full bg-stone-700 text-white text-2xs font-extrabold flex items-center justify-center">
                 {activeFilterCount}
               </span>
             )}
           </button>
 
           {/* View Mode Toggle: Grid vs Map */}
-          <div className="flex items-center bg-stone-100 p-1 rounded-2xl border border-stone-200/80">
+          <div className="flex items-center bg-stone-200/50 backdrop-blur-md p-1 rounded-2xl border border-white/60 relative">
             <button
               type="button"
               id="btn-view-grid"
               onClick={() => setViewMode('grid')}
-              className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+              className={`relative flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
                 viewMode === 'grid'
-                  ? 'bg-white text-stone-900 shadow-xs'
+                  ? 'text-stone-900 font-bold'
                   : 'text-stone-500 hover:text-stone-800'
               }`}
             >
-              <LayoutGrid className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Grid</span>
+              {viewMode === 'grid' && (
+                <motion.div
+                  layoutId="view-mode-active-pill"
+                  className="absolute inset-0 bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,1)]"
+                  transition={{ type: 'spring', stiffness: 500, damping: 36 }}
+                />
+              )}
+              <span className="relative z-10 flex items-center gap-1">
+                <LayoutGrid className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Grid</span>
+              </span>
             </button>
             <button
               type="button"
               id="btn-view-map"
               onClick={() => setViewMode('map')}
-              className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+              className={`relative flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
                 viewMode === 'map'
-                  ? 'bg-white text-stone-900 shadow-xs'
+                  ? 'text-stone-900 font-bold'
                   : 'text-stone-500 hover:text-stone-800'
               }`}
             >
-              <MapIcon className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Map</span>
+              {viewMode === 'map' && (
+                <motion.div
+                  layoutId="view-mode-active-pill"
+                  className="absolute inset-0 bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,1)]"
+                  transition={{ type: 'spring', stiffness: 500, damping: 36 }}
+                />
+              )}
+              <span className="relative z-10 flex items-center gap-1">
+                <MapIcon className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Map</span>
+              </span>
             </button>
           </div>
         </div>
