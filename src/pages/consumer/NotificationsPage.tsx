@@ -7,22 +7,29 @@ import {
   Tag, 
   ShoppingBag, 
   Sparkles,
-  ChevronRight
+  ChevronRight,
+  Check,
+  ExternalLink,
+  Filter
 } from 'lucide-react';
 import { AppNotification } from '../../types';
 import { notificationService } from '../../services/notificationService';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { EmptyState } from '../../components/common/EmptyState';
 
 export const NotificationsPage: React.FC = () => {
   const navigate = useNavigate();
   const { currentUser, userProfile } = useAuth();
+  const { language, t } = useLanguage();
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<'all' | 'unread'>('all');
 
   const userId = currentUser?.uid || userProfile?.uid || 'demo_consumer_123';
 
   useEffect(() => {
+    setLoading(true);
     const unsub = notificationService.subscribeToNotifications(userId, (items) => {
       setNotifications(items);
       setLoading(false);
@@ -31,100 +38,231 @@ export const NotificationsPage: React.FC = () => {
   }, [userId]);
 
   const handleMarkAllRead = async () => {
+    // 1. Instant optimistic update in component state
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    // 2. Persistent storage + firestore sync + global custom event dispatch
     await notificationService.markAllAsRead(userId);
-    setNotifications(notifications.map(n => ({ ...n, read: true })));
+  };
+
+  const handleToggleRead = async (e: React.MouseEvent, notif: AppNotification) => {
+    e.stopPropagation();
+    if (!notif.read) {
+      setNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, read: true } : n));
+      await notificationService.markAsRead(notif.id, userId);
+    }
   };
 
   const handleClickNotification = async (notif: AppNotification) => {
     if (!notif.read) {
-      await notificationService.markAsRead(notif.id);
+      setNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, read: true } : n));
+      await notificationService.markAsRead(notif.id, userId);
     }
     if (notif.targetUrl) {
       navigate(notif.targetUrl);
     }
   };
 
-  const getIcon = (type: AppNotification['type']) => {
+  const getTypeMeta = (type: AppNotification['type']) => {
     switch (type) {
       case 'reservation_status':
-        return ShoppingBag;
+        return {
+          icon: ShoppingBag,
+          label: language === 'de' ? 'Abholstatus' : 'Pickup Status',
+          badgeBg: 'bg-emerald-100 text-emerald-900 border-emerald-200/80',
+          iconBg: 'bg-emerald-900 text-white'
+        };
       case 'deal_alert':
-        return Tag;
+        return {
+          icon: Tag,
+          label: language === 'de' ? 'Rettungs-Deal' : 'Rescue Deal',
+          badgeBg: 'bg-amber-100 text-amber-900 border-amber-200/80',
+          iconBg: 'bg-amber-800 text-white'
+        };
       case 'stock_alert':
-        return Clock;
+        return {
+          icon: Clock,
+          label: language === 'de' ? 'Bestandswarnung' : 'Stock Alert',
+          badgeBg: 'bg-rose-100 text-rose-900 border-rose-200/80',
+          iconBg: 'bg-rose-800 text-white'
+        };
       default:
-        return Bell;
+        return {
+          icon: Bell,
+          label: language === 'de' ? 'Neuigkeit' : 'Update',
+          badgeBg: 'bg-stone-100 text-stone-800 border-stone-200/80',
+          iconBg: 'bg-stone-800 text-white'
+        };
     }
   };
 
+  const formatRelativeTime = (timestamp?: string) => {
+    if (!timestamp) return language === 'de' ? 'Gerade eben' : 'Just now';
+    try {
+      const date = new Date(timestamp);
+      if (isNaN(date.getTime())) return timestamp;
+      const diffMs = Date.now() - date.getTime();
+      const diffMinutes = Math.floor(diffMs / 60000);
+      const diffHours = Math.floor(diffMinutes / 60);
+      const diffDays = Math.floor(diffHours / 24);
+
+      if (diffMinutes < 1) return language === 'de' ? 'Gerade eben' : 'Just now';
+      if (diffMinutes < 60) return `${diffMinutes}m ${language === 'de' ? 'vor' : 'ago'}`;
+      if (diffHours < 24) return `${diffHours}h ${language === 'de' ? 'vor' : 'ago'}`;
+      if (diffDays === 1) return language === 'de' ? 'Gestern' : 'Yesterday';
+      return `${diffDays}d ${language === 'de' ? 'vor' : 'ago'}`;
+    } catch {
+      return timestamp;
+    }
+  };
+
+  const unreadCount = notifications.filter(n => !n.read).length;
+  const filteredNotifications = filter === 'unread' 
+    ? notifications.filter(n => !n.read)
+    : notifications;
+
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-      <div className="flex items-center justify-between border-b border-stone-200 pb-4">
+    <div className="max-w-3xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-200 pb-4">
         <div>
-          <h1 className="text-2xl font-black text-stone-900 tracking-tight font-display">
-            Notifications
-          </h1>
-          <p className="text-xs text-stone-500 mt-0.5">
-            Stay updated on your reservations, deal alerts, and stock drops.
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-xl sm:text-2xl font-black text-stone-900 tracking-tight font-display">
+              {language === 'de' ? 'Mitteilungen' : 'Notifications'}
+            </h1>
+            {unreadCount > 0 && (
+              <span className="px-2 py-0.5 rounded-full bg-emerald-600 text-white text-xs font-bold shadow-2xs">
+                {unreadCount} {language === 'de' ? 'neu' : 'new'}
+              </span>
+            )}
+          </div>
+          <p className="text-xs text-stone-500 mt-1">
+            {language === 'de' 
+              ? 'Wichtige Updates zu deinen Reservierungen, Blitzangeboten und Abholzeiten.'
+              : 'Live updates on your food reservations, markdown deals, and pickup windows.'}
           </p>
         </div>
 
-        {notifications.some(n => !n.read) && (
+        {unreadCount > 0 && (
           <button
             type="button"
+            id="btn-mark-all-read"
             onClick={handleMarkAllRead}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-stone-200 text-xs font-semibold text-stone-700 hover:bg-stone-50"
+            className="self-start sm:self-auto inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200/80 text-xs font-bold transition-all shadow-2xs cursor-pointer active:scale-95"
           >
             <CheckCheck className="w-4 h-4 text-emerald-700" />
-            <span>Mark all read</span>
+            <span>{language === 'de' ? 'Alle als gelesen markieren' : 'Mark all as read'}</span>
           </button>
         )}
       </div>
 
+      {/* Filter Tabs */}
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => setFilter('all')}
+          className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            filter === 'all'
+              ? 'bg-stone-900 text-white shadow-xs'
+              : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+          }`}
+        >
+          {language === 'de' ? 'Alle' : 'All'} ({notifications.length})
+        </button>
+        <button
+          type="button"
+          onClick={() => setFilter('unread')}
+          className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            filter === 'unread'
+              ? 'bg-emerald-900 text-white shadow-xs'
+              : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+          }`}
+        >
+          {language === 'de' ? 'Ungelesen' : 'Unread'} ({unreadCount})
+        </button>
+      </div>
+
+      {/* Content List */}
       {loading ? (
         <div className="space-y-3 animate-pulse">
           {[1, 2, 3].map(i => (
-            <div key={i} className="h-20 bg-stone-200 rounded-2xl" />
+            <div key={i} className="h-24 bg-stone-200/70 rounded-2xl" />
           ))}
         </div>
-      ) : notifications.length > 0 ? (
-        <div className="divide-y divide-stone-100 border border-stone-200/80 rounded-3xl bg-white overflow-hidden shadow-2xs">
-          {notifications.map((notif) => {
-            const Icon = getIcon(notif.type);
+      ) : filteredNotifications.length > 0 ? (
+        <div className="space-y-3">
+          {filteredNotifications.map((notif) => {
+            const meta = getTypeMeta(notif.type);
+            const Icon = meta.icon;
+
             return (
               <div
                 key={notif.id}
+                id={`notification-card-${notif.id}`}
                 onClick={() => handleClickNotification(notif)}
-                className={`p-4 sm:p-5 flex items-start justify-between gap-4 transition-colors cursor-pointer ${
-                  !notif.read ? 'bg-emerald-50/40 hover:bg-emerald-50/70' : 'hover:bg-stone-50'
+                className={`group relative rounded-2xl border transition-all cursor-pointer p-4 sm:p-5 flex flex-col gap-2.5 ${
+                  !notif.read 
+                    ? 'bg-emerald-50/50 hover:bg-emerald-50/80 border-emerald-200/90 shadow-xs' 
+                    : 'bg-white hover:bg-stone-50/90 border-stone-200/80 shadow-2xs'
                 }`}
               >
-                <div className="flex items-start gap-3.5 min-w-0">
-                  <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${
-                    !notif.read ? 'bg-emerald-900 text-white' : 'bg-stone-100 text-stone-600'
-                  }`}>
-                    <Icon className="w-5 h-5" />
+                {/* Top Row: Meta Badge, Subject/Title Preview, Time & Status */}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0 flex-wrap">
+                    {/* Category/Subject Tag */}
+                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-3xs font-black uppercase tracking-wider border shrink-0 ${meta.badgeBg}`}>
+                      <Icon className="w-3 h-3" />
+                      <span>{meta.label}</span>
+                    </span>
+
+                    {/* Subject/Title Headline */}
+                    <span className={`text-sm font-bold truncate ${!notif.read ? 'text-stone-900 font-extrabold' : 'text-stone-700'}`}>
+                      {notif.title}
+                    </span>
                   </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className={`text-sm font-bold truncate ${!notif.read ? 'text-stone-900' : 'text-stone-700'}`}>
-                        {notif.title}
-                      </span>
-                      {!notif.read && (
-                        <span className="w-2 h-2 rounded-full bg-emerald-600 shrink-0" />
-                      )}
-                    </div>
-                    <p className="text-xs text-stone-600 mt-1 line-clamp-2 leading-relaxed">
-                      {notif.message}
-                    </p>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-3xs font-medium text-stone-400 whitespace-nowrap">
+                      {formatRelativeTime(typeof notif.createdAt === 'string' ? notif.createdAt : undefined)}
+                    </span>
+                    {!notif.read && (
+                      <span 
+                        className="w-2.5 h-2.5 rounded-full bg-emerald-600 ring-4 ring-emerald-100 shrink-0" 
+                        title="Unread"
+                      />
+                    )}
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0 self-center">
-                  <span className="text-3xs text-stone-400 whitespace-nowrap">
-                    {typeof notif.createdAt === 'string' ? notif.createdAt : 'Just now'}
-                  </span>
-                  <ChevronRight className="w-4 h-4 text-stone-400" />
+                {/* Body Message Summary Preview (fully formatted on mobile & desktop) */}
+                <div className="text-xs text-stone-600 leading-relaxed break-words pl-0.5">
+                  {notif.message}
+                </div>
+
+                {/* Footer Action Links */}
+                <div className="flex items-center justify-between pt-1 border-t border-stone-200/40 mt-0.5 text-3xs">
+                  {notif.targetUrl ? (
+                    <span className="inline-flex items-center gap-1 font-bold text-emerald-800 group-hover:text-emerald-950 transition-colors">
+                      <span>{language === 'de' ? 'Details ansehen' : 'View details'}</span>
+                      <ChevronRight className="w-3 h-3 transition-transform group-hover:translate-x-0.5" />
+                    </span>
+                  ) : (
+                    <span />
+                  )}
+
+                  {!notif.read ? (
+                    <button
+                      type="button"
+                      onClick={(e) => handleToggleRead(e, notif)}
+                      className="inline-flex items-center gap-1 text-stone-500 hover:text-emerald-800 font-semibold px-2 py-0.5 rounded-md hover:bg-emerald-100/50 transition-colors"
+                    >
+                      <Check className="w-3 h-3" />
+                      <span>{language === 'de' ? 'Als gelesen markieren' : 'Mark as read'}</span>
+                    </button>
+                  ) : (
+                    <span className="text-stone-400 font-normal">
+                      {language === 'de' ? 'Gelesen' : 'Read'}
+                    </span>
+                  )}
                 </div>
               </div>
             );
@@ -133,8 +271,8 @@ export const NotificationsPage: React.FC = () => {
       ) : (
         <EmptyState
           icon={Bell}
-          title="No notifications yet"
-          description="When stores prepare your reservations or drop prices on your saved items, notifications will appear here."
+          title={filter === 'unread' ? (language === 'de' ? 'Keine ungelesenen Mitteilungen' : 'No unread notifications') : (language === 'de' ? 'Keine Mitteilungen' : 'No notifications yet')}
+          description={language === 'de' ? 'Wenn Partner-Märkte deine Reservierungen packen oder Preise senken, wirst du sofort benachrichtigt.' : 'When stores pack your reservations or drop prices on your saved items, updates will appear here.'}
         />
       )}
     </div>

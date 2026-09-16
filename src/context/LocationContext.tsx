@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { UserLocation } from '../types';
 
 interface LocationContextType {
@@ -47,13 +47,13 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
 
-  const setLocation = (newLoc: UserLocation) => {
+  const setLocation = useCallback((newLoc: UserLocation) => {
     setLocationState(newLoc);
     setLocationError(null);
     localStorage.setItem('tschuess_user_location', JSON.stringify(newLoc));
-  };
+  }, []);
 
-  const requestCurrentLocation = async (): Promise<boolean> => {
+  const requestCurrentLocation = useCallback(async (): Promise<boolean> => {
     if (!navigator.geolocation) {
       setLocationError('Geolocation is not supported by your browser.');
       return false;
@@ -105,10 +105,10 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
       );
     });
-  };
+  }, [setLocation]);
 
   // Search locations using OpenStreetMap Nominatim geocoding
-  const searchLocations = async (query: string): Promise<UserLocation[]> => {
+  const searchLocations = useCallback(async (query: string): Promise<UserLocation[]> => {
     if (!query || query.trim().length < 2) return [];
 
     try {
@@ -131,20 +131,27 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         l.address?.toLowerCase().includes(query.toLowerCase())
       );
     }
-  };
+  }, []);
+
+  const contextValue = useMemo<LocationContextType>(() => ({
+    location,
+    setLocation,
+    requestCurrentLocation,
+    isLoadingLocation,
+    locationError,
+    popularLocations: POPULAR_LOCATIONS,
+    searchLocations
+  }), [
+    location,
+    setLocation,
+    requestCurrentLocation,
+    isLoadingLocation,
+    locationError,
+    searchLocations
+  ]);
 
   return (
-    <LocationContext.Provider
-      value={{
-        location,
-        setLocation,
-        requestCurrentLocation,
-        isLoadingLocation,
-        locationError,
-        popularLocations: POPULAR_LOCATIONS,
-        searchLocations
-      }}
-    >
+    <LocationContext.Provider value={contextValue}>
       {children}
     </LocationContext.Provider>
   );

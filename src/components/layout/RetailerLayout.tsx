@@ -2,6 +2,7 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { Navbar } from '../navigation/Navbar';
 import { RetailerSidebar } from '../navigation/RetailerSidebar';
+import { MobileBottomNav } from '../navigation/MobileBottomNav';
 import { Footer } from '../navigation/Footer';
 
 export const RetailerLayout: React.FC = () => {
@@ -12,10 +13,11 @@ export const RetailerLayout: React.FC = () => {
         <div className="hidden md:block shrink-0">
           <RetailerSidebar />
         </div>
-        <main className="flex-1 overflow-x-hidden min-h-[calc(100vh-64px)] pb-12">
+        <main className="flex-1 overflow-x-hidden min-h-[calc(100vh-64px)] pb-24 md:pb-12">
           <Outlet />
         </main>
       </div>
+      <MobileBottomNav />
       <Footer />
     </div>
   );

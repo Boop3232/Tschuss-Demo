@@ -13,10 +13,10 @@ import {
 import { db } from '../lib/firebase';
 import { AppNotification } from '../types';
 
-const INITIAL_DEMO_NOTIFICATIONS: AppNotification[] = [
+const getInitialDemoNotifications = (userId: string): AppNotification[] => [
   {
-    id: 'notif_1',
-    userId: 'demo_consumer_123',
+    id: `notif_${userId}_1`,
+    userId,
     title: 'Ready for Pickup',
     message: 'Your reservation #TS-4829 for Creamy Greek Style Yoghurt at REWE Kleve is packed and ready.',
     type: 'reservation_status',
@@ -25,8 +25,8 @@ const INITIAL_DEMO_NOTIFICATIONS: AppNotification[] = [
     createdAt: new Date(Date.now() - 45 * 60 * 1000).toISOString()
   },
   {
-    id: 'notif_2',
-    userId: 'demo_consumer_123',
+    id: `notif_${userId}_2`,
+    userId,
     title: '50% Flash Markdown',
     message: 'Organic Barista Oat Drink at BioMarkt Kleve just got discounted to €1.03.',
     type: 'deal_alert',
@@ -35,8 +35,8 @@ const INITIAL_DEMO_NOTIFICATIONS: AppNotification[] = [
     createdAt: new Date(Date.now() - 3 * 3600 * 1000).toISOString()
   },
   {
-    id: 'notif_3',
-    userId: 'demo_consumer_123',
+    id: `notif_${userId}_3`,
+    userId,
     title: 'Low Stock Alert',
     message: 'Only 3 units left of Soothing Chamomile Night Cream at BioMarkt Kleve.',
     type: 'stock_alert',
@@ -46,8 +46,34 @@ const INITIAL_DEMO_NOTIFICATIONS: AppNotification[] = [
   }
 ];
 
+function getLocalNotifications(userId: string): AppNotification[] {
+  try {
+    const key = `tschuess_notifs_${userId}`;
+    const raw = localStorage.getItem(key);
+    if (raw) {
+      return JSON.parse(raw);
+    }
+    const initial = getInitialDemoNotifications(userId);
+    localStorage.setItem(key, JSON.stringify(initial));
+    return initial;
+  } catch (e) {
+    return getInitialDemoNotifications(userId);
+  }
+}
+
+function saveLocalNotifications(userId: string, notifs: AppNotification[]) {
+  try {
+    const key = `tschuess_notifs_${userId}`;
+    localStorage.setItem(key, JSON.stringify(notifs));
+    window.dispatchEvent(new CustomEvent('tschuess_notifications_changed', { detail: { userId } }));
+  } catch (e) {
+    console.warn('Could not save notifications locally:', e);
+  }
+}
+
 export const notificationService = {
   async getNotifications(userId: string): Promise<AppNotification[]> {
+    const local = getLocalNotifications(userId);
     try {
       const q = query(
         collection(db, 'notifications'), 
@@ -55,11 +81,14 @@ export const notificationService = {
       );
       const snap = await getDocs(q);
       if (!snap.empty) {
-        return snap.docs.map(d => ({ ...d.data(), id: d.id } as AppNotification));
+        const firestoreNotifs = snap.docs.map(d => ({ ...d.data(), id: d.id } as AppNotification));
+        // Merge with local state to preserve read state if newer
+        saveLocalNotifications(userId, firestoreNotifs);
+        return firestoreNotifs;
       }
-      return INITIAL_DEMO_NOTIFICATIONS;
+      return local;
     } catch (e) {
-      return INITIAL_DEMO_NOTIFICATIONS;
+      return local;
     }
   },
 
@@ -70,16 +99,24 @@ export const notificationService = {
     type: AppNotification['type'],
     targetUrl?: string
   ): Promise<string> {
-    const id = `notif_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`;
+    const id = `notif_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+    const newNotif: AppNotification = {
+      id,
+      userId,
+      title,
+      message,
+      type,
+      targetUrl: targetUrl || '',
+      read: false,
+      createdAt: new Date().toISOString()
+    };
+
+    const current = getLocalNotifications(userId);
+    saveLocalNotifications(userId, [newNotif, ...current]);
+
     try {
       await setDoc(doc(db, 'notifications', id), {
-        id,
-        userId,
-        title,
-        message,
-        type,
-        targetUrl: targetUrl || '',
-        read: false,
+        ...newNotif,
         createdAt: serverTimestamp()
       });
     } catch (e) {
@@ -88,18 +125,47 @@ export const notificationService = {
     return id;
   },
 
-  async markAsRead(id: string): Promise<void> {
+  async markAsRead(id: string, userId?: string): Promise<void> {
+    // 1. Update in local storage
+    if (userId) {
+      const current = getLocalNotifications(userId);
+      const updated = current.map(n => n.id === id ? { ...n, read: true } : n);
+      saveLocalNotifications(userId, updated);
+    } else {
+      // Find across all user keys in localStorage if userId not provided
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith('tschuess_notifs_')) {
+          try {
+            const list: AppNotification[] = JSON.parse(localStorage.getItem(k) || '[]');
+            if (list.some(n => n.id === id)) {
+              const u = list.map(n => n.id === id ? { ...n, read: true } : n);
+              localStorage.setItem(k, JSON.stringify(u));
+              window.dispatchEvent(new CustomEvent('tschuess_notifications_changed', { detail: { id } }));
+            }
+          } catch {}
+        }
+      }
+    }
+
+    // 2. Update or merge in Firestore
     try {
-      await updateDoc(doc(db, 'notifications', id), {
+      await setDoc(doc(db, 'notifications', id), {
         read: true,
         updatedAt: serverTimestamp()
-      });
+      }, { merge: true });
     } catch (e) {
       console.warn('Could not update notification in Firestore:', e);
     }
   },
 
   async markAllAsRead(userId: string): Promise<void> {
+    // 1. Update local storage immediately
+    const current = getLocalNotifications(userId);
+    const updated = current.map(n => ({ ...n, read: true }));
+    saveLocalNotifications(userId, updated);
+
+    // 2. Sync to Firestore in background
     try {
       const q = query(
         collection(db, 'notifications'), 
@@ -107,25 +173,55 @@ export const notificationService = {
         where('read', '==', false)
       );
       const snap = await getDocs(q);
-      const promises = snap.docs.map(d => updateDoc(d.ref, { read: true }));
+      const promises = snap.docs.map(d => updateDoc(d.ref, { 
+        read: true,
+        updatedAt: serverTimestamp()
+      }));
       await Promise.all(promises);
     } catch (e) {
-      console.warn('Could not mark all as read:', e);
+      console.warn('Could not mark all as read in Firestore:', e);
     }
   },
 
   subscribeToNotifications(userId: string, callback: (notifications: AppNotification[]) => void) {
-    const q = query(
-      collection(db, 'notifications'), 
-      where('userId', '==', userId)
-    );
+    // 1. Emit current local cache immediately
+    const initial = getLocalNotifications(userId);
+    callback(initial);
 
-    return onSnapshot(q, (snapshot) => {
-      const notifs = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as AppNotification));
-      callback(notifs.length > 0 ? notifs : INITIAL_DEMO_NOTIFICATIONS);
-    }, (err) => {
-      console.warn('Notification snapshot fallback:', err);
-      callback(INITIAL_DEMO_NOTIFICATIONS);
-    });
+    // 2. Listen to internal custom and storage events for synchronous UI reactivity
+    const handleLocalChange = () => {
+      const updated = getLocalNotifications(userId);
+      callback(updated);
+    };
+
+    window.addEventListener('tschuess_notifications_changed', handleLocalChange);
+    window.addEventListener('storage', handleLocalChange);
+
+    // 3. Connect Firestore real-time listener if available
+    let unsubscribeFirestore = () => {};
+    try {
+      const q = query(
+        collection(db, 'notifications'), 
+        where('userId', '==', userId)
+      );
+
+      unsubscribeFirestore = onSnapshot(q, (snapshot) => {
+        if (!snapshot.empty) {
+          const notifs = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as AppNotification));
+          saveLocalNotifications(userId, notifs);
+          callback(notifs);
+        }
+      }, (err) => {
+        console.warn('Notification snapshot warning:', err);
+      });
+    } catch (e) {
+      console.warn('Could not attach Firestore listener:', e);
+    }
+
+    return () => {
+      window.removeEventListener('tschuess_notifications_changed', handleLocalChange);
+      window.removeEventListener('storage', handleLocalChange);
+      unsubscribeFirestore();
+    };
   }
 };

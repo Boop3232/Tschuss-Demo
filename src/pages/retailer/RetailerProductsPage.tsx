@@ -10,7 +10,8 @@ import {
   CheckCircle, 
   AlertTriangle,
   RefreshCw,
-  SlidersHorizontal
+  SlidersHorizontal,
+  Store as StoreIcon
 } from 'lucide-react';
 import { Product, ProductStatus } from '../../types';
 import { productService } from '../../services/productService';
@@ -20,9 +21,18 @@ import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { formatCurrency, formatExpiry } from '../../utils/businessLogic';
 import { TableSkeleton } from '../../components/common/LoadingSkeleton';
 
+const STORE_TABS = [
+  { id: 'all', name: 'All Partner Stores' },
+  { id: 'store_rewe_kleve', name: 'REWE Kleve' },
+  { id: 'store_baeckerei_kleve', name: 'Bäckerei Derks' },
+  { id: 'store_biomarkt_kleve', name: 'BioMarkt Kleve' },
+  { id: 'store_edeka_kleve', name: 'EDEKA Center' },
+  { id: 'store_blumen_kleve', name: 'Blumen Floristik' },
+];
+
 export const RetailerProductsPage: React.FC = () => {
   const navigate = useNavigate();
-  const storeId = 'store_rewe_kleve';
+  const [selectedStoreId, setSelectedStoreId] = useState<string>('all');
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,7 +43,9 @@ export const RetailerProductsPage: React.FC = () => {
   const loadProducts = async () => {
     setLoading(true);
     try {
-      const items = await productService.getProducts({ storeId });
+      const items = await productService.getProducts({ 
+        storeId: selectedStoreId === 'all' ? undefined : selectedStoreId 
+      });
       setProducts(items);
     } catch (err) {
       console.error('Error fetching retailer products:', err);
@@ -44,14 +56,26 @@ export const RetailerProductsPage: React.FC = () => {
 
   useEffect(() => {
     loadProducts();
-  }, []);
+
+    const unsub = productService.subscribeToProducts(
+      selectedStoreId === 'all' ? undefined : selectedStoreId, 
+      (items) => {
+        setProducts(items);
+        setLoading(false);
+      }
+    );
+
+    return () => unsub();
+  }, [selectedStoreId]);
 
   const handleDeleteProduct = async () => {
     if (!deletingProductId) return;
+    const idToDelete = deletingProductId;
+    setDeletingProductId(null);
+    // Instant optimistic update
+    setProducts(prev => prev.filter(p => p.id !== idToDelete));
     try {
-      await productService.deleteProduct(deletingProductId);
-      setProducts(products.filter(p => p.id !== deletingProductId));
-      setDeletingProductId(null);
+      await productService.deleteProduct(idToDelete);
     } catch (err) {
       console.error('Error deleting product:', err);
     }
@@ -59,13 +83,14 @@ export const RetailerProductsPage: React.FC = () => {
 
   const handleToggleStatus = async (product: Product) => {
     const newStatus: ProductStatus = product.status === 'active' ? 'paused' : 'active';
+    setProducts(prev => prev.map(p => p.id === product.id ? { ...p, status: newStatus } : p));
     await productService.updateProduct(product.id, { status: newStatus });
-    setProducts(products.map(p => p.id === product.id ? { ...p, status: newStatus } : p));
   };
 
   const filteredProducts = products.filter(p => {
     const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          p.category.toLowerCase().includes(searchQuery.toLowerCase());
+                          p.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          p.storeName.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'all' ? true : p.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -85,11 +110,37 @@ export const RetailerProductsPage: React.FC = () => {
 
         <Link
           to="/business/products/new"
+          id="btn-add-rescue-product"
           className="px-4 py-2.5 rounded-xl bg-emerald-900 hover:bg-emerald-800 active:scale-95 text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1.5 shrink-0"
         >
           <Plus className="w-4 h-4" />
           <span>Add Rescue Product</span>
         </Link>
+      </div>
+
+      {/* Store Branch Selector */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+        <span className="text-2xs font-bold text-stone-400 uppercase tracking-wider shrink-0 flex items-center gap-1">
+          <StoreIcon className="w-3.5 h-3.5 text-stone-500" />
+          Store Branch:
+        </span>
+        <div className="flex items-center gap-1.5">
+          {STORE_TABS.map((st) => (
+            <button
+              key={st.id}
+              type="button"
+              id={`tab-store-${st.id}`}
+              onClick={() => setSelectedStoreId(st.id)}
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all border ${
+                selectedStoreId === st.id
+                  ? 'bg-emerald-800 text-white border-emerald-800 shadow-2xs'
+                  : 'bg-white hover:bg-stone-50 text-stone-600 border-stone-200'
+              }`}
+            >
+              {st.name}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Filter and Search Bar */}
@@ -98,9 +149,10 @@ export const RetailerProductsPage: React.FC = () => {
           <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
+            id="input-search-products"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Filter by product name, category..."
+            placeholder="Filter by product name, store, category..."
             className="w-full pl-10 pr-4 py-2 bg-white border border-stone-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-800"
           />
         </div>
@@ -109,6 +161,7 @@ export const RetailerProductsPage: React.FC = () => {
           {['all', 'active', 'paused', 'expired', 'sold_out'].map((st) => (
             <button
               key={st}
+              id={`filter-status-${st}`}
               onClick={() => setStatusFilter(st)}
               className={`px-3 py-1.5 rounded-xl text-xs font-semibold capitalize whitespace-nowrap transition-all border ${
                 statusFilter === st
@@ -132,7 +185,7 @@ export const RetailerProductsPage: React.FC = () => {
               <thead className="bg-stone-50/80 border-b border-stone-200/80 text-3xs uppercase font-bold text-stone-400 tracking-wider">
                 <tr>
                   <th className="py-3.5 px-4">Product Details</th>
-                  <th className="py-3.5 px-4">Category</th>
+                  <th className="py-3.5 px-4">Store & Category</th>
                   <th className="py-3.5 px-4">Pricing</th>
                   <th className="py-3.5 px-4">Stock</th>
                   <th className="py-3.5 px-4">Expiry</th>
@@ -161,9 +214,10 @@ export const RetailerProductsPage: React.FC = () => {
                         </div>
                       </td>
 
-                      {/* Category */}
-                      <td className="py-3 px-4 font-semibold text-stone-600">
-                        {prod.category}
+                      {/* Store & Category */}
+                      <td className="py-3 px-4">
+                        <span className="font-bold text-stone-900 block">{prod.storeName}</span>
+                        <span className="text-2xs text-stone-500 font-semibold">{prod.category}</span>
                       </td>
 
                       {/* Pricing */}
@@ -199,11 +253,12 @@ export const RetailerProductsPage: React.FC = () => {
 
                       {/* Actions */}
                       <td className="py-3 px-4 text-right">
-                        <div className="flex items-center justify-end gap-1">
+                        <div className="flex items-center justify-end gap-1.5">
                           <button
                             type="button"
+                            id={`btn-toggle-status-${prod.id}`}
                             onClick={() => handleToggleStatus(prod)}
-                            className="p-1.5 rounded-lg border border-stone-200 text-stone-600 hover:bg-stone-100 hover:text-stone-900 text-2xs font-semibold"
+                            className="px-2 py-1 rounded-lg border border-stone-200 text-stone-600 hover:bg-stone-100 hover:text-stone-900 text-2xs font-semibold transition-colors"
                             title="Toggle active / paused"
                           >
                             {prod.status === 'active' ? 'Pause' : 'Activate'}
@@ -211,9 +266,11 @@ export const RetailerProductsPage: React.FC = () => {
 
                           <button
                             type="button"
+                            id={`btn-delete-product-${prod.id}`}
                             onClick={() => setDeletingProductId(prod.id)}
-                            className="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50"
+                            className="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 hover:text-rose-700 transition-colors"
                             title="Delete product"
+                            aria-label={`Delete ${prod.name}`}
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -250,3 +307,4 @@ export const RetailerProductsPage: React.FC = () => {
     </div>
   );
 };
+

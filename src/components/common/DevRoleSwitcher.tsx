@@ -54,7 +54,11 @@ export const DevRoleSwitcher: React.FC = () => {
   };
 
   return (
-    <aside aria-label="Development Tools" id="dev-role-switcher-container" className="fixed bottom-16 md:bottom-3 right-3 z-50 font-sans select-none">
+    <aside 
+      aria-label="Development Tools" 
+      id="dev-role-switcher-container" 
+      className="fixed bottom-[calc(4.25rem+env(safe-area-inset-bottom,0px))] md:bottom-3 right-2.5 md:right-3 z-30 font-sans select-none max-w-[calc(100vw-1.25rem)]"
+    >
       {/* Toast Alert */}
       {statusMessage && (
         <div 

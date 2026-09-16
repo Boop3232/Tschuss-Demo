@@ -43,14 +43,10 @@ export const Navbar: React.FC = () => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const userId = currentUser?.uid;
+  const userId = currentUser?.uid || userProfile?.uid || 'demo_consumer_123';
 
-  // Listen to unread notifications only if logged in
+  // Listen to unread notifications
   useEffect(() => {
-    if (!userId) {
-      setUnreadCount(0);
-      return;
-    }
     const unsub = notificationService.subscribeToNotifications(userId, (notifs) => {
       const count = notifs.filter(n => !n.read).length;
       setUnreadCount(count);
@@ -176,21 +172,19 @@ export const Navbar: React.FC = () => {
               </div>
 
               {/* Notifications Icon */}
-              {currentUser && (
-                <Link
-                  to="/app/notifications"
-                  id="btn-nav-notifications"
-                  className="relative w-9 h-9 rounded-full flex items-center justify-center text-stone-600 hover:text-emerald-900 hover:bg-white bg-stone-100/80 backdrop-blur-sm transition-all border border-stone-200/60 shadow-2xs shrink-0 no-underline"
-                  aria-label="Notifications"
-                >
-                  <Bell className="w-4 h-4" />
-                  {unreadCount > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-emerald-500 text-white rounded-full text-3xs flex items-center justify-center font-bold shadow-2xs">
-                      {unreadCount}
-                    </span>
-                  )}
-                </Link>
-              )}
+              <Link
+                to="/app/notifications"
+                id="btn-nav-notifications"
+                className="relative w-9 h-9 rounded-full flex items-center justify-center text-stone-600 hover:text-emerald-900 hover:bg-white bg-stone-100/80 backdrop-blur-sm transition-all border border-stone-200/60 shadow-2xs shrink-0 no-underline"
+                aria-label="Notifications"
+              >
+                <Bell className="w-4 h-4" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 bg-emerald-600 text-white rounded-full text-[10px] leading-none flex items-center justify-center font-black shadow-2xs animate-in zoom-in-50">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
+              </Link>
 
               {/* Development Shortcut: Switch to Retailer / Consumer - displayed on 2xl screens to avoid crowding on standard desktop */}
               {role !== 'retailer' && role !== 'admin' ? (
@@ -422,6 +416,21 @@ export const Navbar: React.FC = () => {
                   </Link>
                 );
               })}
+              <Link
+                to="/app/notifications"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center justify-between p-2.5 rounded-2xl border border-stone-100 bg-stone-50/80 text-xs font-semibold text-stone-800 hover:bg-emerald-50"
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <Bell className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span className="truncate">{language === 'de' ? 'Mitteilungen' : 'Notifications'}</span>
+                </div>
+                {unreadCount > 0 && (
+                  <span className="px-1.5 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-bold">
+                    {unreadCount}
+                  </span>
+                )}
+              </Link>
             </div>
 
             {/* Quick settings in drawer: Language */}

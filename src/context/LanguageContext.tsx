@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import enTranslations from '../translations/en.json';
 import deTranslations from '../translations/de.json';
 import { translationService } from '../services/translationService';
@@ -28,15 +28,17 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   }, [language]);
 
-  const setLanguage = (lang: Language) => {
+  const setLanguage = useCallback((lang: Language) => {
     setLanguageState(lang);
     localStorage.setItem('tschuess_lang', lang);
     translationService.translateWholeWebsite(lang);
-  };
+  }, []);
 
-  const translations = language === 'de' ? deTranslations : enTranslations;
+  const translations = useMemo(() => {
+    return language === 'de' ? deTranslations : enTranslations;
+  }, [language]);
 
-  const t = (path: string, fallback?: string): string => {
+  const t = useCallback((path: string, fallback?: string): string => {
     const keys = path.split('.');
     let current: any = translations;
     for (const key of keys) {
@@ -51,10 +53,16 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       }
     }
     return typeof current === 'string' ? current : fallback || path;
-  };
+  }, [translations, language]);
+
+  const contextValue = useMemo<LanguageContextType>(() => ({
+    language,
+    setLanguage,
+    t
+  }), [language, setLanguage, t]);
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={contextValue}>
       {children}
     </LanguageContext.Provider>
   );

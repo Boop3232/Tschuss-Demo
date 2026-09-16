@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { 
   User, 
   signInWithEmailAndPassword, 
@@ -220,7 +220,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [currentUser, fetchUserProfile, switchToConsumerDev, switchToRetailerDev]);
 
   // Real Email/Password login
-  const login = async (email: string, pass: string): Promise<UserProfile | null> => {
+  const login = useCallback(async (email: string, pass: string): Promise<UserProfile | null> => {
     setLoading(true);
     try {
       const cred = await signInWithEmailAndPassword(auth, email.trim(), pass);
@@ -230,10 +230,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       setLoading(false);
     }
-  };
+  }, [fetchUserProfile]);
 
   // Real Email/Password consumer registration
-  const register = async (email: string, pass: string, name: string): Promise<UserProfile> => {
+  const register = useCallback(async (email: string, pass: string, name: string): Promise<UserProfile> => {
     setLoading(true);
     try {
       const trimmedEmail = email.trim();
@@ -277,10 +277,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // Logout
-  const logout = async () => {
+  const logout = useCallback(async () => {
     setLoading(true);
     try {
       localStorage.removeItem('tschuess_dev_role');
@@ -292,33 +292,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // Password Reset
-  const resetPassword = async (email: string) => {
+  const resetPassword = useCallback(async (email: string) => {
     await sendPasswordResetEmail(auth, email.trim());
-  };
+  }, []);
 
   // Resend Verification Email
-  const resendVerificationEmail = async () => {
+  const resendVerificationEmail = useCallback(async () => {
     if (!auth.currentUser) {
       throw new Error('auth/user-not-found');
     }
     await sendEmailVerification(auth.currentUser);
-  };
+  }, []);
 
   // Refresh Profile
-  const refreshUserProfile = async (): Promise<UserProfile | null> => {
+  const refreshUserProfile = useCallback(async (): Promise<UserProfile | null> => {
     if (auth.currentUser) {
       await auth.currentUser.reload();
       setCurrentUser(auth.currentUser);
       return await fetchUserProfile(auth.currentUser);
     }
     return null;
-  };
+  }, [fetchUserProfile]);
 
   // Update Profile (Disallows changing role!)
-  const updateUserProfile = async (data: Partial<UserProfile>) => {
+  const updateUserProfile = useCallback(async (data: Partial<UserProfile>) => {
     if (!currentUser) {
       throw new Error('Not authenticated');
     }
@@ -335,41 +335,58 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await updateDoc(userRef, payload);
 
     setUserProfile(prev => prev ? ({ ...prev, ...safeData } as UserProfile) : null);
-  };
+  }, [currentUser]);
 
   const effectiveRole: UserRole | null = devRoleOverride || userProfile?.role || null;
-  const effectiveProfile: UserProfile | null = userProfile
-    ? {
-        ...userProfile,
-        role: effectiveRole || userProfile.role,
-      }
-    : null;
+  const effectiveProfile: UserProfile | null = useMemo(() => {
+    if (!userProfile) return null;
+    return {
+      ...userProfile,
+      role: effectiveRole || userProfile.role,
+    };
+  }, [userProfile, effectiveRole]);
+
+  const contextValue = useMemo<AuthContextType>(() => ({
+    currentUser,
+    user: currentUser,
+    firebaseUser: currentUser,
+    userProfile: effectiveProfile,
+    loading,
+    role: effectiveRole,
+    isAuthenticated: !!currentUser,
+    isEmailVerified: !!currentUser?.emailVerified,
+    login,
+    register,
+    logout,
+    resetPassword,
+    resendVerificationEmail,
+    updateUserProfile,
+    refreshUserProfile,
+    devRole: devRoleOverride,
+    isDevRoleActive: !!devRoleOverride,
+    switchToRetailerDev,
+    switchToConsumerDev,
+    setDevRole,
+  }), [
+    currentUser,
+    effectiveProfile,
+    loading,
+    effectiveRole,
+    login,
+    register,
+    logout,
+    resetPassword,
+    resendVerificationEmail,
+    updateUserProfile,
+    refreshUserProfile,
+    devRoleOverride,
+    switchToRetailerDev,
+    switchToConsumerDev,
+    setDevRole,
+  ]);
 
   return (
-    <AuthContext.Provider
-      value={{
-        currentUser,
-        user: currentUser,
-        firebaseUser: currentUser,
-        userProfile: effectiveProfile,
-        loading,
-        role: effectiveRole,
-        isAuthenticated: !!currentUser,
-        isEmailVerified: !!currentUser?.emailVerified,
-        login,
-        register,
-        logout,
-        resetPassword,
-        resendVerificationEmail,
-        updateUserProfile,
-        refreshUserProfile,
-        devRole: devRoleOverride,
-        isDevRoleActive: !!devRoleOverride,
-        switchToRetailerDev,
-        switchToConsumerDev,
-        setDevRole,
-      }}
-    >
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

@@ -53,7 +53,15 @@ export const ConsumerProfilePage: React.FC = () => {
       if (currentUser.displayName) setName(currentUser.displayName);
       if (currentUser.email) setEmail(currentUser.email);
     }
-  }, [userProfile, currentUser]);
+  }, [
+    userProfile?.uid,
+    userProfile?.name,
+    userProfile?.email,
+    userProfile?.phone,
+    currentUser?.uid,
+    currentUser?.displayName,
+    currentUser?.email
+  ]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();

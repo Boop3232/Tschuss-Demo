@@ -47,7 +47,7 @@ export const DiscoverPage: React.FC = () => {
   });
 
   // Load stores and products
-  const loadData = async () => {
+  const loadData = React.useCallback(async () => {
     setLoading(true);
     try {
       // Ensure demo seed runs if database empty
@@ -65,11 +65,20 @@ export const DiscoverPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters, location]);
 
   useEffect(() => {
     loadData();
-  }, [filters, location]);
+  }, [
+    filters.category,
+    filters.searchQuery,
+    filters.maxDistanceKm,
+    filters.minDiscountPercent,
+    filters.maxPrice,
+    filters.sortBy,
+    location.lat,
+    location.lng
+  ]);
 
   const handleCategoryChange = (category: string) => {
     setFilters(prev => ({ ...prev, category }));

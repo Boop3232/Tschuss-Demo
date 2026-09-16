@@ -29,7 +29,7 @@ export const MapDiscoveryPage: React.FC = () => {
       }
     }
     load();
-  }, [location]);
+  }, [location.lat, location.lng]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
@@ -55,7 +55,7 @@ export const MapDiscoveryPage: React.FC = () => {
         <MapView
           stores={stores}
           products={products}
-          heightClass="h-[650px]"
+          heightClass="h-[480px] sm:h-[600px] lg:h-[650px]"
         />
       </div>
     </div>
