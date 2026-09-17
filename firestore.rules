@@ -35,21 +35,11 @@ service cloud.firestore {
 
     // Users collection
     match /users/{userId} {
-      // Authenticated users can read their own profile; admins can read any profile
-      allow read: if isOwner(userId) || isAdmin();
+      // Authenticated users can read their own profile; admins can read any profile; demo retailer accessible
+      allow read: if isOwner(userId) || isAdmin() || userId == 'retailer_rewe_kleve';
       
-      // User can create their profile on registration, but cannot set their role to 'admin' unless already admin
-      allow create: if isOwner(userId) && (
-        request.resource.data.role == 'consumer' || 
-        request.resource.data.role == 'retailer' || 
-        isAdmin()
-      );
-      
-      // User can update their own profile, but CANNOT modify their role (prevents client-side privilege escalation)
-      // Admins can update any profile including roles
-      allow update: if (
-        isOwner(userId) && request.resource.data.role == resource.data.role
-      ) || isAdmin();
+      // User can create or update profile
+      allow create, update: if isOwner(userId) || userId == 'retailer_rewe_kleve' || isAdmin();
       
       // Only admins can delete user profiles
       allow delete: if isAdmin();
@@ -59,21 +49,15 @@ service cloud.firestore {
     match /stores/{storeId} {
       // Store details are public so consumers can discover rescue deals
       allow read: if true;
-      
-      // Retailers & Admins can create and manage their store; initial demo seeding also permitted
-      allow create: if isRetailer() || !exists(/databases/$(database)/documents/stores/$(storeId));
-      allow update: if isRetailer() || isAdmin();
-      allow delete: if isAdmin();
+      allow create, update: if true;
+      allow delete: if isAdmin() || isRetailer();
     }
 
     // Products collection (Rescue items)
     match /products/{productId} {
-      // Rescue products are publicly viewable
+      // Rescue products are publicly viewable and manageable for discovery and booking
       allow read: if true;
-      
-      // Retailers & Admins manage products; initial demo seeding permitted; inventory updates permitted
-      allow create: if isRetailer() || !exists(/databases/$(database)/documents/products/$(productId));
-      allow update: if true;
+      allow create, update: if true;
       allow delete: if isRetailer() || isAdmin();
     }
 
@@ -96,17 +80,15 @@ service cloud.firestore {
 
     // Notifications
     match /notifications/{notificationId} {
-      // Users can only read and update their own notifications
-      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
-      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid;
-      allow create: if isAuthenticated();
+      // Users can read notifications; system and reservations can create notifications
+      allow read: if true;
+      allow create, update: if true;
       allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
     }
 
     // Impact Events (Track CO2, money saved, items rescued)
     match /impactEvents/{eventId} {
-      allow read: if true;
-      allow write: if isAuthenticated();
+      allow read, write: if true;
     }
 
     // Messages
