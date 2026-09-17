@@ -7,33 +7,39 @@ export const Footer: React.FC = () => {
   const { language, setLanguage } = useLanguage();
 
   return (
-    <footer className="bg-[#F5F4EE] text-stone-600 text-xs border-t border-stone-200/70 pb-16 md:pb-6">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+    <footer className="bg-stone-50 text-stone-600 text-xs border-t border-stone-200 pb-20 md:pb-8 relative overflow-hidden">
+      {/* Background ambient subtle glow */}
+      <div className="absolute top-0 right-1/4 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 space-y-10 relative z-10">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
           {/* Brand Col */}
-          <div className="space-y-3 md:col-span-2">
+          <div className="space-y-4 md:col-span-2">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center font-black text-sm shadow-2xs">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white flex items-center justify-center font-black text-sm shadow-xs">
                 T
               </div>
               <span className="font-extrabold text-lg text-stone-900 font-display">Tschüss</span>
+              <span className="px-2 py-0.5 rounded-full text-3xs font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300">
+                Sovereign Tech
+              </span>
             </div>
-            <p className="text-stone-500 text-xs max-w-md leading-relaxed">
+            <p className="text-stone-600 text-xs max-w-md leading-relaxed">
               "Connecting Retailers and Consumers to Profit from Near Food Expiry."
-              Empowering local supermarkets, bakeries, and shoppers to convert surplus food into recovered margin and delicious meals.
+              High-precision surplus inventory recovery platform empowering local supermarkets, bakeries, and smart shoppers to eliminate organic discard.
             </p>
             <div className="flex items-center gap-2 text-2xs text-emerald-700 font-semibold pt-1">
-              <MapPin className="w-3.5 h-3.5 text-emerald-600" />
+              <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse shadow-xs" />
               <span>Pilot deployment in Kleve (Kreis Kleve, North Rhine-Westphalia)</span>
             </div>
           </div>
 
           {/* Consumer Links */}
           <div className="space-y-3">
-            <h4 className="text-3xs font-bold text-stone-700 uppercase tracking-wider">
+            <h4 className="text-3xs font-bold text-stone-900 uppercase tracking-widest">
               Consumer Platform
             </h4>
-            <ul className="space-y-2 text-stone-500">
+            <ul className="space-y-2.5 text-stone-600">
               <li>
                 <Link to="/app/discover" className="hover:text-emerald-700 transition-colors">
                   Explore Deals
@@ -41,7 +47,7 @@ export const Footer: React.FC = () => {
               </li>
               <li>
                 <Link to="/app/map" className="hover:text-emerald-700 transition-colors">
-                  Store Map
+                  Store Radar & Map
                 </Link>
               </li>
               <li>
@@ -51,12 +57,12 @@ export const Footer: React.FC = () => {
               </li>
               <li>
                 <Link to="/app/reservations" className="hover:text-emerald-700 transition-colors">
-                  My Reservations
+                  Active Reservations
                 </Link>
               </li>
               <li>
                 <Link to="/app/impact" className="hover:text-emerald-700 transition-colors">
-                  CO2e & Savings Impact
+                  CO2e & Savings Telemetry
                 </Link>
               </li>
             </ul>
@@ -64,28 +70,28 @@ export const Footer: React.FC = () => {
 
           {/* Business & Legal */}
           <div className="space-y-3">
-            <h4 className="text-3xs font-bold text-stone-700 uppercase tracking-wider">
-              Retailer & System
+            <h4 className="text-3xs font-bold text-stone-900 uppercase tracking-widest">
+              Enterprise & Retailer
             </h4>
-            <ul className="space-y-2 text-stone-500">
+            <ul className="space-y-2.5 text-stone-600">
               <li>
                 <Link to="/business" className="hover:text-emerald-700 transition-colors">
-                  Retailer Dashboard
+                  Retailer Operations Hub
                 </Link>
               </li>
               <li>
                 <Link to="/for-business" className="hover:text-emerald-700 transition-colors">
-                  Become a Partner Store
+                  Partner Supermarket Onboarding
                 </Link>
               </li>
               <li>
                 <Link to="/how-it-works" className="hover:text-emerald-700 transition-colors">
-                  MHD & Food Safety Standards
+                  MHD & DIN Food Safety Standards
                 </Link>
               </li>
               <li>
                 <Link to="/admin" className="hover:text-emerald-700 transition-colors">
-                  System Admin
+                  System Administration
                 </Link>
               </li>
             </ul>
@@ -93,21 +99,21 @@ export const Footer: React.FC = () => {
         </div>
 
         {/* Bottom bar */}
-        <div className="pt-8 border-t border-stone-200/70 flex flex-col sm:flex-row items-center justify-between gap-4 text-3xs text-stone-500">
-          <p>© {new Date().getFullYear()} Tschüss Platform. Clean & sustainable food rescue.</p>
+        <div className="pt-8 border-t border-stone-200 flex flex-col sm:flex-row items-center justify-between gap-4 text-3xs text-stone-500">
+          <p>© {new Date().getFullYear()} Tschüss Platform GmbH. High-efficiency food rescue infrastructure.</p>
 
           <div className="flex items-center gap-4">
             <span className="font-semibold text-stone-600">Language:</span>
             <button
               onClick={() => setLanguage('de')}
-              className={`hover:text-stone-800 font-bold ${language === 'de' ? 'text-emerald-700' : ''}`}
+              className={`hover:text-stone-900 font-bold transition-colors ${language === 'de' ? 'text-emerald-700' : ''}`}
             >
               Deutsch
             </button>
-            <span>•</span>
+            <span className="text-stone-300">•</span>
             <button
               onClick={() => setLanguage('en')}
-              className={`hover:text-stone-800 font-bold ${language === 'en' ? 'text-emerald-700' : ''}`}
+              className={`hover:text-stone-900 font-bold transition-colors ${language === 'en' ? 'text-emerald-700' : ''}`}
             >
               English
             </button>

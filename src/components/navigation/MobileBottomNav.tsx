@@ -94,7 +94,7 @@ export const MobileBottomNav: React.FC = () => {
     <aside 
       aria-label="Mobile Navigation"
       id="mobile-bottom-navbar"
-      className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/75 backdrop-blur-2xl backdrop-saturate-200 border-t border-white/80 shadow-[0_-8px_32px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,0.8)] box-border w-full max-w-full overflow-hidden"
+      className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-2xl border-t border-stone-200/90 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] box-border w-full max-w-full overflow-hidden"
       style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 6px)' }}
     >
       <nav className="grid grid-cols-5 items-center justify-items-stretch w-full max-w-md mx-auto px-2 pt-1.5 pb-1">
@@ -109,7 +109,7 @@ export const MobileBottomNav: React.FC = () => {
                 `no-underline flex flex-col items-center justify-center min-h-[44px] w-full min-w-0 py-1 px-0.5 rounded-2xl transition-all select-none active:scale-95 ${
                   isActive
                     ? 'text-stone-900 font-bold'
-                    : 'text-stone-400 hover:text-stone-700 font-medium'
+                    : 'text-stone-500 hover:text-stone-800 font-medium'
                 }`
               }
             >
@@ -117,12 +117,14 @@ export const MobileBottomNav: React.FC = () => {
                 <>
                   <div className={`p-1.5 rounded-xl transition-all duration-200 ${
                     isActive 
-                      ? 'bg-stone-900 text-white shadow-xs'
-                      : 'bg-transparent text-stone-400'
+                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-2xs'
+                      : 'bg-transparent text-stone-500'
                   }`}>
                     <Icon className="w-4 h-4 shrink-0" />
                   </div>
-                  <span className="text-[10px] leading-tight tracking-tight mt-0.5 max-w-full truncate text-center px-0.5 block">
+                  <span className={`text-[10px] leading-tight tracking-tight mt-0.5 max-w-full truncate text-center px-0.5 block ${
+                    isActive ? 'text-emerald-800 font-bold' : 'text-stone-500'
+                  }`}>
                     {item.name}
                   </span>
                 </>

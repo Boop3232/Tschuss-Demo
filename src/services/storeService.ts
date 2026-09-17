@@ -17,7 +17,7 @@ export const storeService = {
   async getStores(): Promise<Store[]> {
     try {
       const snap = await getDocs(collection(db, 'stores'));
-      if (!snap.empty) {
+      if (!snap.empty && snap.size >= DEMO_STORES.length) {
         return snap.docs.map(d => ({ ...d.data(), id: d.id } as Store));
       }
       return DEMO_STORES;

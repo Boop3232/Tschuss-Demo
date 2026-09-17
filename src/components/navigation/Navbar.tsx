@@ -75,21 +75,21 @@ export const Navbar: React.FC = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-white/70 backdrop-blur-2xl backdrop-saturate-200 border-b border-white/60 shadow-[0_4px_30px_rgba(0,0,0,0.03),inset_0_-1px_0_rgba(0,0,0,0.03)] transition-all w-full overflow-x-clip">
-        <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
-          <div className="flex items-center justify-between h-16 w-full min-w-0 gap-2 sm:gap-4">
+      <header className="fixed top-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-2xl border-b border-stone-200/80 shadow-xs transition-all w-full">
+        <div className="w-full max-w-7xl mx-auto px-2.5 sm:px-4 lg:px-6">
+          <div className="flex items-center justify-between h-16 w-full min-w-0 gap-1.5 sm:gap-4">
             
             {/* Left: Brand Logo & Optional Location */}
-            <div className="flex items-center gap-2 sm:gap-3 shrink-0 min-w-0">
-              <Link to="/" className="flex items-center gap-2.5 group shrink-0 no-underline">
-                <div className="w-9 h-9 rounded-2xl bg-[#23382b] text-white flex items-center justify-center font-bold text-lg shadow-xs group-hover:scale-105 group-active:scale-95 transition-all duration-200">
+            <div className="flex items-center gap-1.5 sm:gap-3 shrink-0 min-w-0">
+              <Link to="/" className="flex items-center gap-2 sm:gap-2.5 group shrink-0 no-underline">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl sm:rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white flex items-center justify-center font-black text-base sm:text-lg shadow-sm group-hover:scale-105 group-active:scale-95 transition-all duration-200 shrink-0">
                   T
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-extrabold text-lg sm:text-xl tracking-tight text-stone-900 font-display leading-none">
+                  <span className="font-extrabold text-base sm:text-xl tracking-tight text-stone-900 font-display leading-none">
                     Tschüss
                   </span>
-                  <span className="text-3xs font-semibold text-stone-500 tracking-tight hidden xl:block leading-none mt-0.5 opacity-90">
+                  <span className="text-3xs font-semibold text-emerald-700 tracking-tight hidden xl:block leading-none mt-0.5">
                     Surplus Food Rescue
                   </span>
                 </div>
@@ -100,18 +100,18 @@ export const Navbar: React.FC = () => {
                 type="button"
                 id="btn-navbar-location"
                 onClick={() => setIsLocationModalOpen(true)}
-                className="hidden lg:flex items-center gap-1.5 px-3.5 h-8.5 rounded-full bg-white/70 hover:bg-white text-stone-800 hover:text-stone-950 border border-stone-200/80 hover:border-stone-300 text-xs font-semibold transition-all max-w-[135px] xl:max-w-[150px] truncate shadow-2xs hover:shadow-xs active:scale-95 cursor-pointer backdrop-blur-md"
+                className="hidden lg:flex items-center gap-1.5 px-3.5 h-8.5 rounded-full bg-stone-100/90 hover:bg-stone-200/80 text-stone-700 hover:text-stone-900 border border-stone-200 text-xs font-semibold transition-all max-w-[135px] xl:max-w-[150px] truncate shadow-2xs active:scale-95 cursor-pointer"
                 title="Change location"
               >
-                <MapPin className="w-3.5 h-3.5 text-stone-500 shrink-0" />
+                <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                 <span className="truncate">{location.name}</span>
                 <ChevronDown className="w-3 h-3 text-stone-400 shrink-0" />
               </button>
             </div>
 
-            {/* Center: Desktop Navigation Links (Apple segmented glass pill with sliding animation) */}
+            {/* Center: Desktop Navigation Links */}
             {!isBusinessRoute && !isAdminRoute && (
-              <nav className="hidden lg:flex items-center gap-1 p-1 bg-stone-200/40 backdrop-blur-md rounded-full border border-white/60 shadow-[inset_0_1px_2px_rgba(0,0,0,0.04)] shrink-0 relative">
+              <nav className="hidden lg:flex items-center gap-1 p-1 bg-stone-100/90 rounded-full border border-stone-200/80 shrink-0 relative">
                 {navLinks.map((item) => {
                   const isActive = routerLocation.pathname === item.path;
                   const Icon = item.icon;
@@ -122,18 +122,18 @@ export const Navbar: React.FC = () => {
                       className={`relative flex items-center gap-1.5 px-3.5 h-7.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors no-underline ${
                         isActive
                           ? 'text-stone-900 font-bold'
-                          : 'text-stone-600 hover:text-stone-900 hover:bg-white/40'
+                          : 'text-stone-600 hover:text-stone-900 hover:bg-white/60'
                       }`}
                     >
                       {isActive && (
                         <motion.div
                           layoutId="desktop-nav-active-pill"
-                          className="absolute inset-0 bg-white rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,1)]"
+                          className="absolute inset-0 bg-white border border-stone-200/90 rounded-full shadow-2xs"
                           transition={{ type: 'spring', stiffness: 500, damping: 36 }}
                         />
                       )}
                       <span className="relative z-10 flex items-center gap-1.5">
-                        <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-stone-900' : 'text-stone-400'}`} />
+                        <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-emerald-600' : 'text-stone-500'}`} />
                         <span>{item.name}</span>
                       </span>
                     </Link>
@@ -143,58 +143,58 @@ export const Navbar: React.FC = () => {
             )}
 
             {/* Right: Actions Bar */}
-            <div className="flex items-center gap-2 shrink-0 ms-auto">
+            <div className="flex items-center gap-1 sm:gap-2 shrink-0 ms-auto">
               
-              {/* Language Switcher (DE / EN with sliding pill animation) */}
+              {/* Language Switcher (DE / EN) */}
               <div 
                 id="lang-switcher-container"
-                className="relative flex items-center h-8.5 bg-stone-200/40 backdrop-blur-md p-0.5 rounded-full border border-white/60 text-2xs font-bold shadow-[inset_0_1px_2px_rgba(0,0,0,0.04)] shrink-0"
+                className="relative flex items-center h-8 sm:h-8.5 bg-stone-100 p-0.5 rounded-full border border-stone-200 text-3xs sm:text-2xs font-bold shadow-2xs shrink-0"
                 title="Language / Sprache"
               >
                 <button
                   type="button"
                   id="btn-lang-de"
                   onClick={() => setLanguage('de')}
-                  className={`relative px-2.5 h-full rounded-full transition-colors flex items-center gap-1 cursor-pointer ${
+                  className={`relative px-1.5 sm:px-2.5 h-full rounded-full transition-colors flex items-center gap-0.5 sm:gap-1 cursor-pointer ${
                     language === 'de'
-                      ? 'text-stone-900 font-bold'
-                      : 'text-stone-500 hover:text-stone-800'
+                      ? 'text-white font-bold'
+                      : 'text-stone-600 hover:text-stone-900'
                   }`}
                   title="Deutsch"
                 >
                   {language === 'de' && (
                     <motion.div
                       layoutId="lang-switcher-active-pill"
-                      className="absolute inset-0 bg-white rounded-full shadow-[0_2px_6px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,1)]"
+                      className="absolute inset-0 bg-emerald-600 rounded-full shadow-2xs"
                       transition={{ type: 'spring', stiffness: 500, damping: 36 }}
                     />
                   )}
-                  <span className="relative z-10 flex items-center gap-1">
+                  <span className="relative z-10 flex items-center gap-0.5 sm:gap-1">
                     <span>DE</span>
-                    {language === 'de' && <span className="w-1.5 h-1.5 rounded-full bg-stone-800 shadow-xs" />}
+                    {language === 'de' && <span className="w-1.5 h-1.5 rounded-full bg-white shadow-xs" />}
                   </span>
                 </button>
                 <button
                   type="button"
                   id="btn-lang-en"
                   onClick={() => setLanguage('en')}
-                  className={`relative px-2.5 h-full rounded-full transition-colors flex items-center gap-1 cursor-pointer ${
+                  className={`relative px-1.5 sm:px-2.5 h-full rounded-full transition-colors flex items-center gap-0.5 sm:gap-1 cursor-pointer ${
                     language === 'en'
-                      ? 'text-stone-900 font-bold'
-                      : 'text-stone-500 hover:text-stone-800'
+                      ? 'text-white font-bold'
+                      : 'text-stone-600 hover:text-stone-900'
                   }`}
                   title="English"
                 >
                   {language === 'en' && (
                     <motion.div
                       layoutId="lang-switcher-active-pill"
-                      className="absolute inset-0 bg-white rounded-full shadow-[0_2px_6px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,1)]"
+                      className="absolute inset-0 bg-emerald-600 rounded-full shadow-2xs"
                       transition={{ type: 'spring', stiffness: 500, damping: 36 }}
                     />
                   )}
-                  <span className="relative z-10 flex items-center gap-1">
+                  <span className="relative z-10 flex items-center gap-0.5 sm:gap-1">
                     <span>EN</span>
-                    {language === 'en' && <span className="w-1.5 h-1.5 rounded-full bg-stone-800 shadow-xs" />}
+                    {language === 'en' && <span className="w-1.5 h-1.5 rounded-full bg-white shadow-xs" />}
                   </span>
                 </button>
               </div>
@@ -203,18 +203,18 @@ export const Navbar: React.FC = () => {
               <Link
                 to="/app/notifications"
                 id="btn-nav-notifications"
-                className="relative w-8.5 h-8.5 rounded-full flex items-center justify-center text-stone-600 hover:text-stone-900 bg-white/70 hover:bg-white border border-white/80 shadow-[0_2px_8px_rgba(0,0,0,0.03),inset_0_1px_0_rgba(255,255,255,0.9)] backdrop-blur-md transition-all shrink-0 no-underline active:scale-95"
+                className="relative w-8 h-8 sm:w-8.5 sm:h-8.5 rounded-full flex items-center justify-center text-stone-600 hover:text-stone-900 bg-stone-100 hover:bg-stone-200/80 border border-stone-200 shadow-2xs transition-all shrink-0 no-underline active:scale-95"
                 aria-label="Notifications"
               >
-                <Bell className="w-4 h-4" />
+                <Bell className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 bg-stone-900 text-white rounded-full text-[10px] leading-none flex items-center justify-center font-bold shadow-xs animate-in zoom-in-50">
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[15px] h-3.5 px-0.5 bg-emerald-600 text-white rounded-full text-[9px] leading-none flex items-center justify-center font-black shadow-2xs animate-in zoom-in-50">
                     {unreadCount > 99 ? '99+' : unreadCount}
                   </span>
                 )}
               </Link>
 
-              {/* Development Shortcut: Switch to Retailer / Consumer - displayed on 2xl screens to avoid crowding on standard desktop */}
+              {/* Development Shortcut: Switch to Retailer / Consumer */}
               {role !== 'retailer' && role !== 'admin' ? (
                 <button
                   type="button"
@@ -223,11 +223,11 @@ export const Navbar: React.FC = () => {
                     await switchToRetailerDev();
                     navigate('/business');
                   }}
-                  className="hidden 2xl:inline-flex items-center gap-2 px-3.5 h-8.5 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-800 border border-stone-200 text-xs font-semibold transition-all shadow-2xs whitespace-nowrap cursor-pointer shrink-0 backdrop-blur-md active:scale-95"
+                  className="hidden 2xl:inline-flex items-center gap-2 px-3.5 h-8.5 rounded-full bg-stone-100 hover:bg-stone-200/80 text-stone-700 border border-stone-200 text-xs font-semibold transition-all shadow-2xs whitespace-nowrap cursor-pointer shrink-0 active:scale-95"
                   title="Development Tool: Switch to Retailer portal"
                 >
-                  <span className="px-1.5 py-0.2 rounded-full text-3xs font-black bg-stone-800 text-white uppercase shadow-xs">DEV</span>
-                  <Store className="w-3.5 h-3.5 text-stone-600 shrink-0" />
+                  <span className="px-1.5 py-0.2 rounded-full text-3xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300 uppercase">DEV</span>
+                  <Store className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
                   <span>Switch to Retailer</span>
                 </button>
               ) : (
@@ -238,21 +238,22 @@ export const Navbar: React.FC = () => {
                     await switchToConsumerDev();
                     navigate('/app/discover');
                   }}
-                  className="hidden 2xl:inline-flex items-center gap-2 px-3.5 h-8.5 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-800 border border-stone-200 text-xs font-semibold transition-all shadow-2xs whitespace-nowrap cursor-pointer shrink-0 backdrop-blur-md active:scale-95"
+                  className="hidden 2xl:inline-flex items-center gap-2 px-3.5 h-8.5 rounded-full bg-stone-100 hover:bg-stone-200/80 text-stone-700 border border-stone-200 text-xs font-semibold transition-all shadow-2xs whitespace-nowrap cursor-pointer shrink-0 active:scale-95"
                   title="Development Tool: Switch back to Consumer view"
                 >
-                  <span className="px-1.5 py-0.2 rounded-full text-3xs font-black bg-stone-800 text-white uppercase shadow-xs">DEV</span>
-                  <User className="w-3.5 h-3.5 text-stone-600 shrink-0" />
+                  <span className="px-1.5 py-0.2 rounded-full text-3xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300 uppercase">DEV</span>
+                  <User className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
                   <span>Switch to Consumer</span>
                 </button>
               )}
-                  {/* Retailer Portal Link (Visible on 2xl+ screens) */}
+
+              {/* Retailer Portal Link (Visible on 2xl+ screens) */}
               {currentUser && (role === 'retailer' || role === 'admin') && !isBusinessRoute && (
                 <Link
                   to="/business"
-                  className="hidden 2xl:flex items-center gap-1.5 px-3.5 h-8.5 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-800 border border-stone-200 text-xs font-semibold transition-all shadow-2xs whitespace-nowrap no-underline shrink-0 backdrop-blur-md active:scale-95"
+                  className="hidden 2xl:flex items-center gap-1.5 px-3.5 h-8.5 rounded-full bg-stone-100 hover:bg-stone-200/80 text-stone-700 border border-stone-200 text-xs font-semibold transition-all shadow-2xs whitespace-nowrap no-underline shrink-0 active:scale-95"
                 >
-                  <Store className="w-3.5 h-3.5 text-stone-600 shrink-0" />
+                  <Store className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
                   <span>Retailer</span>
                 </Link>
               )}
@@ -264,20 +265,20 @@ export const Navbar: React.FC = () => {
                     type="button"
                     id="btn-user-menu-toggle"
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                    className="flex items-center gap-2 h-8.5 pl-1 pr-3 rounded-full bg-white/70 hover:bg-white border border-white/80 shadow-[0_2px_8px_rgba(0,0,0,0.03),inset_0_1px_0_rgba(255,255,255,0.9)] backdrop-blur-md transition-all text-xs cursor-pointer active:scale-95"
+                    className="flex items-center gap-1.5 h-8 sm:h-8.5 p-0.5 sm:pl-1 sm:pr-3 rounded-full bg-stone-100 hover:bg-stone-200/80 border border-stone-200 shadow-2xs transition-all text-xs cursor-pointer active:scale-95"
                     aria-expanded={isUserMenuOpen}
                     aria-label="User menu"
                   >
-                    <div className="w-6.5 h-6.5 rounded-full bg-stone-800 text-white font-bold flex items-center justify-center text-xs uppercase shadow-xs shrink-0">
+                    <div className="w-6.5 h-6.5 rounded-full bg-emerald-600 text-white font-bold flex items-center justify-center text-xs uppercase shadow-xs shrink-0">
                       {userProfile?.name?.charAt(0) || currentUser.displayName?.charAt(0) || currentUser.email?.charAt(0) || 'U'}
                     </div>
-                    <span className="hidden md:inline font-bold text-stone-900 text-xs truncate max-w-[90px]">
+                    <span className="hidden md:inline font-bold text-stone-800 text-xs truncate max-w-[90px]">
                       {userProfile?.name?.split(' ')[0] || currentUser.displayName?.split(' ')[0] || 'Account'}
                     </span>
-                    <ChevronDown className="w-3 h-3 text-stone-400 shrink-0" />
+                    <ChevronDown className="w-3 h-3 text-stone-400 shrink-0 hidden sm:block" />
                   </button>
 
-                  {/* Dropdown Menu Liquid Glass Modal */}
+                  {/* Dropdown Menu Light Glass Modal */}
                   {isUserMenuOpen && (
                     <>
                       {/* Invisible backdrop to dismiss on click outside */}
@@ -286,15 +287,15 @@ export const Navbar: React.FC = () => {
                         onClick={() => setIsUserMenuOpen(false)} 
                       />
                       
-                      <div className="absolute right-0 mt-2 w-68 bg-white/95 backdrop-blur-3xl backdrop-saturate-200 rounded-3xl p-3 z-50 border border-white/90 shadow-[0_25px_60px_-10px_rgba(0,0,0,0.18),0_8px_24px_-4px_rgba(0,0,0,0.06),inset_0_1px_1px_rgba(255,255,255,1)] animate-in fade-in zoom-in-95 origin-top-right">
-                        <div className="p-3 bg-stone-100/70 rounded-2xl border border-stone-200/60 mb-2">
+                      <div className="absolute right-0 mt-2 w-68 bg-white/95 backdrop-blur-3xl rounded-3xl p-3 z-50 border border-stone-200/90 shadow-xl animate-in fade-in zoom-in-95 origin-top-right">
+                        <div className="p-3 bg-stone-50 rounded-2xl border border-stone-200/80 mb-2">
                           <p className="font-bold text-xs text-stone-900 truncate">
                             {userProfile?.name || currentUser.displayName || (language === 'de' ? 'Tschüss Benutzer' : 'Tschüss User')}
                           </p>
                           <p className="text-2xs text-stone-500 truncate mt-0.5">
                             {currentUser.email}
                           </p>
-                          <div className="mt-2 inline-flex items-center gap-1.5 text-3xs px-2.5 py-0.5 rounded-full bg-stone-200/80 text-stone-800 font-bold uppercase tracking-wider border border-stone-300 shadow-2xs">
+                          <div className="mt-2 inline-flex items-center gap-1.5 text-3xs px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold uppercase tracking-wider border border-emerald-300">
                             <span>{language === 'de' ? 'Rolle' : 'Role'}: {role === 'retailer' ? (language === 'de' ? 'Händler' : 'Retailer') : (role === 'admin' ? 'Admin' : (language === 'de' ? 'Käufer' : 'Consumer'))}</span>
                           </div>
                         </div>
@@ -303,9 +304,9 @@ export const Navbar: React.FC = () => {
                           <Link
                             to="/app/profile"
                             onClick={() => setIsUserMenuOpen(false)}
-                            className="w-full px-3 py-2 rounded-2xl font-semibold text-stone-700 hover:text-stone-900 hover:bg-stone-100/80 flex items-center gap-2.5 transition-colors no-underline"
+                            className="w-full px-3 py-2 rounded-2xl font-semibold text-stone-700 hover:text-stone-900 hover:bg-stone-100 flex items-center gap-2.5 transition-colors no-underline"
                           >
-                            <User className="w-4 h-4 text-stone-500" />
+                            <User className="w-4 h-4 text-emerald-600" />
                             <span>{language === 'de' ? 'Mein Profil' : 'My Profile'}</span>
                           </Link>
 
@@ -313,9 +314,9 @@ export const Navbar: React.FC = () => {
                             <Link
                               to="/business"
                               onClick={() => setIsUserMenuOpen(false)}
-                              className="w-full px-3 py-2 rounded-2xl font-semibold text-stone-800 hover:bg-stone-100 flex items-center gap-2.5 transition-colors no-underline"
+                              className="w-full px-3 py-2 rounded-2xl font-semibold text-stone-700 hover:text-stone-900 hover:bg-stone-100 flex items-center gap-2.5 transition-colors no-underline"
                             >
-                              <Store className="w-4 h-4 text-stone-600" />
+                              <Store className="w-4 h-4 text-amber-600" />
                               <span>{language === 'de' ? 'Händlerportal' : 'Retailer Portal'}</span>
                             </Link>
                           )}
@@ -324,15 +325,15 @@ export const Navbar: React.FC = () => {
                             <Link
                               to="/admin"
                               onClick={() => setIsUserMenuOpen(false)}
-                              className="w-full px-3 py-2 rounded-2xl font-semibold text-stone-800 hover:bg-stone-100 flex items-center gap-2.5 transition-colors no-underline"
+                              className="w-full px-3 py-2 rounded-2xl font-semibold text-stone-700 hover:text-stone-900 hover:bg-stone-100 flex items-center gap-2.5 transition-colors no-underline"
                             >
-                              <Shield className="w-4 h-4 text-stone-600" />
+                              <Shield className="w-4 h-4 text-purple-600" />
                               <span>{language === 'de' ? 'Admin-Bereich' : 'Admin Center'}</span>
                             </Link>
                           )}
 
                           {/* Development Role Switch in Dropdown */}
-                          <div className="pt-1.5 mt-1.5 border-t border-stone-200/60">
+                          <div className="pt-1.5 mt-1.5 border-t border-stone-200">
                             {role !== 'retailer' ? (
                               <button
                                 type="button"
@@ -342,13 +343,13 @@ export const Navbar: React.FC = () => {
                                   await switchToRetailerDev();
                                   navigate('/business');
                                 }}
-                                className="w-full px-3 py-2 rounded-2xl font-semibold text-stone-800 hover:bg-stone-100 flex items-center justify-between text-xs transition-colors text-left cursor-pointer"
+                                className="w-full px-3 py-2 rounded-2xl font-semibold text-stone-700 hover:text-stone-900 hover:bg-stone-100 flex items-center justify-between text-xs transition-colors text-left cursor-pointer"
                               >
                                 <span className="flex items-center gap-2.5">
-                                  <Store className="w-4 h-4 text-stone-600 shrink-0" />
+                                  <Store className="w-4 h-4 text-amber-600 shrink-0" />
                                   <span>{language === 'de' ? 'Zu Händler wechseln' : 'Switch to Retailer'}</span>
                                 </span>
-                                <span className="text-3xs px-2 py-0.5 rounded-full bg-stone-800 text-white uppercase font-bold shadow-2xs">DEV</span>
+                                <span className="text-3xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 uppercase font-bold border border-emerald-300">DEV</span>
                               </button>
                             ) : (
                               <button
@@ -359,13 +360,13 @@ export const Navbar: React.FC = () => {
                                   await switchToConsumerDev();
                                   navigate('/app/discover');
                                 }}
-                                className="w-full px-3 py-2 rounded-2xl font-semibold text-stone-800 hover:bg-stone-100 flex items-center justify-between text-xs transition-colors text-left cursor-pointer"
+                                className="w-full px-3 py-2 rounded-2xl font-semibold text-stone-700 hover:text-stone-900 hover:bg-stone-100 flex items-center justify-between text-xs transition-colors text-left cursor-pointer"
                               >
                                 <span className="flex items-center gap-2.5">
-                                  <User className="w-4 h-4 text-stone-600 shrink-0" />
+                                  <User className="w-4 h-4 text-emerald-600 shrink-0" />
                                   <span>{language === 'de' ? 'Zu Käufer wechseln' : 'Switch to Consumer'}</span>
                                 </span>
-                                <span className="text-3xs px-2 py-0.5 rounded-full bg-stone-800 text-white uppercase font-bold shadow-2xs">DEV</span>
+                                <span className="text-3xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 uppercase font-bold border border-emerald-300">DEV</span>
                               </button>
                             )}
                           </div>
@@ -374,9 +375,9 @@ export const Navbar: React.FC = () => {
                             type="button"
                             id="btn-navbar-logout"
                             onClick={handleLogout}
-                            className="w-full px-3 py-2 rounded-2xl font-semibold text-stone-700 hover:bg-stone-100 flex items-center gap-2.5 transition-colors cursor-pointer"
+                            className="w-full px-3 py-2 rounded-2xl font-semibold text-rose-600 hover:bg-rose-50 flex items-center gap-2.5 transition-colors cursor-pointer"
                           >
-                            <LogOut className="w-4 h-4 text-stone-500" />
+                            <LogOut className="w-4 h-4 text-rose-600" />
                             <span>{language === 'de' ? 'Abmelden' : 'Log Out'}</span>
                           </button>
                         </div>
@@ -385,18 +386,18 @@ export const Navbar: React.FC = () => {
                   )}
                 </div>
               ) : (
-                <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                <div className="flex items-center gap-1 sm:gap-2 shrink-0">
                   <Link
                     to="/login"
                     id="btn-nav-login"
-                    className="px-3.5 h-8.5 flex items-center justify-center text-xs font-semibold text-stone-700 hover:text-stone-900 rounded-full hover:bg-white/70 border border-transparent hover:border-white/80 transition-all whitespace-nowrap no-underline cursor-pointer"
+                    className="px-2.5 sm:px-3.5 h-8 sm:h-8.5 flex items-center justify-center text-xs font-semibold text-stone-700 hover:text-stone-900 rounded-full hover:bg-stone-100 border border-transparent hover:border-stone-200 transition-all whitespace-nowrap no-underline cursor-pointer"
                   >
                     {language === 'de' ? 'Anmelden' : 'Log in'}
                   </Link>
                   <Link
                     to="/register"
                     id="btn-nav-register"
-                    className="px-4 h-8.5 flex items-center justify-center text-xs font-semibold text-white bg-stone-900 hover:bg-stone-800 active:scale-95 rounded-full shadow-xs transition-all whitespace-nowrap no-underline cursor-pointer"
+                    className="px-3 sm:px-4 h-8 sm:h-8.5 flex items-center justify-center text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 active:scale-95 rounded-full shadow-xs transition-all whitespace-nowrap no-underline cursor-pointer"
                   >
                     {language === 'de' ? 'Registrieren' : 'Sign up'}
                   </Link>
@@ -408,7 +409,7 @@ export const Navbar: React.FC = () => {
                 type="button"
                 id="btn-hamburger-menu"
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="lg:hidden w-8.5 h-8.5 rounded-full flex items-center justify-center text-stone-700 hover:bg-white bg-white/60 border border-white/80 shadow-[0_2px_8px_rgba(0,0,0,0.03),inset_0_1px_0_rgba(255,255,255,0.9)] backdrop-blur-md cursor-pointer active:scale-95"
+                className="lg:hidden w-8 h-8 sm:w-8.5 sm:h-8.5 rounded-full flex items-center justify-center text-stone-700 hover:text-stone-900 bg-stone-100 hover:bg-stone-200 border border-stone-200 shadow-2xs cursor-pointer active:scale-95 shrink-0"
                 aria-label="Toggle navigation menu"
               >
                 {isMobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
@@ -418,9 +419,9 @@ export const Navbar: React.FC = () => {
           </div>
         </div>
 
-        {/* Mobile/Tablet Drawer Menu Liquid Glass */}
+        {/* Mobile/Tablet Drawer Menu */}
         {isMobileMenuOpen && (
-          <div className="lg:hidden border-t border-white/60 bg-white/80 backdrop-blur-2xl p-4 space-y-3 animate-in slide-in-from-top-2 shadow-xl">
+          <div className="lg:hidden border-t border-stone-200 bg-white/98 backdrop-blur-3xl p-4 space-y-3 animate-in slide-in-from-top-2 shadow-xl text-stone-800">
             {/* Location selector in mobile drawer */}
             <button
               type="button"
@@ -429,7 +430,7 @@ export const Navbar: React.FC = () => {
                 setIsLocationModalOpen(true);
                 setIsMobileMenuOpen(false);
               }}
-              className="w-full flex items-center justify-between p-3.5 rounded-2xl glass-surface text-xs font-semibold text-emerald-950 cursor-pointer active:scale-98"
+              className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-stone-50 border border-stone-200 text-xs font-semibold text-stone-900 cursor-pointer active:scale-98"
             >
               <div className="flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-emerald-600" />
@@ -449,7 +450,7 @@ export const Navbar: React.FC = () => {
                     key={item.path}
                     to={item.path}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center gap-2 p-3 rounded-2xl glass-pill text-xs font-semibold text-stone-800 hover:text-emerald-950 transition-colors shadow-2xs"
+                    className="flex items-center gap-2 p-3 rounded-2xl bg-stone-50 border border-stone-200 text-xs font-semibold text-stone-700 hover:text-stone-900 hover:bg-stone-100 transition-colors shadow-2xs"
                   >
                     <Icon className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span className="truncate">{item.name}</span>
@@ -459,7 +460,7 @@ export const Navbar: React.FC = () => {
               <Link
                 to="/app/notifications"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center justify-between p-3 rounded-2xl glass-pill text-xs font-semibold text-stone-800 hover:text-emerald-950 transition-colors shadow-2xs"
+                className="flex items-center justify-between p-3 rounded-2xl bg-stone-50 border border-stone-200 text-xs font-semibold text-stone-700 hover:text-stone-900 hover:bg-stone-100 transition-colors shadow-2xs"
               >
                 <div className="flex items-center gap-2 min-w-0">
                   <Bell className="w-4 h-4 text-emerald-600 shrink-0" />
@@ -474,25 +475,25 @@ export const Navbar: React.FC = () => {
             </div>
 
             {/* Quick settings in drawer: Language Switcher */}
-            <div className="pt-2 border-t border-stone-200/50 flex items-center justify-between">
-              <span className="text-xs text-stone-500 font-medium">
+            <div className="pt-2 border-t border-stone-200 flex items-center justify-between">
+              <span className="text-xs text-stone-600 font-medium">
                 {language === 'de' ? 'Sprache' : 'Language'}:
               </span>
-              <div className="flex items-center gap-1 p-0.5 bg-stone-200/40 rounded-full border border-white/60 relative">
+              <div className="flex items-center gap-1 p-0.5 bg-stone-100 rounded-full border border-stone-200 relative">
                 <button
                   type="button"
                   id="btn-drawer-lang-de"
                   onClick={() => setLanguage('de')}
                   className={`relative px-3 py-1 rounded-full text-xs transition-colors cursor-pointer ${
                     language === 'de'
-                      ? 'text-emerald-950 font-extrabold'
-                      : 'text-stone-500 hover:text-stone-900'
+                      ? 'text-white font-bold'
+                      : 'text-stone-600 hover:text-stone-900'
                   }`}
                 >
                   {language === 'de' && (
                     <motion.div
                       layoutId="drawer-lang-switcher-active-pill"
-                      className="absolute inset-0 bg-white rounded-full shadow-xs"
+                      className="absolute inset-0 bg-emerald-600 rounded-full shadow-xs"
                       transition={{ type: 'spring', stiffness: 500, damping: 36 }}
                     />
                   )}
@@ -504,14 +505,14 @@ export const Navbar: React.FC = () => {
                   onClick={() => setLanguage('en')}
                   className={`relative px-3 py-1 rounded-full text-xs transition-colors cursor-pointer ${
                     language === 'en'
-                      ? 'text-emerald-950 font-extrabold'
-                      : 'text-stone-500 hover:text-stone-900'
+                      ? 'text-white font-bold'
+                      : 'text-stone-600 hover:text-stone-900'
                   }`}
                 >
                   {language === 'en' && (
                     <motion.div
                       layoutId="drawer-lang-switcher-active-pill"
-                      className="absolute inset-0 bg-white rounded-full shadow-xs"
+                      className="absolute inset-0 bg-emerald-600 rounded-full shadow-xs"
                       transition={{ type: 'spring', stiffness: 500, damping: 36 }}
                     />
                   )}
@@ -521,11 +522,11 @@ export const Navbar: React.FC = () => {
             </div>
 
             {/* Development Role Switcher in Mobile Drawer */}
-            <div className="p-3 rounded-2xl glass-surface flex items-center justify-between gap-2">
+            <div className="p-3 rounded-2xl bg-stone-50 border border-stone-200 flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 min-w-0">
-                <span className="px-2 py-0.5 rounded-full text-3xs font-black bg-purple-600 text-white uppercase shadow-xs">DEV</span>
-                <span className="text-xs font-bold text-stone-900 truncate">
-                  {language === 'de' ? 'Rolle' : 'Role'}: <span className="text-purple-700 capitalize">
+                <span className="px-2 py-0.5 rounded-full text-3xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300 uppercase">DEV</span>
+                <span className="text-xs font-bold text-stone-800 truncate">
+                  {language === 'de' ? 'Rolle' : 'Role'}: <span className="text-emerald-700 capitalize">
                     {role === 'retailer' ? (language === 'de' ? 'Händler' : 'Retailer') : (role === 'admin' ? 'Admin' : (language === 'de' ? 'Käufer' : 'Consumer'))}
                   </span>
                 </span>
@@ -540,7 +541,7 @@ export const Navbar: React.FC = () => {
                     await switchToRetailerDev();
                     navigate('/business');
                   }}
-                  className="px-3 py-1.5 rounded-full bg-purple-700 hover:bg-purple-600 active:scale-95 text-white text-xs font-bold flex items-center gap-1 shadow-xs shrink-0 cursor-pointer"
+                  className="px-3 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-xs font-bold flex items-center gap-1 shadow-xs shrink-0 cursor-pointer"
                 >
                   <Store className="w-3.5 h-3.5" />
                   <span>{language === 'de' ? 'Zu Händler' : 'Switch to Retailer'}</span>
@@ -554,7 +555,7 @@ export const Navbar: React.FC = () => {
                     await switchToConsumerDev();
                     navigate('/app/discover');
                   }}
-                  className="px-3 py-1.5 rounded-full bg-emerald-700 hover:bg-emerald-600 active:scale-95 text-white text-xs font-bold flex items-center gap-1 shadow-xs shrink-0 cursor-pointer"
+                  className="px-3 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-xs font-bold flex items-center gap-1 shadow-xs shrink-0 cursor-pointer"
                 >
                   <User className="w-3.5 h-3.5" />
                   <span>{language === 'de' ? 'Zu Käufer' : 'Switch to Consumer'}</span>
@@ -563,7 +564,7 @@ export const Navbar: React.FC = () => {
             </div>
 
             {/* Auth actions in drawer */}
-            <div className="pt-2 border-t border-stone-200/50 flex flex-col gap-2">
+            <div className="pt-2 border-t border-stone-200 flex flex-col gap-2">
               {currentUser ? (
                 <div className="flex items-center justify-between pt-1">
                   <Link
@@ -587,7 +588,7 @@ export const Navbar: React.FC = () => {
                   <Link
                     to="/login"
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="p-2.5 text-center text-xs font-bold rounded-full glass-pill text-stone-800 hover:bg-white"
+                    className="p-2.5 text-center text-xs font-bold rounded-full bg-stone-100 border border-stone-200 text-stone-700 hover:bg-stone-200"
                   >
                     {language === 'de' ? 'Anmelden' : 'Log in'}
                   </Link>

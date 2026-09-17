@@ -18,16 +18,16 @@ export const PriceDisplay: React.FC<PriceDisplayProps> = ({
 
   const sizes = {
     sm: {
-      rescue: 'text-base font-bold text-emerald-950',
-      orig: 'text-xs text-stone-600 line-through'
+      rescue: 'text-base font-black text-emerald-700',
+      orig: 'text-xs text-stone-400 line-through'
     },
     md: {
-      rescue: 'text-xl font-extrabold text-emerald-950',
-      orig: 'text-sm text-stone-600 line-through'
+      rescue: 'text-xl font-black text-emerald-700',
+      orig: 'text-sm text-stone-400 line-through'
     },
     lg: {
-      rescue: 'text-3xl font-black text-emerald-950 tracking-tight',
-      orig: 'text-base text-stone-600 line-through'
+      rescue: 'text-3xl font-black text-emerald-700 tracking-tight',
+      orig: 'text-base text-stone-400 line-through'
     }
   }[size];
 
@@ -40,7 +40,7 @@ export const PriceDisplay: React.FC<PriceDisplayProps> = ({
         )}
       </div>
       {showSavings && savings > 0 && (
-        <span className="text-xs text-emerald-700 font-medium mt-0.5">
+        <span className="text-xs text-emerald-700 font-semibold mt-0.5">
           Save {formatCurrency(savings)}
         </span>
       )}

@@ -44,13 +44,26 @@ function getLocalProducts(): Product[] {
   try {
     const deleted = getDeletedProductIds();
     const raw = localStorage.getItem(LOCAL_PRODUCTS_KEY);
+    let items: Product[] = [];
     if (raw) {
-      const items: Product[] = JSON.parse(raw);
-      return items.filter(p => !deleted.includes(p.id));
+      items = JSON.parse(raw);
     }
-    const initial = DEMO_PRODUCTS.filter(p => !deleted.includes(p.id));
-    localStorage.setItem(LOCAL_PRODUCTS_KEY, JSON.stringify(initial));
-    return initial;
+    
+    // Check if new DEMO_PRODUCTS need to be merged in
+    const existingIds = new Set(items.map(p => p.id));
+    let hasNew = false;
+    for (const demoP of DEMO_PRODUCTS) {
+      if (!existingIds.has(demoP.id) && !deleted.includes(demoP.id)) {
+        items.push(demoP);
+        hasNew = true;
+      }
+    }
+
+    const filtered = items.filter(p => !deleted.includes(p.id));
+    if (hasNew || !raw) {
+      localStorage.setItem(LOCAL_PRODUCTS_KEY, JSON.stringify(filtered));
+    }
+    return filtered;
   } catch {
     const deleted = getDeletedProductIds();
     return DEMO_PRODUCTS.filter(p => !deleted.includes(p.id));

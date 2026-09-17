@@ -16,8 +16,8 @@ export const DiscountBadge: React.FC<DiscountBadgeProps> = ({
   // Moderate discount (< 50%): warm stone badge with dark charcoal text
   const isHighDiscount = percent >= 50;
   const colorStyles = isHighDiscount
-    ? 'bg-stone-900/90 text-white font-bold backdrop-blur-md shadow-xs'
-    : 'bg-white/95 text-stone-800 border border-stone-200/90 font-semibold backdrop-blur-md shadow-2xs';
+    ? 'bg-emerald-600 text-white font-black shadow-xs'
+    : 'bg-amber-400 text-stone-950 font-black shadow-xs';
 
   const sizeStyles = {
     sm: 'text-2xs px-2 py-0.5 rounded-lg tracking-tight',

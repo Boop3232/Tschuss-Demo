@@ -15,7 +15,7 @@ export const RetailerLayout: React.FC = () => {
         <div className="absolute bottom-10 left-1/3 w-80 h-80 bg-cyan-200/10 rounded-full blur-3xl filter transform-gpu" />
       </div>
 
-      <div className="relative z-10 flex flex-col flex-1">
+      <div className="relative z-10 flex flex-col flex-1 pt-16">
         <Navbar />
         <div className="flex-1 flex flex-col md:flex-row">
           <div className="hidden md:block shrink-0">

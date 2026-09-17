@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { motion, useScroll, useTransform, useSpring } from 'motion/react';
 import { 
   ShoppingBag, 
   Store as StoreIcon, 
@@ -15,7 +16,9 @@ import {
   Clock,
   Compass,
   Heart,
-  Smile
+  Smile,
+  Zap,
+  Tag
 } from 'lucide-react';
 import { Product, Store } from '../../types';
 import { productService } from '../../services/productService';
@@ -27,6 +30,12 @@ import { ReservationModal } from '../../components/consumer/ReservationModal';
 import { formatCurrency } from '../../utils/businessLogic';
 import { seedDemoDataIfEmpty } from '../../services/seedDataService';
 
+import { CategoryCarousel } from '../../components/landing/CategoryCarousel';
+
+import heroFoodPlatterImg from '../../assets/images/hero_food_platter_1789649138608.jpg';
+import gourmetDeliSurplusImg from '../../assets/images/gourmet_deli_surplus_1789649157523.jpg';
+import freshGroceriesBasketImg from '../../assets/images/fresh_groceries_basket_1789648225376.jpg';
+
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const { location } = useLocation();
@@ -35,6 +44,20 @@ export const LandingPage: React.FC = () => {
   const [stores, setStores] = useState<Store[]>([]);
   const [reservingProduct, setReservingProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Scroll Progress Hooks
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001
+  });
+
+  // Parallax shifts for background glows
+  const yBgGlow1 = useTransform(scrollYProgress, [0, 1], [0, -120]);
+  const yBgGlow2 = useTransform(scrollYProgress, [0, 1], [0, -180]);
+  const yBgGlow3 = useTransform(scrollYProgress, [0, 1], [0, 80]);
 
   useEffect(() => {
     async function load() {
@@ -73,84 +96,185 @@ export const LandingPage: React.FC = () => {
     : null;
 
   return (
-    <div className="space-y-16 pb-16">
-      {/* Cheerful, Lighter Pastel Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-emerald-50/90 via-amber-50/40 to-[#FAF9F5] pt-14 pb-20 sm:pt-20 sm:pb-28 border-b border-emerald-100/60">
-        {/* Soft pastel decorative floating blurs */}
-        <div className="absolute top-10 left-1/4 w-80 h-80 bg-emerald-200/30 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute top-20 right-1/4 w-72 h-72 bg-amber-200/30 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-96 h-60 bg-sky-200/20 rounded-full blur-3xl pointer-events-none" />
+    <div ref={containerRef} className="space-y-16 pb-16 relative bg-white text-stone-900">
+      {/* Scroll Progress Bar at the top */}
+      <motion.div
+        className="fixed top-16 left-0 right-0 h-1 bg-gradient-to-r from-emerald-600 via-teal-500 to-amber-500 z-30 origin-left"
+        style={{ scaleX }}
+      />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center space-y-7">
-          {/* Cheerful Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/90 border border-emerald-200/80 text-emerald-800 text-xs font-bold uppercase tracking-wider shadow-2xs backdrop-blur-xs">
-            <Sparkles className="w-4 h-4 text-emerald-600" />
-            <span>Connecting Retailers and Consumers</span>
-          </div>
+      {/* Hero Section with Light Canvas & Image Showcase */}
+      <section className="relative overflow-hidden bg-gradient-to-b from-stone-50 via-white to-stone-50/40 pt-12 pb-16 sm:pt-18 sm:pb-24 border-b border-stone-200/80">
+        {/* Soft luminous ambient glows */}
+        <motion.div 
+          style={{ y: yBgGlow1 }}
+          className="absolute top-10 left-1/4 w-96 h-96 bg-emerald-100/60 rounded-full blur-3xl pointer-events-none" 
+        />
+        <motion.div 
+          style={{ y: yBgGlow2 }}
+          className="absolute top-20 right-1/4 w-80 h-80 bg-teal-100/40 rounded-full blur-3xl pointer-events-none" 
+        />
+        <motion.div 
+          style={{ y: yBgGlow3 }}
+          className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[32rem] h-64 bg-amber-100/40 rounded-full blur-3xl pointer-events-none" 
+        />
 
-          {/* Title & Cheerful Tagline */}
-          <div className="max-w-3xl mx-auto space-y-4">
-            <h1 className="text-4xl sm:text-6xl font-black font-display tracking-tight text-stone-900 leading-[1.08]">
-              Profit from <span className="text-emerald-600">Near Food Expiry</span>.
-            </h1>
-            <p className="text-base sm:text-lg text-stone-600 font-medium max-w-2xl mx-auto leading-relaxed">
-              Tschüss brings local supermarkets, bakeries, and smart shoppers together. Retailers rescue lost margin — consumers enjoy up to 70% off high-quality, delicious goods.
-            </p>
-          </div>
+        {/* Tech grid subtle pattern */}
+        <div className="absolute inset-0 bg-tech-grid opacity-25 pointer-events-none" />
 
-          {/* Cheerful Call to Actions */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-2">
-            <Link
-              to="/app/discover"
-              id="hero-btn-discover"
-              className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm transition-all shadow-sm hover:shadow-emerald-200/80 flex items-center justify-center gap-2 active:scale-95"
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-10">
+          {/* Top Row: Hero Text + Hero Image side-by-side on lg screens */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+            
+            {/* Left Col: Headlines & CTAs */}
+            <div className="lg:col-span-7 text-center lg:text-left space-y-6">
+              {/* Sovereign Tech Badge */}
+              <motion.div
+                initial={{ opacity: 0, y: -16, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.5, ease: 'easeOut' }}
+                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold uppercase tracking-wider shadow-2xs"
+              >
+                <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse shadow-xs" />
+                <span>Sovereign Retail Rescue · Pilot {location.name}</span>
+              </motion.div>
+
+              {/* Title & Tagline with Smooth Entry */}
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.1, ease: 'easeOut' }}
+                className="space-y-4"
+              >
+                <h1 className="text-4xl sm:text-5xl xl:text-6xl font-black font-display tracking-tight text-stone-900 leading-[1.08]">
+                  Profit from <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700">Near Food Expiry</span>.
+                </h1>
+                <p className="text-base sm:text-lg text-stone-600 font-normal max-w-xl mx-auto lg:mx-0 leading-relaxed">
+                  Tschüss brings local supermarkets, bakeries, and conscious shoppers together. Retailers rescue lost margin — consumers enjoy up to 70% off high-quality, delicious goods.
+                </p>
+              </motion.div>
+
+              {/* Call to Actions with Hover Spring */}
+              <motion.div 
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3.5 pt-2"
+              >
+                <Link
+                  to="/app/discover"
+                  id="hero-btn-discover"
+                  className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 active:scale-95 hover:-translate-y-0.5 cursor-pointer no-underline"
+                >
+                  <Compass className="w-4 h-4 text-white" />
+                  <span>Explore Deals in {location.name}</span>
+                  <ArrowRight className="w-4 h-4 text-emerald-100" />
+                </Link>
+
+                <Link
+                  to="/business"
+                  id="hero-btn-retailer"
+                  className="w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-white hover:bg-stone-50 text-stone-800 hover:text-stone-900 border border-stone-200 hover:border-amber-400 font-bold text-sm transition-all shadow-xs flex items-center justify-center gap-2 hover:-translate-y-0.5 no-underline cursor-pointer"
+                >
+                  <StoreIcon className="w-4 h-4 text-amber-600" />
+                  <span>Retailer Operations Hub</span>
+                </Link>
+              </motion.div>
+            </div>
+
+            {/* Right Col: Appealing Hero Image Card with Float Badges */}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.25, ease: 'easeOut' }}
+              className="lg:col-span-5 relative"
             >
-              <Compass className="w-4 h-4 text-white" />
-              <span>Explore Deals in {location.name}</span>
-            </Link>
+              <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-stone-200/90 bg-stone-100 group">
+                <img 
+                  src={heroFoodPlatterImg} 
+                  alt="Appetizing gourmet surplus food dishes, artisan breads, pasta, and tarts"
+                  referrerPolicy="no-referrer"
+                  className="w-full h-72 sm:h-88 lg:h-96 object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-stone-900/70 via-stone-900/20 to-transparent pointer-events-none" />
 
-            <Link
-              to="/business"
-              id="hero-btn-retailer"
-              className="w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-white hover:bg-amber-50/70 text-stone-800 border border-stone-200/80 font-bold text-sm transition-all shadow-2xs flex items-center justify-center gap-2"
-            >
-              <StoreIcon className="w-4 h-4 text-amber-700" />
-              <span>Retailer Dashboard</span>
-            </Link>
+                {/* Floating Info Badges */}
+                <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-white pointer-events-none">
+                  <div className="bg-white/95 backdrop-blur-md text-stone-900 px-3.5 py-1.5 rounded-2xl border border-white/60 shadow-lg flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-xs font-bold">100% Quality Inspected</span>
+                  </div>
+                  <div className="bg-emerald-600/95 backdrop-blur-md text-white px-3 py-1.5 rounded-2xl border border-emerald-400/40 shadow-lg text-xs font-black">
+                    Up to -70% OFF
+                  </div>
+                </div>
+
+                {/* Top Corner Floating Tag */}
+                <div className="absolute top-4 left-4 bg-stone-900/80 backdrop-blur-md text-white px-3 py-1 rounded-full text-2xs font-semibold flex items-center gap-1.5 border border-white/20">
+                  <Tag className="w-3 h-3 text-emerald-400" />
+                  <span>Daily food rescue in Kleve</span>
+                </div>
+              </div>
+            </motion.div>
+
           </div>
 
-          {/* Cheerful Pastel Highlights Grid */}
-          <div className="pt-8 max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-3.5">
-            <div className="bg-white/80 backdrop-blur-xs p-4 rounded-2xl border border-emerald-200/60 shadow-2xs text-center">
-              <span className="block text-2xl font-black text-emerald-800">Up to 70%</span>
-              <span className="text-3xs text-stone-500 uppercase font-bold tracking-wide">Markdown Savings</span>
-            </div>
-
-            <div className="bg-white/80 backdrop-blur-xs p-4 rounded-2xl border border-amber-200/60 shadow-2xs text-center">
-              <span className="block text-2xl font-black text-amber-800">0% Waste</span>
-              <span className="text-3xs text-stone-500 uppercase font-bold tracking-wide">Store Shrink Goal</span>
-            </div>
-
-            <div className="bg-white/80 backdrop-blur-xs p-4 rounded-2xl border border-sky-200/60 shadow-2xs text-center">
-              <span className="block text-2xl font-black text-sky-800">100% Free</span>
-              <span className="text-3xs text-stone-500 uppercase font-bold tracking-wide">Zero Upfront Fee</span>
-            </div>
-
-            <div className="bg-white/80 backdrop-blur-xs p-4 rounded-2xl border border-purple-200/60 shadow-2xs text-center">
-              <span className="block text-2xl font-black text-purple-800">Kleve, NRW</span>
-              <span className="text-3xs text-stone-500 uppercase font-bold tracking-wide">Active Pilot City</span>
-            </div>
-          </div>
+          {/* Tech Bento Highlights Grid with Staggered Scroll Animation */}
+          <motion.div 
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-40px" }}
+            variants={{
+              hidden: { opacity: 0 },
+              visible: {
+                opacity: 1,
+                transition: {
+                  staggerChildren: 0.1,
+                  delayChildren: 0.2
+                }
+              }
+            }}
+            className="pt-4 max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-3.5"
+          >
+            {[
+              { stat: 'Up to -70%', label: 'Markdown Savings', color: 'text-emerald-700', bg: 'bg-emerald-50/80', border: 'border-emerald-200', glow: 'hover:border-emerald-400' },
+              { stat: '0% Waste', label: 'Store Shrink Goal', color: 'text-amber-700', bg: 'bg-amber-50/80', border: 'border-amber-200', glow: 'hover:border-amber-400' },
+              { stat: '100% Free', label: 'Zero Upfront Fee', color: 'text-sky-700', bg: 'bg-sky-50/80', border: 'border-sky-200', glow: 'hover:border-sky-400' },
+              { stat: `${location.name}`, label: 'Active Pilot City', color: 'text-teal-700', bg: 'bg-teal-50/80', border: 'border-teal-200', glow: 'hover:border-teal-400' }
+            ].map((item, idx) => (
+              <motion.div
+                key={idx}
+                variants={{
+                  hidden: { opacity: 0, y: 20, scale: 0.95 },
+                  visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 300, damping: 24 } }
+                }}
+                whileHover={{ y: -4, transition: { duration: 0.2 } }}
+                className={`${item.bg} backdrop-blur-xl p-4.5 rounded-2xl border ${item.border} ${item.glow} shadow-2xs text-center cursor-default transition-all`}
+              >
+                <span className={`block text-2xl font-black ${item.color} tracking-tight`}>{item.stat}</span>
+                <span className="text-3xs text-stone-600 uppercase font-bold tracking-wider">{item.label}</span>
+              </motion.div>
+            ))}
+          </motion.div>
         </div>
       </section>
 
-      {/* Featured Deals Carousel / Grid */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+      {/* Automatic Moving Category Carousel (Inspired by Image 2) */}
+      <CategoryCarousel />
+
+      {/* Featured Deals Section with Scroll Reveal */}
+      <motion.section 
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-60px" }}
+        transition={{ duration: 0.6, ease: 'easeOut' }}
+        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6"
+      >
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-900 border border-amber-200/70 text-2xs font-bold uppercase tracking-wider mb-1.5">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-300 text-2xs font-bold uppercase tracking-wider mb-2">
               <Clock className="w-3.5 h-3.5 text-amber-700" />
-              <span>Rescue Marketplace</span>
+              <span>Live Surplus Radar</span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-black text-stone-900 font-display tracking-tight">
               Featured Surplus Deals in {location.name}
@@ -159,170 +283,292 @@ export const LandingPage: React.FC = () => {
 
           <Link
             to="/app/discover"
-            className="text-xs font-bold text-emerald-800 hover:text-emerald-950 flex items-center gap-1 transition-colors"
+            className="text-xs font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1.5 transition-colors group no-underline"
           >
             <span>View all active deals</span>
-            <ArrowRight className="w-4 h-4 text-emerald-700" />
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
 
-        {/* Product Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+        {/* Product Cards Grid with Staggered Fade-in */}
+        <motion.div 
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-40px" }}
+          variants={{
+            hidden: { opacity: 0 },
+            visible: {
+              opacity: 1,
+              transition: { staggerChildren: 0.08 }
+            }
+          }}
+          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5"
+        >
           {featuredProducts.map((product) => (
-            <ProductCard
+            <motion.div
               key={product.id}
-              product={product}
-              onQuickReserve={(p) => setReservingProduct(p)}
-            />
+              variants={{
+                hidden: { opacity: 0, y: 24 },
+                visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: 'easeOut' } }
+              }}
+            >
+              <ProductCard
+                product={product}
+                onQuickReserve={(p) => setReservingProduct(p)}
+              />
+            </motion.div>
           ))}
-        </div>
-      </section>
+        </motion.div>
+      </motion.section>
 
-      {/* Dual Value Proposition in Soft Pastels */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Consumer Pillar (Soft Mint Pastel) */}
-          <div className="bg-gradient-to-br from-emerald-50/90 to-teal-50/40 rounded-3xl p-8 border border-emerald-200/70 shadow-2xs space-y-6">
-            <div className="w-12 h-12 rounded-2xl bg-white text-emerald-700 flex items-center justify-center shadow-2xs border border-emerald-200/60">
-              <ShoppingBag className="w-6 h-6" />
+      {/* Dual Value Proposition with Side-Sliding Scroll Animation & Visual Imagery */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 overflow-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          
+          {/* Consumer Pillar (Clean White + Emerald Accents + Basket Image) */}
+          <motion.div 
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+            whileHover={{ y: -3, transition: { duration: 0.2 } }}
+            className="bg-white rounded-3xl p-7 sm:p-8 border border-emerald-200/90 hover:border-emerald-400 shadow-sm hover:shadow-md space-y-6 transition-all flex flex-col justify-between"
+          >
+            <div className="space-y-6">
+              {/* Header & Icon */}
+              <div className="flex items-center justify-between">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center border border-emerald-300 shadow-2xs">
+                  <ShoppingBag className="w-6 h-6" />
+                </div>
+                <span className="text-2xs font-bold text-emerald-800 uppercase tracking-wider bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+                  For Local Shoppers
+                </span>
+              </div>
+
+              <div className="space-y-2">
+                <h3 className="text-2xl font-black text-stone-900 font-display">
+                  Eat Well, Pay Less, Save Food.
+                </h3>
+                <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
+                  Supermarket groceries, bakery specialties, and gourmet treats often get discarded simply because their sell-by date is near, despite being in peak edible condition.
+                </p>
+              </div>
+
+              {/* Consumer Pillar Image */}
+              <div className="relative rounded-2xl overflow-hidden h-48 sm:h-56 bg-stone-100 border border-stone-200 shadow-inner group">
+                <img 
+                  src={freshGroceriesBasketImg} 
+                  alt="Fresh market groceries in a basket ready for pickup"
+                  referrerPolicy="no-referrer"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
+                <div className="absolute bottom-3 left-3 text-white text-xs font-bold flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-300" />
+                  <span>Fresh daily pickups at your favorite neighborhood stores</span>
+                </div>
+              </div>
+
+              <ul className="space-y-2.5 text-xs text-stone-700 font-medium">
+                <li className="flex items-center gap-2.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>Browse real-time store inventories with deep discounts</span>
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>Reserve items in seconds with zero upfront fee</span>
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>Show pickup code at the counter and pay regular checkout</span>
+                </li>
+              </ul>
             </div>
-
-            <div className="space-y-2">
-              <span className="text-2xs font-bold text-emerald-800 uppercase tracking-wider">
-                For Local Shoppers
-              </span>
-              <h3 className="text-2xl font-black text-stone-900 font-display">
-                Eat Well, Pay Less, Save Food.
-              </h3>
-              <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
-                Supermarket groceries, bakery specialties, and gourmet treats often get discarded simply because their sell-by date is near, despite being in peak edible condition.
-              </p>
-            </div>
-
-            <ul className="space-y-3 text-xs text-stone-700 font-medium">
-              <li className="flex items-center gap-2.5">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>Browse real-time store inventories with deep discounts</span>
-              </li>
-              <li className="flex items-center gap-2.5">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>Reserve items in seconds with zero upfront fee</span>
-              </li>
-              <li className="flex items-center gap-2.5">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>Show pickup code at the counter and pay regular checkout</span>
-              </li>
-            </ul>
 
             <Link
               to="/app/discover"
-              className="inline-flex items-center gap-2 text-xs font-bold text-emerald-900 hover:text-emerald-700 pt-2 transition-colors"
+              className="inline-flex items-center gap-2 text-xs font-bold text-emerald-700 hover:text-emerald-900 pt-2 transition-colors group no-underline"
             >
               <span>Start Rescuing Today</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
-          </div>
+          </motion.div>
 
-          {/* Retailer Pillar (Soft Apricot/Honey Pastel) */}
-          <div className="bg-gradient-to-br from-amber-50/90 to-orange-50/40 rounded-3xl p-8 border border-amber-200/70 shadow-2xs space-y-6">
-            <div className="w-12 h-12 rounded-2xl bg-white text-amber-800 flex items-center justify-center shadow-2xs border border-amber-200/60">
-              <StoreIcon className="w-6 h-6" />
+          {/* Retailer Pillar (Clean White + Amber Accents + Supermarket Counter Image) */}
+          <motion.div 
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+            whileHover={{ y: -3, transition: { duration: 0.2 } }}
+            className="bg-white rounded-3xl p-7 sm:p-8 border border-amber-200/90 hover:border-amber-400 shadow-sm hover:shadow-md space-y-6 transition-all flex flex-col justify-between"
+          >
+            <div className="space-y-6">
+              {/* Header & Icon */}
+              <div className="flex items-center justify-between">
+                <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center border border-amber-300 shadow-2xs">
+                  <StoreIcon className="w-6 h-6" />
+                </div>
+                <span className="text-2xs font-bold text-amber-800 uppercase tracking-wider bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
+                  For Retailers & Supermarkets
+                </span>
+              </div>
+
+              <div className="space-y-2">
+                <h3 className="text-2xl font-black text-stone-900 font-display">
+                  Turn Write-Offs into Margin & Footfall.
+                </h3>
+                <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
+                  Supermarkets lose thousands of euros each month to organic discard. Tschüss turns shrink into revenue while bringing motivated foot traffic directly into your aisles.
+                </p>
+              </div>
+
+              {/* Retailer Pillar Image */}
+              <div className="relative rounded-2xl overflow-hidden h-48 sm:h-56 bg-stone-100 border border-stone-200 shadow-inner group">
+                <img 
+                  src={gourmetDeliSurplusImg} 
+                  alt="High-end supermarket bakery and gourmet deli surplus foods ready for rescue"
+                  referrerPolicy="no-referrer"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
+                <div className="absolute bottom-3 left-3 text-white text-xs font-bold flex items-center gap-1.5">
+                  <StoreIcon className="w-3.5 h-3.5 text-amber-300" />
+                  <span>30-second surplus item upload with automated markdowns</span>
+                </div>
+              </div>
+
+              <ul className="space-y-2.5 text-xs text-stone-700 font-medium">
+                <li className="flex items-center gap-2.5">
+                  <CheckCircle2 className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>Predictive markdown engine recommends optimal pricing</span>
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <CheckCircle2 className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>Fast 30-second surplus item listing process</span>
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <CheckCircle2 className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>Detailed ESG reporting & waste reduction analytics (CSV)</span>
+                </li>
+              </ul>
             </div>
-
-            <div className="space-y-2">
-              <span className="text-2xs font-bold text-amber-800 uppercase tracking-wider">
-                For Retailers & Supermarkets
-              </span>
-              <h3 className="text-2xl font-black text-stone-900 font-display">
-                Turn Write-Offs into Profit & Footfall.
-              </h3>
-              <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
-                Supermarkets lose thousands of euros each month to organic discard. Tschüss turns shrink into revenue while bringing motivated foot traffic directly into your aisles.
-              </p>
-            </div>
-
-            <ul className="space-y-3 text-xs text-stone-700 font-medium">
-              <li className="flex items-center gap-2.5">
-                <CheckCircle2 className="w-4 h-4 text-amber-700 shrink-0" />
-                <span>Predictive markdown engine recommends optimal pricing</span>
-              </li>
-              <li className="flex items-center gap-2.5">
-                <CheckCircle2 className="w-4 h-4 text-amber-700 shrink-0" />
-                <span>Fast 30-second surplus item listing process</span>
-              </li>
-              <li className="flex items-center gap-2.5">
-                <CheckCircle2 className="w-4 h-4 text-amber-700 shrink-0" />
-                <span>Detailed ESG reporting & waste reduction analytics (CSV)</span>
-              </li>
-            </ul>
 
             <Link
               to="/for-business"
-              className="inline-flex items-center gap-2 text-xs font-bold text-amber-900 hover:text-amber-700 pt-2 transition-colors"
+              className="inline-flex items-center gap-2 text-xs font-bold text-amber-700 hover:text-amber-900 pt-2 transition-colors group no-underline"
             >
               <span>Partner Onboarding Details</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
-          </div>
+          </motion.div>
         </div>
       </section>
 
-      {/* How it Works 4 Steps (Minimalist with Soft Pastel Badges) */}
+      {/* How it Works 4 Steps (Interactive Staggered Scroll Lift) */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-        <div className="text-center max-w-xl mx-auto space-y-2">
-          <span className="text-2xs font-bold text-emerald-800 uppercase tracking-wider">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.5 }}
+          className="text-center max-w-xl mx-auto space-y-2"
+        >
+          <span className="text-2xs font-bold text-emerald-800 uppercase tracking-wider bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
             Simple 4-Step Process
           </span>
-          <h2 className="text-2xl sm:text-3xl font-black text-stone-900 font-display tracking-tight">
-            How Tschüss Works
+          <h2 className="text-2xl sm:text-3xl font-black text-stone-900 font-display tracking-tight pt-1">
+            How Tschüss Operates
           </h2>
-          <p className="text-xs text-stone-500">
-            A frictionless loop from store shelf to kitchen table.
+          <p className="text-xs text-stone-600">
+            A frictionless loop from supermarket shelf to kitchen table.
           </p>
-        </div>
+        </motion.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          <div className="bg-white p-6 rounded-3xl border border-stone-200/70 shadow-2xs space-y-3 hover:border-emerald-200 transition-colors">
-            <span className="w-8 h-8 rounded-xl bg-emerald-100/80 text-emerald-800 font-black text-xs flex items-center justify-center border border-emerald-200/60">
-              1
-            </span>
-            <h4 className="font-bold text-sm text-stone-900">Retailers List Surplus</h4>
-            <p className="text-xs text-stone-600 leading-relaxed">
-              Stores upload items nearing expiry with rule-based markdown recommendations.
-            </p>
-          </div>
-
-          <div className="bg-white p-6 rounded-3xl border border-stone-200/70 shadow-2xs space-y-3 hover:border-amber-200 transition-colors">
-            <span className="w-8 h-8 rounded-xl bg-amber-100/80 text-amber-800 font-black text-xs flex items-center justify-center border border-amber-200/60">
-              2
-            </span>
-            <h4 className="font-bold text-sm text-stone-900">Shoppers Discover & Reserve</h4>
-            <p className="text-xs text-stone-600 leading-relaxed">
-              Nearby consumers browse by location and secure items instantly on the web app.
-            </p>
-          </div>
-
-          <div className="bg-white p-6 rounded-3xl border border-stone-200/70 shadow-2xs space-y-3 hover:border-sky-200 transition-colors">
-            <span className="w-8 h-8 rounded-xl bg-sky-100/80 text-sky-800 font-black text-xs flex items-center justify-center border border-sky-200/60">
-              3
-            </span>
-            <h4 className="font-bold text-sm text-stone-900">Pick Up In-Store</h4>
-            <p className="text-xs text-stone-600 leading-relaxed">
-              Show your reservation code at the store desk during store hours and pay at checkout.
-            </p>
-          </div>
-
-          <div className="bg-white p-6 rounded-3xl border border-stone-200/70 shadow-2xs space-y-3 hover:border-purple-200 transition-colors">
-            <span className="w-8 h-8 rounded-xl bg-purple-100/80 text-purple-800 font-black text-xs flex items-center justify-center border border-purple-200/60">
-              4
-            </span>
-            <h4 className="font-bold text-sm text-stone-900">Track Real Impact</h4>
-            <p className="text-xs text-stone-600 leading-relaxed">
-              Both parties view verified statistics: euros saved, shrink avoided, and CO2e spared.
-            </p>
-          </div>
-        </div>
+        <motion.div 
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-40px" }}
+          variants={{
+            hidden: { opacity: 0 },
+            visible: {
+              opacity: 1,
+              transition: { staggerChildren: 0.12 }
+            }
+          }}
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5"
+        >
+          {[
+            { step: 1, title: 'Retailers List Surplus', desc: 'Stores upload items nearing expiry with rule-based markdown recommendations.', color: 'bg-emerald-100 text-emerald-800 border-emerald-300', hover: 'hover:border-emerald-400' },
+            { step: 2, title: 'Shoppers Discover & Reserve', desc: 'Nearby consumers browse by location and secure items instantly on the web app.', color: 'bg-amber-100 text-amber-800 border-amber-300', hover: 'hover:border-amber-400' },
+            { step: 3, title: 'Pick Up In-Store', desc: 'Show your reservation code at the store desk during store hours and pay at checkout.', color: 'bg-sky-100 text-sky-800 border-sky-300', hover: 'hover:border-sky-400' },
+            { step: 4, title: 'Track Real Telemetry', desc: 'Both parties view verified statistics: euros saved, shrink avoided, and CO2e spared.', color: 'bg-teal-100 text-teal-800 border-teal-300', hover: 'hover:border-teal-400' }
+          ].map((item) => (
+            <motion.div
+              key={item.step}
+              variants={{
+                hidden: { opacity: 0, y: 28, scale: 0.96 },
+                visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 260, damping: 22 } }
+              }}
+              whileHover={{ y: -5, transition: { duration: 0.2 } }}
+              className={`bg-white p-6 rounded-3xl border border-stone-200/90 shadow-2xs space-y-3 ${item.hover} transition-all cursor-default`}
+            >
+              <span className={`w-8 h-8 rounded-xl ${item.color} font-black text-xs flex items-center justify-center border shadow-xs`}>
+                {item.step}
+              </span>
+              <h4 className="font-bold text-sm text-stone-900">{item.title}</h4>
+              <p className="text-xs text-stone-600 leading-relaxed">
+                {item.desc}
+              </p>
+            </motion.div>
+          ))}
+        </motion.div>
       </section>
+
+      {/* Live Community Impact Showcase Banner */}
+      <motion.section
+        initial={{ opacity: 0, y: 30, scale: 0.98 }}
+        whileInView={{ opacity: 1, y: 0, scale: 1 }}
+        viewport={{ once: true, margin: "-50px" }}
+        transition={{ duration: 0.6, ease: 'easeOut' }}
+        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+      >
+        <div className="bg-gradient-to-br from-stone-900 via-stone-900 to-emerald-950 rounded-3xl p-8 sm:p-12 text-white relative overflow-hidden shadow-xl border border-stone-800">
+          {/* Subtle glowing ambient lights */}
+          <div className="absolute -top-20 -right-20 w-80 h-80 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left items-center">
+            <div className="space-y-2 md:col-span-1">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-2xs font-bold uppercase tracking-wider border border-emerald-500/40 shadow-xs">
+                <Leaf className="w-3.5 h-3.5" />
+                <span>Our Shared Impact</span>
+              </span>
+              <h3 className="text-2xl sm:text-3xl font-black font-display tracking-tight text-white">
+                Every meal saved matters.
+              </h3>
+              <p className="text-xs text-stone-300 leading-relaxed">
+                Join our growing network of conscious consumers and forward-thinking supermarkets in {location.name}.
+              </p>
+            </div>
+
+            <div className="md:col-span-2 grid grid-cols-3 gap-4">
+              <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 text-center hover:border-emerald-500/40 transition-colors">
+                <span className="block text-2xl sm:text-3xl font-black text-emerald-400">1,420+</span>
+                <span className="text-3xs text-stone-300 uppercase font-bold tracking-wide">Meals Rescued</span>
+              </div>
+              <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 text-center hover:border-amber-500/40 transition-colors">
+                <span className="block text-2xl sm:text-3xl font-black text-amber-400">€5,800+</span>
+                <span className="text-3xs text-stone-300 uppercase font-bold tracking-wide">Shopper Savings</span>
+              </div>
+              <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 text-center hover:border-teal-500/40 transition-colors">
+                <span className="block text-2xl sm:text-3xl font-black text-teal-400">3.2t</span>
+                <span className="text-3xs text-stone-300 uppercase font-bold tracking-wide">CO2e Diverted</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </motion.section>
 
       {/* Reservation Modal if triggered from landing page */}
       {reservingProduct && activeStoreForModal && (
