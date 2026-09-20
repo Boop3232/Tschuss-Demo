@@ -87,12 +87,12 @@ export const Navbar: React.FC = () => {
             
             {/* Left: Brand Logo & Optional Location */}
             <div className="flex items-center gap-1.5 sm:gap-3 shrink-0 min-w-0">
-              <Link to="/" className="flex items-center gap-2 sm:gap-2.5 group shrink-0 no-underline">
-                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl sm:rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white flex items-center justify-center font-black text-base sm:text-lg shadow-sm group-hover:scale-105 group-active:scale-95 transition-all duration-200 shrink-0">
+              <Link to="/" className="flex items-center gap-2 sm:gap-2.5 group shrink-0 no-underline notranslate" translate="no">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl sm:rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white flex items-center justify-center font-black text-base sm:text-lg shadow-sm group-hover:scale-105 group-active:scale-95 transition-all duration-200 shrink-0 notranslate" translate="no">
                   T
                 </div>
-                <div className="flex flex-col">
-                  <span className="font-extrabold text-base sm:text-xl tracking-tight text-stone-900 font-display leading-none">
+                <div className="flex flex-col notranslate" translate="no">
+                  <span className="font-extrabold text-base sm:text-xl tracking-tight text-stone-900 font-display leading-none notranslate" translate="no">
                     Tschüss
                   </span>
                   <span className="text-3xs font-semibold text-emerald-700 tracking-tight hidden xl:block leading-none mt-0.5">

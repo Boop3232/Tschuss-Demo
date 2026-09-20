@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, 
@@ -14,7 +14,12 @@ import {
   Store as StoreIcon,
   Percent,
   Coins,
-  TrendingUp
+  TrendingUp,
+  UploadCloud,
+  Camera,
+  X,
+  FileImage,
+  Check
 } from 'lucide-react';
 import { ProductCategory, Product, Store } from '../../types';
 import { productService } from '../../services/productService';
@@ -72,12 +77,87 @@ export const AddProductPage: React.FC = () => {
   const [quantityAvailable, setQuantityAvailable] = useState<number>(5);
   const [expiryAt, setExpiryAt] = useState<string>(defaultTomorrow);
   const [imageUrl, setImageUrl] = useState<string>(PRESET_IMAGES.Grocery[0]);
+  const [isCustomUpload, setIsCustomUpload] = useState<boolean>(false);
+  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
+  const [uploadedFileSize, setUploadedFileSize] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [photoError, setPhotoError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [estimatedWeightKg, setEstimatedWeightKg] = useState<number>(0.5);
   const [pickupStartTime, setPickupStartTime] = useState('08:00');
   const [pickupEndTime, setPickupEndTime] = useState('21:00');
 
   const [submitting, setSubmitting] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
+
+  const processUploadedFile = (file: File) => {
+    setPhotoError(null);
+    if (!file.type.startsWith('image/')) {
+      setPhotoError('Please select a valid image file (JPEG, PNG, WEBP).');
+      return;
+    }
+    // Check max size: 5MB
+    if (file.size > 5 * 1024 * 1024) {
+      setPhotoError('Image size is too large. Please upload an image under 5MB.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      if (typeof e.target?.result === 'string') {
+        setImageUrl(e.target.result);
+        setIsCustomUpload(true);
+        setUploadedFileName(file.name);
+        const sizeKb = Math.round(file.size / 1024);
+        setUploadedFileSize(sizeKb > 1000 ? `${(sizeKb / 1024).toFixed(1)} MB` : `${sizeKb} KB`);
+      }
+    };
+    reader.onerror = () => {
+      setPhotoError('Failed to read image file. Please try another image.');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      processUploadedFile(file);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      processUploadedFile(file);
+    }
+  };
+
+  const handleResetToPreset = (cat: ProductCategory) => {
+    setIsCustomUpload(false);
+    setUploadedFileName(null);
+    setUploadedFileSize(null);
+    setPhotoError(null);
+    setImageUrl(PRESET_IMAGES[cat][0]);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   // Dynamic pricing recommendation
   const pricingRec = pricingRecommendationService.getDiscountRecommendation(
@@ -621,42 +701,191 @@ export const AddProductPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Section 4: Image Presets */}
-        <div className="pt-4 border-t border-stone-100 space-y-3">
-          <h3 className="text-xs font-bold text-stone-400 uppercase tracking-wider">
-            4. Product Photo
-          </h3>
-
-          <div className="flex items-center gap-3 overflow-x-auto pb-2">
-            {(PRESET_IMAGES[category] || PRESET_IMAGES.Grocery).map((img, i) => (
-              <button
-                key={i}
-                type="button"
-                id={`btn-preset-image-${i}`}
-                onClick={() => setImageUrl(img)}
-                className={`relative w-20 h-20 rounded-2xl overflow-hidden border-2 shrink-0 transition-all ${
-                  imageUrl === img ? 'border-emerald-800 ring-2 ring-emerald-800/30' : 'border-stone-200 opacity-70 hover:opacity-100'
-                }`}
-              >
-                <img src={img} alt="preset" className="w-full h-full object-cover" />
-                {imageUrl === img && (
-                  <div className="absolute inset-0 bg-emerald-900/30 flex items-center justify-center">
-                    <CheckCircle2 className="w-5 h-5 text-white" />
-                  </div>
-                )}
-              </button>
-            ))}
+        {/* Section 4: Product Photo & Custom Upload */}
+        <div className="pt-4 border-t border-stone-100 space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-bold text-stone-400 uppercase tracking-wider">
+              4. Product Photo & Visuals
+            </h3>
+            <span className="text-3xs font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md">
+              Upload custom photo or select stock preset
+            </span>
           </div>
 
-          <div>
-            <label className="text-xs text-stone-500 block mb-1">Or paste custom image URL</label>
-            <input
-              type="url"
-              id="input-image-url"
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs text-stone-600 focus:outline-none focus:ring-2 focus:ring-emerald-800"
-            />
+          {/* Photo Error Banner if any */}
+          {photoError && (
+            <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+              <span>{photoError}</span>
+            </div>
+          )}
+
+          {/* Hidden File Input */}
+          <input
+            type="file"
+            ref={fileInputRef}
+            id="file-input-product-photo"
+            accept="image/png,image/jpeg,image/webp,image/jpg"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+
+          {/* Dual Column Photo Section: Upload Zone / Preview + Stock Presets */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+            
+            {/* Left: Drag & Drop / Direct Upload Box */}
+            <div className="md:col-span-7 space-y-3">
+              <div
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                onClick={() => fileInputRef.current?.click()}
+                className={`border-2 border-dashed rounded-2xl p-5 text-center cursor-pointer transition-all flex flex-col items-center justify-center min-h-[170px] ${
+                  isDragging
+                    ? 'border-emerald-600 bg-emerald-50/80 scale-[1.01]'
+                    : isCustomUpload
+                    ? 'border-emerald-700/60 bg-emerald-50/30 hover:bg-emerald-50/50'
+                    : 'border-stone-200 hover:border-emerald-600/70 bg-stone-50/70 hover:bg-stone-50'
+                }`}
+              >
+                {imageUrl && isCustomUpload ? (
+                  <div className="flex items-center gap-4 w-full text-left">
+                    <img
+                      src={imageUrl}
+                      alt="Uploaded preview"
+                      className="w-20 h-20 rounded-xl object-cover border border-emerald-200 shadow-2xs shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="inline-flex items-center gap-1 text-2xs font-bold text-emerald-800 bg-emerald-100/80 px-2 py-0.5 rounded-full mb-1">
+                        <Check className="w-3 h-3 text-emerald-700" />
+                        Custom Photo Uploaded
+                      </div>
+                      <p className="text-xs font-bold text-stone-900 truncate">
+                        {uploadedFileName || 'Custom Store Image'}
+                      </p>
+                      {uploadedFileSize && (
+                        <p className="text-3xs text-stone-500 font-medium mt-0.5">
+                          Size: {uploadedFileSize}
+                        </p>
+                      )}
+                      <div className="flex items-center gap-2 mt-2">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            fileInputRef.current?.click();
+                          }}
+                          className="text-3xs font-bold text-emerald-800 hover:underline bg-white px-2 py-1 rounded-lg border border-stone-200 shadow-2xs"
+                        >
+                          Change Photo
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleResetToPreset(category);
+                          }}
+                          className="text-3xs font-bold text-rose-700 hover:underline bg-white px-2 py-1 rounded-lg border border-stone-200 shadow-2xs"
+                        >
+                          Remove Photo
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center mb-2 shadow-2xs">
+                      <UploadCloud className="w-6 h-6 text-emerald-700" />
+                    </div>
+                    <h4 className="text-xs sm:text-sm font-bold text-stone-900">
+                      Upload Your Product Photo
+                    </h4>
+                    <p className="text-3xs sm:text-2xs text-stone-500 mt-1 max-w-xs">
+                      Drag & drop a photo here, or <span className="text-emerald-800 font-bold underline">browse files</span> from your phone or desktop.
+                    </p>
+                    <span className="text-3xs text-stone-400 mt-2">
+                      Supports JPG, PNG, WEBP (up to 5MB)
+                    </span>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Right: Active Preview & Custom URL */}
+            <div className="md:col-span-5 space-y-3 flex flex-col justify-between">
+              <div className="p-3 bg-stone-50 rounded-2xl border border-stone-200 flex items-center gap-3">
+                <div className="relative w-16 h-16 rounded-xl overflow-hidden border border-stone-200 shrink-0 bg-stone-200">
+                  <img
+                    src={imageUrl}
+                    alt="Active selection"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <span className="text-3xs font-bold text-stone-400 uppercase tracking-wider block">
+                    Current Listing Photo
+                  </span>
+                  <span className="text-xs font-bold text-stone-800 block truncate mt-0.5">
+                    {isCustomUpload ? (uploadedFileName || 'Uploaded image') : `${category} preset photo`}
+                  </span>
+                  <span className="text-3xs text-emerald-700 font-semibold block mt-0.5">
+                    Ready to display in store catalogue
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-3xs font-bold text-stone-500 uppercase tracking-wider block mb-1">
+                  Or Paste External Image URL:
+                </label>
+                <input
+                  type="url"
+                  id="input-image-url"
+                  value={imageUrl}
+                  onChange={(e) => {
+                    setImageUrl(e.target.value);
+                    setIsCustomUpload(false);
+                    setUploadedFileName('External Image URL');
+                  }}
+                  placeholder="https://..."
+                  className="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs text-stone-700 focus:outline-none focus:ring-2 focus:ring-emerald-800"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Stock Presets Gallery */}
+          <div className="pt-2">
+            <span className="text-3xs font-bold text-stone-500 uppercase tracking-wider block mb-2">
+              Quick stock photos for {category}:
+            </span>
+            <div className="flex items-center gap-2.5 overflow-x-auto pb-2">
+              {(PRESET_IMAGES[category] || PRESET_IMAGES.Grocery).map((img, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  id={`btn-preset-image-${i}`}
+                  onClick={() => {
+                    setImageUrl(img);
+                    setIsCustomUpload(false);
+                    setUploadedFileName(null);
+                    setUploadedFileSize(null);
+                  }}
+                  className={`relative w-16 h-16 rounded-xl overflow-hidden border-2 shrink-0 transition-all ${
+                    imageUrl === img && !isCustomUpload
+                      ? 'border-emerald-800 ring-2 ring-emerald-800/40 shadow-xs scale-105'
+                      : 'border-stone-200 opacity-70 hover:opacity-100'
+                  }`}
+                >
+                  <img src={img} alt="preset" className="w-full h-full object-cover" />
+                  {imageUrl === img && !isCustomUpload && (
+                    <div className="absolute inset-0 bg-emerald-900/30 flex items-center justify-center">
+                      <CheckCircle2 className="w-4 h-4 text-white" />
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 

@@ -59,17 +59,6 @@ export const LandingPage: React.FC = () => {
   const yBgGlow2 = useTransform(scrollYProgress, [0, 1], [0, -180]);
   const yBgGlow3 = useTransform(scrollYProgress, [0, 1], [0, 80]);
 
-  // Mobile background video ref for guaranteed autoplay
-  const mobileVideoRef = useRef<HTMLVideoElement>(null);
-
-  useEffect(() => {
-    if (mobileVideoRef.current) {
-      mobileVideoRef.current.play().catch(() => {
-        // Autoplay handled by browser policies
-      });
-    }
-  }, []);
-
   useEffect(() => {
     async function load() {
       setLoading(true);
@@ -114,8 +103,20 @@ export const LandingPage: React.FC = () => {
         style={{ scaleX }}
       />
 
-      {/* Hero Section with Light Canvas & Image Showcase */}
+      {/* Hero Section with Light Canvas & High-Quality Photo Showcase */}
       <section className="relative overflow-hidden bg-gradient-to-b from-stone-50 via-white to-stone-50/40 pt-12 pb-16 sm:pt-18 sm:pb-24 border-b border-stone-200/80">
+        {/* Full Hero Heading Photo Background */}
+        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+          <img
+            src={heroFoodPlatterImg}
+            alt="Artisan food rescue background"
+            className="w-full h-full object-cover object-center opacity-20 filter scale-105 transform"
+            loading="eager"
+            referrerPolicy="no-referrer"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-white/85 via-white/70 to-white/95" />
+        </div>
+
         {/* Soft luminous ambient glows */}
         <motion.div 
           style={{ y: yBgGlow1 }}
@@ -131,26 +132,27 @@ export const LandingPage: React.FC = () => {
         />
 
         {/* Tech grid subtle pattern */}
-        <div className="absolute inset-0 bg-tech-grid opacity-25 pointer-events-none" />
+        <div className="absolute inset-0 bg-tech-grid opacity-15 pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-10">
           {/* Top Row: Hero Text + Hero Image side-by-side on lg screens */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
             
             {/* Left Col: Headlines & CTAs */}
-            <div className="lg:col-span-7 text-center lg:text-left space-y-6 relative py-4 sm:py-6 px-1 sm:px-3">
-              {/* Mobile Lightweight Background - fast, zero-lag, no thermal GPU throttling */}
+            <div className="lg:col-span-7 text-center lg:text-left space-y-6 relative py-6 sm:py-8 px-4 sm:px-8 rounded-3xl overflow-hidden border border-emerald-900/15 shadow-md bg-white/70 backdrop-blur-md">
+              {/* Photo backdrop card with rich food imagery */}
               <div 
-                id="hero-mobile-video-bg"
-                className="lg:hidden absolute -inset-x-2 -inset-y-3 sm:-inset-x-4 sm:-inset-y-4 z-0 rounded-3xl overflow-hidden pointer-events-none shadow-xs border border-emerald-900/10 bg-gradient-to-b from-emerald-50/70 via-stone-50/50 to-white"
+                id="hero-heading-photo-bg"
+                className="absolute inset-0 z-0 overflow-hidden pointer-events-none"
               >
                 <img
                   src={heroFoodPlatterImg}
-                  alt="Fresh rescue foods"
+                  alt="Fresh food rescue background"
                   loading="eager"
-                  className="w-full h-full object-cover object-center opacity-25 filter blur-xs scale-105"
+                  referrerPolicy="no-referrer"
+                  className="w-full h-full object-cover object-center opacity-45 scale-105"
                 />
-                <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-white/60 to-white/95" />
+                <div className="absolute inset-0 bg-gradient-to-r from-white/90 via-white/75 to-white/50" />
               </div>
 
               {/* Pilot Location Badge */}
@@ -169,14 +171,14 @@ export const LandingPage: React.FC = () => {
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.08, ease: 'easeOut' }}
-                className="space-y-4 relative z-10"
+                className="space-y-3 relative z-10"
               >
                 <h1 className="text-3xl xs:text-4xl sm:text-5xl xl:text-6xl font-black font-display tracking-tight text-stone-950 leading-[1.1] break-words hyphens-auto">
                   Profit from <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700">Near Food Expiry</span>.
                 </h1>
                 <div className="max-w-xl mx-auto lg:mx-0">
-                  <p className="text-sm sm:text-base lg:text-lg text-stone-800 lg:text-stone-700 font-normal leading-relaxed bg-white/80 lg:bg-transparent backdrop-blur-xs px-3 py-2 sm:px-3.5 sm:py-2.5 lg:p-0 rounded-2xl border border-white/90 lg:border-transparent shadow-2xs lg:shadow-none break-words">
-                    Tschüss brings local supermarkets, bakeries, and conscious shoppers together. Retailers rescue lost margin — consumers enjoy up to 70% off high-quality, delicious goods.
+                  <p className="text-sm sm:text-base lg:text-lg text-stone-700 font-medium leading-snug break-words">
+                    Rescue surplus food from local stores at up to 70% off.
                   </p>
                 </div>
               </motion.div>

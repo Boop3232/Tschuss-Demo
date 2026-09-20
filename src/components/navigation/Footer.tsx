@@ -15,11 +15,11 @@ export const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
           {/* Brand Col */}
           <div className="space-y-4 md:col-span-2">
-            <Link to="/" className="flex items-center gap-2.5 no-underline group w-fit">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white flex items-center justify-center font-black text-sm shadow-xs group-hover:scale-105 transition-transform">
+            <Link to="/" className="flex items-center gap-2.5 no-underline group w-fit notranslate" translate="no">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white flex items-center justify-center font-black text-sm shadow-xs group-hover:scale-105 transition-transform notranslate" translate="no">
                 T
               </div>
-              <span className="font-extrabold text-lg text-stone-900 font-display">Tschüss</span>
+              <span className="font-extrabold text-lg text-stone-900 font-display notranslate" translate="no">Tschüss</span>
             </Link>
             <p className="text-stone-600 text-xs max-w-md leading-relaxed">
               "Connecting Retailers and Consumers to Profit from Near Food Expiry."
