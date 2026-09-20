@@ -50,7 +50,7 @@ export async function sendChatMessage(
     if (lastMsg.includes('reserve') || lastMsg.includes('how') || lastMsg.includes('order')) {
       fallbackText += "### Reserving Surplus Deals\n- Browse available listings on [Discover Food Deals](/app/discover)\n- Click any item to see expiration countdowns & store distance\n- Confirm your reservation with 1-click & pick it up at the store with your pickup code in [My Reservations](/app/reservations)!";
     } else if (lastMsg.includes('business') || lastMsg.includes('partner') || lastMsg.includes('store') || lastMsg.includes('retailer')) {
-      fallbackText += "### Retailer & Store Partner Options\n- Learn about our zero-commission pilot on [For Business](/for-business)\n- Ready to list surplus bakery, dairy, or produce? Access the [Retailer Dashboard](/business) to publish offers in under 60 seconds!";
+      fallbackText += "### Retailer & Store Partner Options\n- Learn about our zero-commission partner program on [For Business](/for-business)\n- Ready to list surplus bakery, dairy, or produce? Access the [Retailer Dashboard](/business) to publish offers in under 60 seconds!";
     } else if (lastMsg.includes('map') || lastMsg.includes('store') || lastMsg.includes('near')) {
       fallbackText += "### Locate Stores Near You\n- Check live neighborhood stores, radius distances, and stock on the [Store Map](/app/map).";
     } else if (lastMsg.includes('impact') || lastMsg.includes('co2') || lastMsg.includes('carbon')) {

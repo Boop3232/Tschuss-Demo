@@ -13,38 +13,7 @@ import {
 import { db } from '../lib/firebase';
 import { AppNotification } from '../types';
 
-const getInitialDemoNotifications = (userId: string): AppNotification[] => [
-  {
-    id: `notif_${userId}_1`,
-    userId,
-    title: 'Ready for Pickup',
-    message: 'Your reservation #TS-4829 for Creamy Greek Style Yoghurt at REWE Kleve is packed and ready.',
-    type: 'reservation_status',
-    targetUrl: '/app/reservations/res_demo_001',
-    read: false,
-    createdAt: new Date(Date.now() - 45 * 60 * 1000).toISOString()
-  },
-  {
-    id: `notif_${userId}_2`,
-    userId,
-    title: '50% Flash Markdown',
-    message: 'Organic Barista Oat Drink at BioMarkt Kleve just got discounted to €1.03.',
-    type: 'deal_alert',
-    targetUrl: '/app/products/prod_bio_oat_milk',
-    read: true,
-    createdAt: new Date(Date.now() - 3 * 3600 * 1000).toISOString()
-  },
-  {
-    id: `notif_${userId}_3`,
-    userId,
-    title: 'Low Stock Alert',
-    message: 'Only 3 units left of Soothing Chamomile Night Cream at BioMarkt Kleve.',
-    type: 'stock_alert',
-    targetUrl: '/app/products/prod_face_cream',
-    read: true,
-    createdAt: new Date(Date.now() - 5 * 3600 * 1000).toISOString()
-  }
-];
+const getInitialDemoNotifications = (_userId: string): AppNotification[] => [];
 
 export function sortNotificationsNewestFirst(notifs: AppNotification[]): AppNotification[] {
   return [...notifs].sort((a, b) => {

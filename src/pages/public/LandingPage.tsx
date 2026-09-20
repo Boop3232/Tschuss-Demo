@@ -155,7 +155,7 @@ export const LandingPage: React.FC = () => {
                 <div className="absolute inset-0 bg-gradient-to-r from-white/90 via-white/75 to-white/50" />
               </div>
 
-              {/* Pilot Location Badge */}
+              {/* Location Badge */}
               <motion.div
                 initial={{ opacity: 0, y: -12, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -163,7 +163,7 @@ export const LandingPage: React.FC = () => {
                 className="relative z-10 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/95 backdrop-blur-md border border-emerald-300 text-emerald-900 text-2xs sm:text-xs font-bold uppercase tracking-wider shadow-xs max-w-full truncate"
               >
                 <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse shadow-xs shrink-0" />
-                <span className="truncate">Retail Food Rescue · Pilot {location.name}</span>
+                <span className="truncate">Retail Food Rescue · {location.name}</span>
               </motion.div>
 
               {/* Title & Tagline with Smooth Entry */}

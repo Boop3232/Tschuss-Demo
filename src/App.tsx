@@ -68,6 +68,8 @@ export default function App() {
                 <Route index element={<LandingPage />} />
                 <Route path="how-it-works" element={<HowItWorksPage />} />
                 <Route path="for-business" element={<ForBusinessPage />} />
+                <Route path="onboarding" element={<ForBusinessPage />} />
+                <Route path="business-onboarding" element={<ForBusinessPage />} />
 
                 {/* Authentication Pages (Publicly accessible) */}
                 <Route path="login" element={<LoginPage />} />

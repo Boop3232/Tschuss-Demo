@@ -27,7 +27,7 @@ export const Footer: React.FC = () => {
             </p>
             <div className="flex items-center gap-2 text-2xs text-emerald-700 font-semibold pt-1">
               <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse shadow-xs" />
-              <span>Pilot deployment in Kleve (Kreis Kleve, North Rhine-Westphalia)</span>
+              <span>Deployment active in Kleve (Kreis Kleve, North Rhine-Westphalia)</span>
             </div>
           </div>
 

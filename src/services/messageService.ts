@@ -46,7 +46,7 @@ const DEMO_STORE_MESSAGES: Message[] = [
 const DEMO_MESSAGES: PlatformMessage[] = [
   {
     id: 'msg_1',
-    senderName: 'Tschüss Pilot Operations',
+    senderName: 'Tschüss Operations',
     subject: 'Welcome to Tschüss Retailer Network Kleve',
     preview: 'Your store profile is verified. Here are the top 3 best practices for markdowns...',
     body: 'Welcome to the Tschüss Retailer Network in Kleve! You can now publish surplus or short-dated items directly to local consumers. Remember that setting markdowns 24 hours prior to expiry achieves an 85% average sell-through rate.',

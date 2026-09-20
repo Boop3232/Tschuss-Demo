@@ -122,7 +122,7 @@ export const LocationSelectorModal: React.FC<LocationSelectorModalProps> = ({ is
               id="input-city-search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={language === 'de' ? 'Stadt oder PLZ suchen (z.B. Kleve, Emmerich)...' : 'Search German city or district (e.g., Kleve, Emmerich)...'}
+              placeholder={language === 'de' ? 'PLZ oder Stadtteil in Kleve suchen...' : 'Search district or area in Kleve...'}
               className="w-full pl-10 pr-20 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:bg-white transition-all"
             />
             <button
@@ -156,7 +156,7 @@ export const LocationSelectorModal: React.FC<LocationSelectorModalProps> = ({ is
         {/* Popular Locations */}
         <div className="mt-5">
           <p className="text-2xs font-bold text-stone-400 uppercase tracking-wider mb-2">
-            {language === 'de' ? 'Beliebte Pilot-Standorte' : 'Popular Pilot Locations'}
+            {language === 'de' ? 'Standorte in Kleve' : 'Locations in Kleve'}
           </p>
           <div className="grid grid-cols-2 gap-2">
             {popularLocations.map((loc) => {

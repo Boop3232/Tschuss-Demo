@@ -490,6 +490,14 @@ export const Navbar: React.FC = () => {
                   </span>
                 )}
               </Link>
+              <Link
+                to="/for-business"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center gap-2 p-3 rounded-2xl bg-amber-50 border border-amber-200/80 text-xs font-bold text-amber-900 hover:bg-amber-100 transition-colors shadow-2xs"
+              >
+                <Store className="w-4 h-4 text-amber-700 shrink-0" />
+                <span className="truncate">{language === 'de' ? 'Für Händler & Onboarding' : 'For Retailers & Onboarding'}</span>
+              </Link>
             </div>
 
             {/* Quick settings in drawer: Language Switcher */}

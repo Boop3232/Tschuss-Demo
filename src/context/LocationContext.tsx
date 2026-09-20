@@ -21,12 +21,10 @@ export const DEFAULT_LOCATION: UserLocation = {
 
 export const POPULAR_LOCATIONS: UserLocation[] = [
   { name: 'Kleve', lat: 51.7891, lng: 6.1381, address: 'Kleve, NRW' },
-  { name: 'Emmerich am Rhein', lat: 51.8315, lng: 6.2447, address: 'Emmerich, NRW' },
-  { name: 'Nijmegen', lat: 51.8126, lng: 5.8372, address: 'Nijmegen, Netherlands' },
-  { name: 'Kranenburg', lat: 51.7898, lng: 6.0067, address: 'Kranenburg, NRW' },
-  { name: 'Düsseldorf', lat: 51.2277, lng: 6.7735, address: 'Düsseldorf, NRW' },
-  { name: 'Köln (Cologne)', lat: 50.9375, lng: 6.9603, address: 'Köln, NRW' },
-  { name: 'Berlin', lat: 52.5200, lng: 13.4050, address: 'Berlin, Germany' }
+  { name: 'Kleve Oberstadt', lat: 51.7850, lng: 6.1350, address: 'Kleve Oberstadt, NRW' },
+  { name: 'Kleve Kellen', lat: 51.7980, lng: 6.1520, address: 'Kleve Kellen, NRW' },
+  { name: 'Kleve Materborn', lat: 51.7780, lng: 6.1200, address: 'Kleve Materborn, NRW' },
+  { name: 'Kleve Rindern', lat: 51.8100, lng: 6.1250, address: 'Kleve Rindern, NRW' }
 ];
 
 const LocationContext = createContext<LocationContextType | undefined>(undefined);
@@ -107,13 +105,13 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     });
   }, [setLocation]);
 
-  // Search locations using OpenStreetMap Nominatim geocoding
+  // Search locations constrained to Kleve
   const searchLocations = useCallback(async (query: string): Promise<UserLocation[]> => {
     if (!query || query.trim().length < 2) return [];
 
     try {
       const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=de,nl&limit=5`
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent('Kleve ' + query)}&countrycodes=de&limit=5`
       );
       if (!res.ok) throw new Error('Geocoding query failed');
       const data = await res.json();
@@ -125,7 +123,7 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         address: item.display_name
       }));
     } catch (err) {
-      console.warn('Online geocoding search failed, fallback to popular list:', err);
+      console.warn('Online geocoding search failed, fallback to Kleve list:', err);
       return POPULAR_LOCATIONS.filter(l => 
         l.name.toLowerCase().includes(query.toLowerCase()) || 
         l.address?.toLowerCase().includes(query.toLowerCase())

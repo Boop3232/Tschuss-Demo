@@ -30,8 +30,9 @@ import { formatCurrency, isExpired } from '../../utils/businessLogic';
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { onboardingService, RetailerApplicationDoc } from '../../services/onboardingService';
 
-type AdminTab = 'overview' | 'stores' | 'inventory' | 'reservations' | 'system';
+type AdminTab = 'overview' | 'applications' | 'stores' | 'inventory' | 'reservations' | 'system';
 
 export const AdminDashboardPage: React.FC = () => {
   const navigate = useNavigate();
@@ -41,11 +42,15 @@ export const AdminDashboardPage: React.FC = () => {
   const [stores, setStores] = useState<Store[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [applications, setApplications] = useState<RetailerApplicationDoc[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [reSeeding, setReSeeding] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Filter & Search states
+  const [appSearch, setAppSearch] = useState('');
+  const [appStatusFilter, setAppStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
+
   const [storeSearch, setStoreSearch] = useState('');
   const [storeStatusFilter, setStoreStatusFilter] = useState<'all' | 'active' | 'paused' | 'pending'>('all');
   
@@ -78,14 +83,16 @@ export const AdminDashboardPage: React.FC = () => {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [s, p, r] = await Promise.all([
+      const [s, p, r, apps] = await Promise.all([
         storeService.getStores(),
         productService.getProducts(),
-        reservationService.getAllReservations()
+        reservationService.getAllReservations(),
+        onboardingService.getApplications()
       ]);
       setStores(s);
       setProducts(p);
       setReservations(r);
+      setApplications(apps);
     } catch (e) {
       console.error('Error loading admin operations data:', e);
     } finally {
@@ -188,7 +195,7 @@ export const AdminDashboardPage: React.FC = () => {
   const handleExportData = () => {
     const exportPayload = {
       exportedAt: new Date().toISOString(),
-      pilotCity: 'Kleve, NRW',
+      city: 'Kleve, NRW',
       metrics: {
         totalStores: stores.length,
         totalProducts: products.length,
@@ -207,7 +214,40 @@ export const AdminDashboardPage: React.FC = () => {
     showToast('Platform audit export downloaded');
   };
 
+  // Application Handlers
+  const handleApproveApp = async (appDoc: RetailerApplicationDoc) => {
+    try {
+      await onboardingService.approveApplication(appDoc);
+      showToast(`Approved ${appDoc.storeName}! Live store created and activated.`);
+      await loadData();
+    } catch (e) {
+      console.error('Approve application error:', e);
+      showToast('Failed to approve application');
+    }
+  };
+
+  const handleRejectApp = async (appDoc: RetailerApplicationDoc) => {
+    try {
+      await onboardingService.updateApplicationStatus(appDoc.id, 'rejected');
+      setApplications(applications.map(a => a.id === appDoc.id ? { ...a, status: 'rejected' } : a));
+      showToast(`Application for ${appDoc.storeName} marked as rejected`);
+    } catch (e) {
+      showToast('Failed to reject application');
+    }
+  };
+
+  const handleSetPendingApp = async (appDoc: RetailerApplicationDoc) => {
+    try {
+      await onboardingService.updateApplicationStatus(appDoc.id, 'pending');
+      setApplications(applications.map(a => a.id === appDoc.id ? { ...a, status: 'pending' } : a));
+      showToast(`Application for ${appDoc.storeName} set back to pending`);
+    } catch (e) {
+      showToast('Failed to set application to pending');
+    }
+  };
+
   // Telemetry KPIs
+  const pendingAppsCount = applications.filter(a => a.status === 'pending').length;
   const activeStoresCount = stores.filter(s => s.status === 'active').length;
   const activeProductsCount = products.filter(p => p.status === 'active' && !isExpired(p.expiryAt)).length;
   const totalStockUnits = products.reduce((acc, p) => acc + (p.quantityAvailable || 0), 0);
@@ -218,6 +258,20 @@ export const AdminDashboardPage: React.FC = () => {
   const pickupFulfillmentRate = reservations.length > 0 
     ? Math.round((reservations.filter(r => r.status === 'COLLECTED' || r.status === 'COMPLETED').length / reservations.length) * 100)
     : 100;
+
+  // Filtered lists
+  const filteredApplications = useMemo(() => {
+    return applications.filter(a => {
+      const q = appSearch.toLowerCase();
+      const matchSearch = a.storeName.toLowerCase().includes(q) ||
+                          a.contactName.toLowerCase().includes(q) ||
+                          a.email.toLowerCase().includes(q) ||
+                          a.city.toLowerCase().includes(q) ||
+                          (a.referenceId && a.referenceId.toLowerCase().includes(q));
+      const matchStatus = appStatusFilter === 'all' || a.status === appStatusFilter;
+      return matchSearch && matchStatus;
+    });
+  }, [applications, appSearch, appStatusFilter]);
 
   // Filtered lists
   const filteredStores = useMemo(() => {
@@ -274,7 +328,7 @@ export const AdminDashboardPage: React.FC = () => {
                 <span>Tschüss Operations · Corporate Administration</span>
               </div>
               <h1 className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight font-display">
-                City Pilot Operations Console
+                City Operations Console
               </h1>
               <p className="text-xs sm:text-sm text-stone-500 max-w-2xl leading-relaxed">
                 Centralized management for supermarket partners, bakery surplus streams, order voucher audits, and municipal food rescue telemetry in <strong>Kleve, NRW</strong>.
@@ -322,7 +376,7 @@ export const AdminDashboardPage: React.FC = () => {
             <div className="flex items-center gap-3">
               <span className="flex items-center gap-1.5 font-bold text-stone-700">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                Live Pilot: <span className="text-stone-900">Kleve (47533)</span>
+                Live Operations: <span className="text-stone-900">Kleve (47533)</span>
               </span>
               <span className="text-stone-300">|</span>
               <span className="text-stone-500">
@@ -367,7 +421,7 @@ export const AdminDashboardPage: React.FC = () => {
               {stores.length}
             </div>
             <p className="text-3xs text-emerald-700 font-semibold">
-              {activeStoresCount} active in pilot network
+              {activeStoresCount} active in store network
             </p>
           </div>
 
@@ -437,6 +491,24 @@ export const AdminDashboardPage: React.FC = () => {
           >
             Overview & Telemetry
           </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('applications')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
+              activeTab === 'applications'
+                ? 'bg-amber-900 text-white shadow-xs'
+                : 'text-stone-600 hover:text-stone-900'
+            }`}
+          >
+            <span>Partner Applications ({applications.length})</span>
+            {pendingAppsCount > 0 && (
+              <span className="px-2 py-0.5 rounded-full bg-amber-500 text-white font-extrabold text-3xs animate-pulse">
+                {pendingAppsCount} pending
+              </span>
+            )}
+          </button>
+
           <button
             type="button"
             onClick={() => setActiveTab('stores')}
@@ -590,7 +662,7 @@ export const AdminDashboardPage: React.FC = () => {
                 <div className="space-y-3 text-xs text-stone-600">
                   <div className="flex items-start gap-2">
                     <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                    <span>DIN 10514 hygiene & cold-chain compliance active for all pilot listings.</span>
+                    <span>DIN 10514 hygiene & cold-chain compliance active for all catalog listings.</span>
                   </div>
                   <div className="flex items-start gap-2">
                     <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
@@ -606,7 +678,7 @@ export const AdminDashboardPage: React.FC = () => {
               <div className="bg-gradient-to-br from-indigo-900 to-stone-900 text-white rounded-3xl p-6 shadow-sm space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-3xs font-bold uppercase tracking-wider text-indigo-300">
-                    Municipal Pilot Expansion
+                    Municipal Operations
                   </span>
                   <span className="px-2 py-0.5 rounded-full text-3xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
                     Stage 1 Active
@@ -617,7 +689,7 @@ export const AdminDashboardPage: React.FC = () => {
                     Kleve Operations & Rollout
                   </h4>
                   <p className="text-xs text-stone-300 mt-1 leading-relaxed">
-                    Pilot Hub covers 15km radius including Materborn, Rindern, Kellen, and Kleve City Center. Next rollout targets Emmerich and Goch.
+                    Operations Hub covers 15km radius including Materborn, Rindern, Kellen, and Kleve City Center.
                   </p>
                 </div>
                 <div className="pt-2 border-t border-white/10 flex items-center justify-between text-2xs text-stone-300 font-medium">
@@ -626,6 +698,216 @@ export const AdminDashboardPage: React.FC = () => {
                 </div>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Tab: Retailer Partner Applications (Pending & Processed) */}
+        {activeTab === 'applications' && (
+          <div className="bg-white rounded-3xl border border-stone-200/80 shadow-xs p-6 space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-100 pb-4">
+              <div>
+                <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 text-3xs font-extrabold uppercase tracking-wider mb-1">
+                  <span>Inbound Retailer Pipeline</span>
+                </div>
+                <h3 className="text-xl font-black text-stone-900 font-display">
+                  Retailer Onboarding Applications
+                </h3>
+                <p className="text-xs text-stone-500">
+                  Review supermarket and store partnership submissions sent from the onboarding portal.
+                </p>
+              </div>
+
+              {/* Filters */}
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="relative">
+                  <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
+                  <input
+                    type="text"
+                    value={appSearch}
+                    onChange={(e) => setAppSearch(e.target.value)}
+                    placeholder="Search by store or contact..."
+                    className="pl-8 pr-3 py-1.5 rounded-xl bg-stone-50 border border-stone-200 text-xs text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-600"
+                  />
+                </div>
+
+                <select
+                  value={appStatusFilter}
+                  onChange={(e) => setAppStatusFilter(e.target.value as any)}
+                  className="px-3 py-1.5 rounded-xl bg-stone-50 border border-stone-200 text-xs text-stone-700 font-semibold focus:outline-none"
+                >
+                  <option value="all">All Statuses ({applications.length})</option>
+                  <option value="pending">Pending ({pendingAppsCount})</option>
+                  <option value="approved">Approved</option>
+                  <option value="rejected">Rejected</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Applications List */}
+            {filteredApplications.length === 0 ? (
+              <div className="text-center py-12 bg-stone-50/60 rounded-2xl border border-dashed border-stone-200 space-y-3">
+                <div className="w-12 h-12 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center mx-auto text-xl">
+                  📋
+                </div>
+                <h4 className="font-bold text-stone-800 text-sm">No applications found</h4>
+                <p className="text-xs text-stone-500 max-w-sm mx-auto">
+                  {appStatusFilter === 'pending'
+                    ? 'There are currently no pending retailer applications waiting for review.'
+                    : 'No onboarding applications match the current filter search.'}
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-4">
+                {filteredApplications.map((appDoc) => {
+                  const isPending = appDoc.status === 'pending';
+                  const isApproved = appDoc.status === 'approved';
+                  const isRejected = appDoc.status === 'rejected';
+
+                  return (
+                    <div
+                      key={appDoc.id}
+                      className={`p-5 rounded-2xl border transition-all space-y-4 ${
+                        isPending
+                          ? 'bg-amber-50/40 border-amber-200 shadow-2xs'
+                          : isApproved
+                          ? 'bg-emerald-50/30 border-emerald-200'
+                          : 'bg-stone-50 border-stone-200 opacity-75'
+                      }`}
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-200/60 pb-3">
+                        <div className="flex items-center gap-3">
+                          <span className="px-2.5 py-1 rounded-xl bg-stone-900 text-white font-mono font-bold text-2xs">
+                            {appDoc.referenceId || appDoc.id.slice(0, 8)}
+                          </span>
+
+                          <span
+                            className={`px-2.5 py-1 rounded-full text-3xs font-extrabold uppercase tracking-wider ${
+                              isPending
+                                ? 'bg-amber-200 text-amber-950 border border-amber-300'
+                                : isApproved
+                                ? 'bg-emerald-200 text-emerald-950 border border-emerald-300'
+                                : 'bg-rose-200 text-rose-950 border border-rose-300'
+                            }`}
+                          >
+                            Status: {appDoc.status}
+                          </span>
+                        </div>
+
+                        <span className="text-3xs text-stone-400 font-medium">
+                          Submitted: {new Date(appDoc.createdAt).toLocaleString()}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-stone-700">
+                        {/* Store Info */}
+                        <div className="space-y-1">
+                          <span className="text-3xs font-bold text-stone-400 uppercase tracking-wider block">
+                            Store Details
+                          </span>
+                          <h4 className="font-extrabold text-stone-900 text-sm">
+                            {appDoc.storeName}
+                          </h4>
+                          <div className="text-stone-600">{appDoc.storeType}</div>
+                          <div className="flex items-center gap-1 text-stone-500 text-3xs">
+                            <MapPin className="w-3 h-3 text-stone-400 shrink-0" />
+                            <span>
+                              {appDoc.address}, {appDoc.postalCode} {appDoc.city}
+                            </span>
+                          </div>
+                          {appDoc.coordinates && (
+                            <div className="text-3xs font-mono text-emerald-800">
+                              Pin: Lat {appDoc.coordinates.lat?.toFixed(4)}, Lng {appDoc.coordinates.lng?.toFixed(4)}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Contact Info */}
+                        <div className="space-y-1">
+                          <span className="text-3xs font-bold text-stone-400 uppercase tracking-wider block">
+                            Contact Person
+                          </span>
+                          <div className="font-bold text-stone-900">{appDoc.contactName}</div>
+                          <div className="text-stone-600 font-medium">{appDoc.email}</div>
+                          <div className="text-stone-500">{appDoc.phone}</div>
+                        </div>
+
+                        {/* Operational Details */}
+                        <div className="space-y-1">
+                          <span className="text-3xs font-bold text-stone-400 uppercase tracking-wider block">
+                            Operations & Shrink
+                          </span>
+                          <div>
+                            Est. Monthly Shrink: <strong className="text-stone-900">€{appDoc.monthlyShrinkEur}</strong>
+                          </div>
+                          <div>
+                            Daily Pickup Window: <strong className="text-emerald-800">{appDoc.pickupStartTime} – {appDoc.pickupEndTime}</strong>
+                          </div>
+                          {appDoc.operationalNotes && (
+                            <div className="text-3xs text-stone-500 italic bg-white/80 p-2 rounded-xl border border-stone-200 mt-1">
+                              "{appDoc.operationalNotes}"
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Admin Decision Actions */}
+                      <div className="pt-3 border-t border-stone-200/60 flex flex-wrap items-center justify-between gap-3">
+                        <div className="text-3xs text-stone-500">
+                          {isApproved && appDoc.createdStoreId && (
+                            <span className="text-emerald-800 font-bold flex items-center gap-1">
+                              <CheckCircle2 className="w-3.5 h-3.5" /> Activated as Live Store (ID: {appDoc.createdStoreId})
+                            </span>
+                          )}
+                          {isRejected && (
+                            <span className="text-rose-700 font-semibold">
+                              Application rejected
+                            </span>
+                          )}
+                          {isPending && (
+                            <span className="text-amber-900 font-medium">
+                              Pending review. Action required by admin.
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          {isPending && (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => handleApproveApp(appDoc)}
+                                className="px-3.5 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95"
+                              >
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                <span>Approve & Activate Store</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => handleRejectApp(appDoc)}
+                                className="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 font-bold text-xs transition-colors cursor-pointer"
+                              >
+                                Reject
+                              </button>
+                            </>
+                          )}
+
+                          {!isPending && (
+                            <button
+                              type="button"
+                              onClick={() => handleSetPendingApp(appDoc)}
+                              className="px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-200 font-bold text-xs transition-colors cursor-pointer"
+                            >
+                              Reset to Pending
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 
@@ -1077,7 +1359,7 @@ export const AdminDashboardPage: React.FC = () => {
                     <strong className="font-bold text-stone-900">15.0% flat</strong>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span>Pilot Radius:</span>
+                    <span>Coverage Radius:</span>
                     <strong className="font-bold text-stone-900">15 km (Kleve Hub)</strong>
                   </div>
                   <div className="flex items-center justify-between">

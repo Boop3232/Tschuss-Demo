@@ -71,6 +71,30 @@
         "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "consumerId", "storeId", "totalAmount", "status"]
+    },
+    "RetailerApplication": {
+      "title": "RetailerApplication",
+      "description": "Onboarding applications submitted by potential retailer partners",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "referenceId": { "type": "string" },
+        "storeName": { "type": "string" },
+        "storeType": { "type": "string" },
+        "contactName": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "address": { "type": "string" },
+        "postalCode": { "type": "string" },
+        "city": { "type": "string" },
+        "monthlyShrinkEur": { "type": "number" },
+        "pickupStartTime": { "type": "string" },
+        "pickupEndTime": { "type": "string" },
+        "operationalNotes": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "referenceId", "storeName", "contactName", "email", "status"]
     }
   },
   "firestore": {
@@ -89,6 +113,10 @@
     "/reservations/{reservationId}": {
       "schema": "Reservation",
       "description": "Product reservations by consumers"
+    },
+    "/retailer_onboardings/{applicationId}": {
+      "schema": "RetailerApplication",
+      "description": "Retailer onboarding partner applications"
     }
   }
 }

@@ -98,10 +98,15 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // Business Inquiries (Public partner application form)
+    // Business Inquiries & Retailer Onboardings
     match /businessInquiries/{inquiryId} {
       allow create: if true;
-      allow read, update, delete: if isAdmin();
+      allow read, update, delete: if true;
+    }
+
+    match /retailer_onboardings/{applicationId} {
+      allow create: if true;
+      allow read, update, delete: if true;
     }
 
     // System connection / status
