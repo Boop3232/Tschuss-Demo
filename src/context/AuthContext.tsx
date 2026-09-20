@@ -34,6 +34,7 @@ export interface AuthContextType {
   isDevRoleActive: boolean;
   switchToRetailerDev: () => Promise<void>;
   switchToConsumerDev: () => Promise<void>;
+  switchToAdminDev: () => Promise<void>;
   setDevRole: (role: UserRole | null) => Promise<void>;
 }
 
@@ -106,7 +107,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setCurrentUser(user);
         await fetchUserProfile(user);
       } else {
-        // Check if dev mock retailer session was active
+        // Check if dev mock retailer or admin session was active
         const isMock = localStorage.getItem('tschuess_dev_mock_user');
         const savedDevRole = localStorage.getItem('tschuess_dev_role');
         if (isMock === 'true' && savedDevRole === 'retailer') {
@@ -132,6 +133,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           };
           setCurrentUser(devMockUser);
           setUserProfile(devMockProfile);
+        } else if (isMock === 'true' && savedDevRole === 'admin') {
+          const devAdminUser = {
+            uid: 'dev_admin_tschuess',
+            email: 'admin.operations@tschuess.de',
+            displayName: 'Tschüss Operations Admin',
+            emailVerified: true
+          } as unknown as User;
+          const devAdminProfile: UserProfile = {
+            uid: 'dev_admin_tschuess',
+            name: 'Tschüss Operations Admin',
+            email: 'admin.operations@tschuess.de',
+            role: 'admin',
+            language: 'de',
+            notificationPreferences: {
+              email: true,
+              push: true,
+              dealsNearMe: true,
+              reservationUpdates: true,
+              savedPriceDrops: true
+            }
+          };
+          setCurrentUser(devAdminUser);
+          setUserProfile(devAdminProfile);
         } else {
           setCurrentUser(null);
           setUserProfile(null);
@@ -190,8 +214,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { ...prev, role: 'consumer' };
       });
     }
-    if (localStorage.getItem('tschuess_dev_mock_user') === 'true' && currentUser?.uid === 'dev_retailer_kleve') {
+    if (localStorage.getItem('tschuess_dev_mock_user') === 'true' && (currentUser?.uid === 'dev_retailer_kleve' || currentUser?.uid === 'dev_admin_tschuess')) {
       setUserProfile((prev) => (prev ? { ...prev, role: 'consumer', name: 'Dev Consumer' } : null));
+    }
+  }, [currentUser]);
+
+  const switchToAdminDev = useCallback(async () => {
+    localStorage.setItem('tschuess_dev_role', 'admin');
+    setDevRoleOverride('admin');
+
+    if (currentUser) {
+      setUserProfile((prev) => {
+        if (!prev) return null;
+        return { ...prev, role: 'admin' };
+      });
+    } else {
+      const devAdminUser = {
+        uid: 'dev_admin_tschuess',
+        email: 'admin.operations@tschuess.de',
+        displayName: 'Tschüss Operations Admin',
+        emailVerified: true
+      } as unknown as User;
+      const devAdminProfile: UserProfile = {
+        uid: 'dev_admin_tschuess',
+        name: 'Tschüss Operations Admin',
+        email: 'admin.operations@tschuess.de',
+        role: 'admin',
+        language: 'de',
+        notificationPreferences: {
+          email: true,
+          push: true,
+          dealsNearMe: true,
+          reservationUpdates: true,
+          savedPriceDrops: true
+        }
+      };
+      localStorage.setItem('tschuess_dev_mock_user', 'true');
+      setCurrentUser(devAdminUser);
+      setUserProfile(devAdminProfile);
     }
   }, [currentUser]);
 
@@ -201,23 +261,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } else if (newRole === 'consumer') {
       await switchToConsumerDev();
     } else if (newRole === 'admin') {
-      localStorage.setItem('tschuess_dev_role', 'admin');
-      setDevRoleOverride('admin');
-      if (currentUser) {
-        setUserProfile((prev) => (prev ? { ...prev, role: 'admin' } : null));
-      }
+      await switchToAdminDev();
     } else {
       localStorage.removeItem('tschuess_dev_role');
       localStorage.removeItem('tschuess_dev_mock_user');
       setDevRoleOverride(null);
-      if (currentUser && currentUser.uid !== 'dev_retailer_kleve') {
+      if (currentUser && currentUser.uid !== 'dev_retailer_kleve' && currentUser.uid !== 'dev_admin_tschuess') {
         await fetchUserProfile(currentUser);
       } else {
         setCurrentUser(null);
         setUserProfile(null);
       }
     }
-  }, [currentUser, fetchUserProfile, switchToConsumerDev, switchToRetailerDev]);
+  }, [currentUser, fetchUserProfile, switchToConsumerDev, switchToRetailerDev, switchToAdminDev]);
 
   // Real Email/Password login
   const login = useCallback(async (email: string, pass: string): Promise<UserProfile | null> => {
@@ -366,6 +422,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isDevRoleActive: !!devRoleOverride,
     switchToRetailerDev,
     switchToConsumerDev,
+    switchToAdminDev,
     setDevRole,
   }), [
     currentUser,
@@ -382,6 +439,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     devRoleOverride,
     switchToRetailerDev,
     switchToConsumerDev,
+    switchToAdminDev,
     setDevRole,
   ]);
 

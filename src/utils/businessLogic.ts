@@ -48,8 +48,10 @@ export function formatDistance(distanceKm: number): string {
 /**
  * Checks if a date has expired
  */
-export function isExpired(expiryDateString: string): boolean {
+export function isExpired(expiryDateString?: string | null): boolean {
+  if (!expiryDateString) return false;
   const expiry = new Date(expiryDateString).getTime();
+  if (isNaN(expiry)) return false;
   const now = Date.now();
   return expiry < now;
 }
@@ -58,12 +60,25 @@ export function isExpired(expiryDateString: string): boolean {
  * Formats expiry relative to current time
  */
 export function formatExpiry(
-  expiryDateString: string,
+  expiryDateString?: string | null,
   lang: 'en' | 'de' = 'en'
 ): { text: string; urgency: 'critical' | 'warning' | 'normal' | 'expired' } {
-  const expiry = new Date(expiryDateString);
-  const now = new Date();
+  if (!expiryDateString) {
+    return {
+      text: lang === 'de' ? 'Läuft heute ab' : 'Expires today',
+      urgency: 'normal'
+    };
+  }
 
+  const expiry = new Date(expiryDateString);
+  if (isNaN(expiry.getTime())) {
+    return {
+      text: lang === 'de' ? 'Läuft heute ab' : 'Expires today',
+      urgency: 'normal'
+    };
+  }
+
+  const now = new Date();
   const diffMs = expiry.getTime() - now.getTime();
   const diffHours = diffMs / (1000 * 60 * 60);
 

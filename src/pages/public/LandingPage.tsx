@@ -59,6 +59,17 @@ export const LandingPage: React.FC = () => {
   const yBgGlow2 = useTransform(scrollYProgress, [0, 1], [0, -180]);
   const yBgGlow3 = useTransform(scrollYProgress, [0, 1], [0, 80]);
 
+  // Mobile background video ref for guaranteed autoplay
+  const mobileVideoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (mobileVideoRef.current) {
+      mobileVideoRef.current.play().catch(() => {
+        // Autoplay handled by browser policies
+      });
+    }
+  }, []);
+
   useEffect(() => {
     async function load() {
       setLoading(true);
@@ -127,16 +138,39 @@ export const LandingPage: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
             
             {/* Left Col: Headlines & CTAs */}
-            <div className="lg:col-span-7 text-center lg:text-left space-y-6">
-              {/* Sovereign Tech Badge */}
+            <div className="lg:col-span-7 text-center lg:text-left space-y-6 relative py-4 sm:py-6 px-1 sm:px-3">
+              {/* Mobile Video Background behind text */}
+              <div 
+                id="hero-mobile-video-bg"
+                className="lg:hidden absolute -inset-x-3 -inset-y-4 sm:-inset-x-6 sm:-inset-y-6 z-0 rounded-3xl overflow-hidden pointer-events-none shadow-sm border border-emerald-900/15"
+              >
+                <video
+                  ref={mobileVideoRef}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  poster="/assets/food_hero_poster.jpg"
+                  className="w-full h-full object-cover object-center scale-105 filter saturate-140 contrast-[1.08] brightness-100 opacity-95"
+                >
+                  <source src="/assets/food_hero_mobile.mp4" type="video/mp4" />
+                </video>
+                
+                {/* Visual Scrim Overlays - calibrated for higher video visibility while keeping text crisp */}
+                <div className="absolute inset-0 bg-gradient-to-b from-white/65 via-white/40 to-white/70 backdrop-blur-[0.5px]" />
+                <div className="absolute inset-0 bg-radial-[at_center] from-transparent via-white/20 to-white/65" />
+                <div className="absolute inset-0 ring-1 ring-inset ring-emerald-950/10 rounded-3xl" />
+              </div>
+
+              {/* Pilot Location Badge */}
               <motion.div
                 initial={{ opacity: 0, y: -16, scale: 0.9 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ duration: 0.5, ease: 'easeOut' }}
-                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold uppercase tracking-wider shadow-2xs"
+                className="relative z-10 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/90 backdrop-blur-md border border-emerald-300 text-emerald-900 text-xs font-bold uppercase tracking-wider shadow-sm"
               >
                 <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse shadow-xs" />
-                <span>Sovereign Retail Rescue · Pilot {location.name}</span>
+                <span>Retail Food Rescue · Pilot {location.name}</span>
               </motion.div>
 
               {/* Title & Tagline with Smooth Entry */}
@@ -144,14 +178,16 @@ export const LandingPage: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.1, ease: 'easeOut' }}
-                className="space-y-4"
+                className="space-y-4 relative z-10"
               >
-                <h1 className="text-4xl sm:text-5xl xl:text-6xl font-black font-display tracking-tight text-stone-900 leading-[1.08]">
+                <h1 className="text-4xl sm:text-5xl xl:text-6xl font-black font-display tracking-tight text-stone-950 leading-[1.08] drop-shadow-[0_1px_2px_rgba(255,255,255,0.9)] lg:drop-shadow-none">
                   Profit from <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700">Near Food Expiry</span>.
                 </h1>
-                <p className="text-base sm:text-lg text-stone-600 font-normal max-w-xl mx-auto lg:mx-0 leading-relaxed">
-                  Tschüss brings local supermarkets, bakeries, and conscious shoppers together. Retailers rescue lost margin — consumers enjoy up to 70% off high-quality, delicious goods.
-                </p>
+                <div className="max-w-xl mx-auto lg:mx-0">
+                  <p className="text-base sm:text-lg text-stone-900 font-medium leading-relaxed bg-white/75 lg:bg-transparent backdrop-blur-xs px-3.5 py-2.5 lg:p-0 rounded-2xl border border-white/80 lg:border-transparent shadow-xs lg:shadow-none">
+                    Tschüss brings local supermarkets, bakeries, and conscious shoppers together. Retailers rescue lost margin — consumers enjoy up to 70% off high-quality, delicious goods.
+                  </p>
+                </div>
               </motion.div>
 
               {/* Call to Actions with Hover Spring */}
@@ -159,7 +195,7 @@ export const LandingPage: React.FC = () => {
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
-                className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3.5 pt-2"
+                className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3.5 pt-2 relative z-10"
               >
                 <Link
                   to="/app/discover"
@@ -174,7 +210,7 @@ export const LandingPage: React.FC = () => {
                 <Link
                   to="/business"
                   id="hero-btn-retailer"
-                  className="w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-white hover:bg-stone-50 text-stone-800 hover:text-stone-900 border border-stone-200 hover:border-amber-400 font-bold text-sm transition-all shadow-xs flex items-center justify-center gap-2 hover:-translate-y-0.5 no-underline cursor-pointer"
+                  className="w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-white/95 hover:bg-white text-stone-800 hover:text-stone-900 border border-stone-200/90 hover:border-amber-400 font-bold text-sm transition-all shadow-xs flex items-center justify-center gap-2 hover:-translate-y-0.5 no-underline cursor-pointer backdrop-blur-xs"
                 >
                   <StoreIcon className="w-4 h-4 text-amber-600" />
                   <span>Retailer Operations Hub</span>
@@ -218,44 +254,6 @@ export const LandingPage: React.FC = () => {
             </motion.div>
 
           </div>
-
-          {/* Tech Bento Highlights Grid with Staggered Scroll Animation */}
-          <motion.div 
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-40px" }}
-            variants={{
-              hidden: { opacity: 0 },
-              visible: {
-                opacity: 1,
-                transition: {
-                  staggerChildren: 0.1,
-                  delayChildren: 0.2
-                }
-              }
-            }}
-            className="pt-4 max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-3.5"
-          >
-            {[
-              { stat: 'Up to -70%', label: 'Markdown Savings', color: 'text-emerald-700', bg: 'bg-emerald-50/80', border: 'border-emerald-200', glow: 'hover:border-emerald-400' },
-              { stat: '0% Waste', label: 'Store Shrink Goal', color: 'text-amber-700', bg: 'bg-amber-50/80', border: 'border-amber-200', glow: 'hover:border-amber-400' },
-              { stat: '100% Free', label: 'Zero Upfront Fee', color: 'text-sky-700', bg: 'bg-sky-50/80', border: 'border-sky-200', glow: 'hover:border-sky-400' },
-              { stat: `${location.name}`, label: 'Active Pilot City', color: 'text-teal-700', bg: 'bg-teal-50/80', border: 'border-teal-200', glow: 'hover:border-teal-400' }
-            ].map((item, idx) => (
-              <motion.div
-                key={idx}
-                variants={{
-                  hidden: { opacity: 0, y: 20, scale: 0.95 },
-                  visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 300, damping: 24 } }
-                }}
-                whileHover={{ y: -4, transition: { duration: 0.2 } }}
-                className={`${item.bg} backdrop-blur-xl p-4.5 rounded-2xl border ${item.border} ${item.glow} shadow-2xs text-center cursor-default transition-all`}
-              >
-                <span className={`block text-2xl font-black ${item.color} tracking-tight`}>{item.stat}</span>
-                <span className="text-3xs text-stone-600 uppercase font-bold tracking-wider">{item.label}</span>
-              </motion.div>
-            ))}
-          </motion.div>
         </div>
       </section>
 

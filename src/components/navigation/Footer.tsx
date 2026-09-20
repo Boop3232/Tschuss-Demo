@@ -20,9 +20,6 @@ export const Footer: React.FC = () => {
                 T
               </div>
               <span className="font-extrabold text-lg text-stone-900 font-display">Tschüss</span>
-              <span className="px-2 py-0.5 rounded-full text-3xs font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300">
-                Sovereign Tech
-              </span>
             </div>
             <p className="text-stone-600 text-xs max-w-md leading-relaxed">
               "Connecting Retailers and Consumers to Profit from Near Food Expiry."
@@ -90,8 +87,9 @@ export const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/admin" className="hover:text-emerald-700 transition-colors">
-                  System Administration
+                <Link to="/admin" className="text-indigo-600 hover:text-indigo-800 font-semibold transition-colors flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>Tschüss Company Admin Portal</span>
                 </Link>
               </li>
             </ul>

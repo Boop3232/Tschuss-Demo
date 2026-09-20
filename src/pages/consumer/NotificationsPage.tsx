@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Bell, 
@@ -222,9 +222,19 @@ export const NotificationsPage: React.FC = () => {
   };
 
   const unreadCount = notifications.filter(n => !n.read).length;
+  
+  // Always sort with newest notifications appearing on top
+  const sortedNotifications = useMemo(() => {
+    return [...notifications].sort((a, b) => {
+      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return timeB - timeA;
+    });
+  }, [notifications]);
+
   const filteredNotifications = filter === 'unread' 
-    ? notifications.filter(n => !n.read)
-    : notifications;
+    ? sortedNotifications.filter(n => !n.read)
+    : sortedNotifications;
 
   return (
     <div className="max-w-3xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6">

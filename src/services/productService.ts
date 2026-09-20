@@ -15,7 +15,7 @@ import {
 import { db } from '../lib/firebase';
 import { Product, FilterOptions, UserLocation } from '../types';
 import { calculateDistance, isExpired, calculateDealScore } from '../utils/businessLogic';
-import { DEMO_PRODUCTS } from './seedDataService';
+import { DEMO_PRODUCTS, getFreshDemoProducts, getFutureDate } from './seedDataService';
 
 const DELETED_PRODUCTS_KEY = 'tschuess_deleted_product_ids';
 const LOCAL_PRODUCTS_KEY = 'tschuess_local_products';
@@ -46,18 +46,48 @@ function getLocalProducts(): Product[] {
     const raw = localStorage.getItem(LOCAL_PRODUCTS_KEY);
     let items: Product[] = [];
     if (raw) {
-      items = JSON.parse(raw);
+      try {
+        items = JSON.parse(raw);
+      } catch {
+        items = [];
+      }
     }
     
-    // Check if new DEMO_PRODUCTS need to be merged in
+    const freshDemos = getFreshDemoProducts();
     const existingIds = new Set(items.map(p => p.id));
     let hasNew = false;
-    for (const demoP of DEMO_PRODUCTS) {
+    for (const demoP of freshDemos) {
       if (!existingIds.has(demoP.id) && !deleted.includes(demoP.id)) {
         items.push(demoP);
         hasNew = true;
       }
     }
+
+    // Ensure all items have complete valid fields and active demo products have valid rescue windows
+    items = items.map(item => {
+      const demoMatch = freshDemos.find(dp => dp.id === item.id);
+      if (demoMatch) {
+        // If an active demo item's expiry date expired in local cache, keep it active with fresh rescue window
+        const isPast = isExpired(item.expiryAt);
+        const activeExpiry = (item.expiryAt && !isPast) ? item.expiryAt : demoMatch.expiryAt;
+        return {
+          ...demoMatch,
+          ...item,
+          name: item.name || demoMatch.name,
+          storeId: item.storeId || demoMatch.storeId,
+          storeName: item.storeName || demoMatch.storeName,
+          category: item.category || demoMatch.category,
+          quantityAvailable: item.quantityAvailable ?? demoMatch.quantityAvailable,
+          rescuePrice: item.rescuePrice ?? demoMatch.rescuePrice,
+          originalPrice: item.originalPrice ?? demoMatch.originalPrice,
+          discountPercent: item.discountPercent ?? demoMatch.discountPercent,
+          unit: item.unit || demoMatch.unit,
+          expiryAt: activeExpiry,
+          status: item.status || demoMatch.status || 'active'
+        };
+      }
+      return item;
+    });
 
     const filtered = items.filter(p => !deleted.includes(p.id));
     if (hasNew || !raw) {
@@ -66,16 +96,18 @@ function getLocalProducts(): Product[] {
     return filtered;
   } catch {
     const deleted = getDeletedProductIds();
-    return DEMO_PRODUCTS.filter(p => !deleted.includes(p.id));
+    return getFreshDemoProducts().filter(p => !deleted.includes(p.id));
   }
 }
 
-function saveLocalProducts(products: Product[]) {
+function saveLocalProducts(products: Product[], emitEvent: boolean = true) {
   try {
     const deleted = getDeletedProductIds();
     const clean = products.filter(p => !deleted.includes(p.id));
     localStorage.setItem(LOCAL_PRODUCTS_KEY, JSON.stringify(clean));
-    window.dispatchEvent(new CustomEvent('tschuess_products_changed'));
+    if (emitEvent) {
+      window.dispatchEvent(new CustomEvent('tschuess_products_changed'));
+    }
   } catch (e) {
     console.warn('Could not save local products:', e);
   }
@@ -95,9 +127,27 @@ export const productService = {
       
       if (!snap.empty) {
         const firestoreProducts = snap.docs.map(doc => ({ ...doc.data(), id: doc.id } as Product));
-        // Filter out locally deleted IDs
-        products = firestoreProducts.filter(p => !deletedIds.includes(p.id));
-        saveLocalProducts(products);
+        // Always merge Firestore products on top of local/demo catalogue
+        const baseProducts = getLocalProducts();
+        const productMap = new Map<string, Product>();
+        
+        // 1. Populate with base products (ensures all partner stores have their full inventory)
+        for (const p of baseProducts) {
+          productMap.set(p.id, p);
+        }
+        
+        // 2. Overlay Firestore documents (authoritative cloud state for any product)
+        for (const fp of firestoreProducts) {
+          const existing = productMap.get(fp.id);
+          if (existing) {
+            productMap.set(fp.id, { ...existing, ...fp });
+          } else {
+            productMap.set(fp.id, fp);
+          }
+        }
+
+        products = Array.from(productMap.values()).filter(p => !deletedIds.includes(p.id));
+        saveLocalProducts(products, false);
       } else {
         products = getLocalProducts();
       }
@@ -114,11 +164,16 @@ export const productService = {
       return p;
     });
 
-    // Filter by active status for consumer listings (unless retailer filtered by store)
-    if (!filters?.storeId) {
+    // Status and store filtering
+    if (filters?.includeAllStatuses) {
+      if (filters?.storeId && filters.storeId !== 'all') {
+        products = products.filter(p => p.storeId === filters.storeId);
+      }
+    } else if (!filters?.storeId || filters.storeId === 'all') {
+      // Filter by active status for consumer listings
       products = products.filter(p => p.status === 'active' && p.quantityAvailable > 0);
     } else {
-      products = products.filter(p => p.storeId === filters.storeId);
+      products = products.filter(p => p.storeId === filters.storeId && p.status === 'active' && p.quantityAvailable > 0);
     }
 
     // Filter by category
@@ -130,9 +185,9 @@ export const productService = {
     if (filters?.searchQuery && filters.searchQuery.trim().length > 0) {
       const queryLower = filters.searchQuery.toLowerCase().trim();
       products = products.filter(p => 
-        p.name.toLowerCase().includes(queryLower) ||
-        p.storeName.toLowerCase().includes(queryLower) ||
-        p.category.toLowerCase().includes(queryLower) ||
+        (p.name && p.name.toLowerCase().includes(queryLower)) ||
+        (p.storeName && p.storeName.toLowerCase().includes(queryLower)) ||
+        (p.category && p.category.toLowerCase().includes(queryLower)) ||
         (p.description && p.description.toLowerCase().includes(queryLower))
       );
     }
@@ -244,16 +299,24 @@ export const productService = {
   async updateProduct(id: string, updates: Partial<Product>): Promise<void> {
     // 1. Update in local cache immediately
     const current = getLocalProducts();
-    const updated = current.map(p => p.id === id ? { ...p, ...updates, updatedAt: new Date().toISOString() } : p);
-    saveLocalProducts(updated);
+    const existing = current.find(p => p.id === id);
+    const fullUpdatedProduct: Product = existing 
+      ? { ...existing, ...updates, updatedAt: new Date().toISOString() }
+      : ({ id, ...updates, updatedAt: new Date().toISOString() } as Product);
+      
+    let updatedList = current.map(p => p.id === id ? fullUpdatedProduct : p);
+    if (!existing) {
+      updatedList = [fullUpdatedProduct, ...current];
+    }
+    saveLocalProducts(updatedList);
 
-    // 2. Update Firestore
+    // 2. Update Firestore with setDoc merge - always persist the complete product
     try {
       const docRef = doc(db, 'products', id);
-      await updateDoc(docRef, {
-        ...updates,
+      await setDoc(docRef, {
+        ...fullUpdatedProduct,
         updatedAt: serverTimestamp()
-      });
+      }, { merge: true });
     } catch (e) {
       console.warn('Could not update product in Firestore:', e);
     }
@@ -308,12 +371,31 @@ export const productService = {
       unsubscribeFirestore = onSnapshot(q, (snapshot) => {
         if (!snapshot.empty) {
           const deletedIds = getDeletedProductIds();
-          const items = snapshot.docs
+          const snapshotItems = snapshot.docs
             .map(d => ({ ...d.data(), id: d.id } as Product))
             .filter(p => !deletedIds.includes(p.id));
           
-          saveLocalProducts(items);
-          callback(items);
+          // Merge cleanly into local cache without overwriting products from other stores or losing fields
+          const current = getLocalProducts();
+          const map = new Map(current.map(p => [p.id, p]));
+          for (const item of snapshotItems) {
+            const existing = map.get(item.id);
+            if (existing) {
+              map.set(item.id, { ...existing, ...item });
+            } else {
+              map.set(item.id, item);
+            }
+          }
+          const merged = Array.from(map.values()).filter(p => !deletedIds.includes(p.id));
+          try {
+            localStorage.setItem(LOCAL_PRODUCTS_KEY, JSON.stringify(merged));
+          } catch {}
+
+          let itemsToEmit = merged;
+          if (storeId && storeId !== 'all') {
+            itemsToEmit = merged.filter(p => p.storeId === storeId);
+          }
+          callback(itemsToEmit);
         }
       }, (error) => {
         console.warn('Snapshot listener warning:', error);

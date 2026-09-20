@@ -9,21 +9,23 @@ import {
   ArrowRight, 
   RotateCcw,
   CheckCircle2,
-  X,
-  Layers
+  ShieldCheck,
+  Building2
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export const DevRoleSwitcher: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { role, isDevRoleActive, switchToRetailerDev, switchToConsumerDev, setDevRole } = useAuth();
+  const { role, isDevRoleActive, switchToRetailerDev, switchToConsumerDev, switchToAdminDev, setDevRole } = useAuth();
   
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
-  const isRetailer = role === 'retailer' || role === 'admin';
+  const isAdmin = role === 'admin';
+  const isRetailer = role === 'retailer';
   const isBusinessPage = location.pathname.startsWith('/business');
+  const isAdminPage = location.pathname.startsWith('/admin');
 
   const handleSwitchToRetailer = async () => {
     await switchToRetailerDev();
@@ -41,9 +43,19 @@ export const DevRoleSwitcher: React.FC = () => {
     setStatusMessage('Switched to Consumer mode');
     setTimeout(() => setStatusMessage(null), 3500);
 
-    // If currently on business pages, automatically route to consumer discover
-    if (isBusinessPage) {
+    // If currently on business/admin pages, automatically route to consumer discover
+    if (isBusinessPage || isAdminPage) {
       navigate('/app/discover');
+    }
+  };
+
+  const handleSwitchToAdmin = async () => {
+    await switchToAdminDev();
+    setStatusMessage('Switched to Tschüss Company Admin mode');
+    setTimeout(() => setStatusMessage(null), 3500);
+
+    if (!isAdminPage) {
+      navigate('/admin');
     }
   };
 
@@ -71,7 +83,7 @@ export const DevRoleSwitcher: React.FC = () => {
       )}
 
       {/* Main Container */}
-      <div className={`border border-purple-200/70 bg-white/90 backdrop-blur-xl shadow-[0_12px_36px_rgba(147,51,234,0.12)] overflow-hidden transition-all max-w-[340px] ${isExpanded ? 'rounded-3xl' : 'rounded-full'}`}>
+      <div className={`border border-purple-200/70 bg-white/95 backdrop-blur-xl shadow-[0_12px_36px_rgba(147,51,234,0.14)] overflow-hidden transition-all max-w-[360px] ${isExpanded ? 'rounded-3xl' : 'rounded-full'}`}>
         {/* Header Bar / Minimized Bar */}
         <div className="flex items-center justify-between gap-2 px-3.5 py-1.5 bg-gradient-to-r from-purple-50/90 via-indigo-50/40 to-purple-50/90">
           <button
@@ -81,10 +93,10 @@ export const DevRoleSwitcher: React.FC = () => {
             className="flex items-center gap-2 text-left flex-1"
           >
             <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-3xs font-extrabold tracking-wider uppercase bg-purple-600 text-white">
-              DEV
+              ROLE
             </span>
             <span className="text-xs font-bold text-stone-900 flex items-center gap-1.5">
-              Role: <span className="text-purple-700 font-extrabold capitalize">{role || 'consumer'}</span>
+              <span className="text-purple-700 font-extrabold capitalize">{role || 'consumer'}</span>
             </span>
             {isDevRoleActive && (
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" title="Dev role override active" />
@@ -92,28 +104,39 @@ export const DevRoleSwitcher: React.FC = () => {
           </button>
 
           <div className="flex items-center gap-1">
-            {/* Quick 1-click Switch Button right on the header */}
-            {!isRetailer ? (
-              <button
-                type="button"
-                id="btn-dev-quick-switch-retailer"
-                onClick={handleSwitchToRetailer}
-                className="px-3 py-1 rounded-full bg-purple-700 hover:bg-purple-600 text-white text-2xs font-bold flex items-center gap-1 shadow-xs transition-all"
-                title="Switch role to retailer and open Store Portal"
-              >
-                <Store className="w-3 h-3" />
-                <span>To Retailer</span>
-              </button>
-            ) : (
+            {/* Quick 1-click Switch Buttons */}
+            {isAdmin ? (
               <button
                 type="button"
                 id="btn-dev-quick-switch-consumer"
                 onClick={handleSwitchToConsumer}
-                className="px-3 py-1 rounded-full bg-emerald-700 hover:bg-emerald-600 text-white text-2xs font-bold flex items-center gap-1 shadow-xs transition-all"
-                title="Switch role to consumer and open App"
+                className="px-2.5 py-1 rounded-full bg-emerald-700 hover:bg-emerald-600 text-white text-2xs font-bold flex items-center gap-1 shadow-xs transition-all"
+                title="Switch to Consumer"
               >
                 <UserIcon className="w-3 h-3" />
-                <span>To Consumer</span>
+                <span>Consumer</span>
+              </button>
+            ) : isRetailer ? (
+              <button
+                type="button"
+                id="btn-dev-quick-switch-admin"
+                onClick={handleSwitchToAdmin}
+                className="px-2.5 py-1 rounded-full bg-indigo-700 hover:bg-indigo-600 text-white text-2xs font-bold flex items-center gap-1 shadow-xs transition-all"
+                title="Switch to Admin"
+              >
+                <ShieldCheck className="w-3 h-3" />
+                <span>Admin</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                id="btn-dev-quick-switch-retailer"
+                onClick={handleSwitchToRetailer}
+                className="px-2.5 py-1 rounded-full bg-purple-700 hover:bg-purple-600 text-white text-2xs font-bold flex items-center gap-1 shadow-xs transition-all"
+                title="Switch role to retailer and open Store Portal"
+              >
+                <Store className="w-3 h-3" />
+                <span>Retailer</span>
               </button>
             )}
 
@@ -133,52 +156,82 @@ export const DevRoleSwitcher: React.FC = () => {
         {isExpanded && (
           <div className="p-4 space-y-3 animate-in fade-in slide-in-from-bottom-1 border-t border-purple-100">
             <p className="text-2xs text-stone-500 leading-relaxed">
-              Development tool for testing the supermarket/bakery retailer portal, surplus listing, and inventory management.
+              Test consumer shopping, retailer surplus management, or Tschüss company administration.
             </p>
 
-            {/* Primary Action Buttons */}
-            <div className="grid grid-cols-2 gap-2">
+            {/* Primary Action Buttons (3 Roles) */}
+            <div className="grid grid-cols-3 gap-1.5">
               <button
                 type="button"
                 id="btn-dev-select-consumer"
                 onClick={handleSwitchToConsumer}
-                className={`p-3 rounded-2xl border text-xs font-bold flex flex-col items-center gap-1.5 transition-all ${
-                  !isRetailer
+                className={`p-2.5 rounded-2xl border text-center font-bold flex flex-col items-center gap-1 transition-all ${
+                  role === 'consumer' || (!role && !isAdmin && !isRetailer)
                     ? 'bg-emerald-50 border-emerald-300 text-emerald-900 shadow-xs'
                     : 'bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100'
                 }`}
               >
-                <div className="w-8 h-8 rounded-full bg-emerald-600/10 text-emerald-700 flex items-center justify-center">
-                  <UserIcon className="w-4 h-4" />
+                <div className="w-7 h-7 rounded-full bg-emerald-600/10 text-emerald-700 flex items-center justify-center">
+                  <UserIcon className="w-3.5 h-3.5" />
                 </div>
-                <span>Consumer</span>
-                <span className="text-3xs font-normal text-stone-400">Shop surplus</span>
+                <span className="text-xs">Consumer</span>
+                <span className="text-3xs font-normal text-stone-400">Shop</span>
               </button>
 
               <button
                 type="button"
                 id="btn-dev-select-retailer"
                 onClick={handleSwitchToRetailer}
-                className={`p-3 rounded-2xl border text-xs font-bold flex flex-col items-center gap-1.5 transition-all ${
+                className={`p-2.5 rounded-2xl border text-center font-bold flex flex-col items-center gap-1 transition-all ${
                   isRetailer
                     ? 'bg-purple-50 border-purple-300 text-purple-900 shadow-xs'
                     : 'bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100'
                 }`}
               >
-                <div className="w-8 h-8 rounded-full bg-purple-600/10 text-purple-700 flex items-center justify-center">
-                  <Store className="w-4 h-4" />
+                <div className="w-7 h-7 rounded-full bg-purple-600/10 text-purple-700 flex items-center justify-center">
+                  <Store className="w-3.5 h-3.5" />
                 </div>
-                <span>Retailer</span>
-                <span className="text-3xs font-normal text-stone-400">Manage store</span>
+                <span className="text-xs">Retailer</span>
+                <span className="text-3xs font-normal text-stone-400">Stores</span>
+              </button>
+
+              <button
+                type="button"
+                id="btn-dev-select-admin"
+                onClick={handleSwitchToAdmin}
+                className={`p-2.5 rounded-2xl border text-center font-bold flex flex-col items-center gap-1 transition-all ${
+                  isAdmin
+                    ? 'bg-indigo-50 border-indigo-300 text-indigo-900 shadow-xs'
+                    : 'bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100'
+                }`}
+              >
+                <div className="w-7 h-7 rounded-full bg-indigo-600/10 text-indigo-700 flex items-center justify-center">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                </div>
+                <span className="text-xs">Admin</span>
+                <span className="text-3xs font-normal text-stone-400">Tschüss HQ</span>
               </button>
             </div>
 
             {/* Quick Navigation Links */}
             <div className="pt-2 border-t border-stone-100 space-y-1">
               <span className="text-3xs font-bold text-stone-400 uppercase tracking-wider block">
-                Quick Dev Navigation
+                Quick Portal Navigation
               </span>
               <div className="flex flex-col gap-1 text-2xs">
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleSwitchToAdmin();
+                  }}
+                  className="w-full text-left px-2 py-1.5 rounded-xl hover:bg-indigo-50 text-stone-800 flex items-center justify-between group"
+                >
+                  <span className="flex items-center gap-1.5 font-semibold text-indigo-900">
+                    <ShieldCheck className="w-3.5 h-3.5 text-indigo-600" />
+                    Tschüss Admin Dashboard
+                  </span>
+                  <ArrowRight className="w-3 h-3 text-indigo-400 group-hover:translate-x-0.5 transition-transform" />
+                </button>
                 <button
                   type="button"
                   onClick={() => navigate('/business')}
@@ -186,7 +239,7 @@ export const DevRoleSwitcher: React.FC = () => {
                 >
                   <span className="flex items-center gap-1.5">
                     <Store className="w-3 h-3 text-purple-600" />
-                    Retailer Dashboard
+                    Retailer Portal Hub
                   </span>
                   <ArrowRight className="w-3 h-3 text-stone-400 group-hover:translate-x-0.5 transition-transform" />
                 </button>

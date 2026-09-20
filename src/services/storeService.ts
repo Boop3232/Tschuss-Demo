@@ -5,6 +5,7 @@ import {
   getDoc, 
   setDoc, 
   updateDoc, 
+  deleteDoc,
   query, 
   where,
   serverTimestamp 
@@ -69,5 +70,13 @@ export const storeService = {
       ...updates,
       updatedAt: serverTimestamp()
     });
+  },
+
+  async deleteStore(id: string): Promise<void> {
+    try {
+      await deleteDoc(doc(db, 'stores', id));
+    } catch (e) {
+      console.warn('Error deleting store doc:', e);
+    }
   }
 };

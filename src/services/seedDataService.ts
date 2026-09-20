@@ -166,10 +166,23 @@ export const DEMO_STORES: Store[] = [
 ];
 
 // Helper to generate dynamic dates relative to current time
-const getFutureDate = (hoursFromNow: number) => {
+export const getFutureDate = (hoursFromNow: number) => {
   const date = new Date(Date.now() + hoursFromNow * 3600 * 1000);
   return date.toISOString();
 };
+
+export function getFreshDemoProducts(): Product[] {
+  return DEMO_PRODUCTS.map((p, idx) => {
+    // Generate realistic staggered active expiry offsets (14h to 48h in future)
+    const hours = 14 + ((idx * 5) % 36);
+    return {
+      ...p,
+      expiryAt: getFutureDate(hours),
+      status: p.status || 'active',
+      quantityAvailable: p.quantityAvailable > 0 ? p.quantityAvailable : 5
+    };
+  });
+}
 
 export const DEMO_PRODUCTS: Product[] = [
   {
@@ -1021,16 +1034,18 @@ export const DEMO_RESERVATIONS: Reservation[] = [
 ];
 
 /**
- * Seeds the Firestore database with initial realistic demo stores, products, and sample reservations.
+ * Seeds the Firestore database with initial realistic demo stores, products, and sample reservations if not present.
  */
 export async function seedDemoDataIfEmpty(): Promise<{ seeded: boolean; message: string }> {
   try {
     const productsSnap = await getDocs(collection(db, 'products'));
-    if (!productsSnap.empty && productsSnap.size >= DEMO_PRODUCTS.length) {
-      return { seeded: false, message: 'Database already contains all demo products.' };
+    if (!productsSnap.empty) {
+      return { seeded: false, message: 'Database already contains products.' };
     }
 
-    // Seed or update Stores
+    const freshProducts = getFreshDemoProducts();
+
+    // Seed Stores
     for (const store of DEMO_STORES) {
       await setDoc(doc(db, 'stores', store.id), {
         ...store,
@@ -1039,8 +1054,8 @@ export async function seedDemoDataIfEmpty(): Promise<{ seeded: boolean; message:
       }, { merge: true });
     }
 
-    // Seed or update Products
-    for (const product of DEMO_PRODUCTS) {
+    // Seed Products with fresh future active expiry dates
+    for (const product of freshProducts) {
       await setDoc(doc(db, 'products', product.id), {
         ...product,
         createdAt: serverTimestamp(),
@@ -1081,6 +1096,8 @@ export async function seedDemoDataIfEmpty(): Promise<{ seeded: boolean; message:
  */
 export async function forceReSeedDemoData(): Promise<{ seeded: boolean; message: string }> {
   try {
+    const freshProducts = getFreshDemoProducts();
+
     for (const store of DEMO_STORES) {
       await setDoc(doc(db, 'stores', store.id), {
         ...store,
@@ -1089,7 +1106,7 @@ export async function forceReSeedDemoData(): Promise<{ seeded: boolean; message:
       });
     }
 
-    for (const product of DEMO_PRODUCTS) {
+    for (const product of freshProducts) {
       await setDoc(doc(db, 'products', product.id), {
         ...product,
         createdAt: serverTimestamp(),

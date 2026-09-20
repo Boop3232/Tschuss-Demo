@@ -2,12 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { 
-  ChevronLeft, 
-  ChevronRight, 
   Sparkles, 
-  ArrowUpRight, 
-  Pause, 
-  Play 
+  ArrowUpRight 
 } from 'lucide-react';
 
 import lavaCakeImg from '../../assets/images/category_desserts_lavacake_1789648743693.jpg';
@@ -101,7 +97,6 @@ export const CATEGORY_ITEMS: CategoryCardData[] = [
 export const CategoryCarousel: React.FC = () => {
   const navigate = useNavigate();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [isPaused, setIsPaused] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
   // Auto-scroll loop using requestAnimationFrame for butter-smooth motion
@@ -113,7 +108,7 @@ export const CategoryCarousel: React.FC = () => {
     const speed = 0.75; // pixels per frame
 
     const step = () => {
-      if (!isPaused && !isHovered && container) {
+      if (!isHovered && container) {
         container.scrollLeft += speed;
 
         // Infinite loop wrap-around: when reaching half (first full set of cards), reset smoothly
@@ -130,16 +125,7 @@ export const CategoryCarousel: React.FC = () => {
     return () => {
       cancelAnimationFrame(animationFrameId);
     };
-  }, [isPaused, isHovered]);
-
-  const handleManualScroll = (direction: 'left' | 'right') => {
-    if (!scrollContainerRef.current) return;
-    const scrollAmount = 380;
-    scrollContainerRef.current.scrollBy({
-      left: direction === 'left' ? -scrollAmount : scrollAmount,
-      behavior: 'smooth'
-    });
-  };
+  }, [isHovered]);
 
   const handleCardClick = (categoryParam: string) => {
     navigate(`/app/discover?category=${encodeURIComponent(categoryParam)}`);
@@ -152,45 +138,14 @@ export const CategoryCarousel: React.FC = () => {
     <section className="relative overflow-hidden py-10 bg-white">
       {/* Top Text Header directly inspired by image 2 */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6 sm:mb-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="max-w-3xl space-y-2">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-2xs font-bold uppercase tracking-wider">
-              <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Category Variety Explorer</span>
-            </div>
-            <p className="text-base sm:text-lg text-stone-700 leading-relaxed font-normal">
-              <strong className="text-stone-900 font-bold">Discover our variety:</strong> Choose your favorite surplus categories directly from the rescue menu and fill your kitchen with artisan bakery, crispy snacks, gourmet desserts, and organic produce at up to 70% off.
-            </p>
+        <div className="max-w-3xl space-y-2">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-2xs font-bold uppercase tracking-wider">
+            <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Category Variety Explorer</span>
           </div>
-
-          {/* Controls: Prev/Next & Play/Pause */}
-          <div className="flex items-center gap-2 shrink-0 self-start md:self-center">
-            <button
-              type="button"
-              onClick={() => setIsPaused(!isPaused)}
-              aria-label={isPaused ? 'Resume auto-moving carousel' : 'Pause auto-moving carousel'}
-              className="p-2.5 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-700 transition-colors border border-stone-200/80 cursor-pointer shadow-2xs"
-              title={isPaused ? 'Play' : 'Pause'}
-            >
-              {isPaused ? <Play className="w-4 h-4 fill-current" /> : <Pause className="w-4 h-4 fill-current" />}
-            </button>
-            <button
-              type="button"
-              onClick={() => handleManualScroll('left')}
-              aria-label="Scroll categories left"
-              className="p-2.5 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-700 transition-colors border border-stone-200/80 cursor-pointer shadow-2xs"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => handleManualScroll('right')}
-              aria-label="Scroll categories right"
-              className="p-2.5 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-700 transition-colors border border-stone-200/80 cursor-pointer shadow-2xs"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
+          <p className="text-base sm:text-lg text-stone-700 leading-relaxed font-normal">
+            <strong className="text-stone-900 font-bold">Discover our variety:</strong> Choose your favorite surplus categories directly from the rescue menu and fill your kitchen with artisan bakery, crispy snacks, gourmet desserts, and organic produce at up to 70% off.
+          </p>
         </div>
       </div>
 

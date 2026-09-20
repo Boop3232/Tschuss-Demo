@@ -47,13 +47,15 @@ export const DiscoverPage: React.FC = () => {
     sortBy: 'distance'
   });
 
-  // Load stores and products
-  const loadData = React.useCallback(async () => {
-    setLoading(true);
-    try {
-      // Ensure demo seed runs if database empty
-      await seedDemoDataIfEmpty();
+  // Seed demo data once on initial mount if database is unseeded
+  useEffect(() => {
+    seedDemoDataIfEmpty().catch(err => console.warn('Initial seed check:', err));
+  }, []);
 
+  // Load stores and products
+  const loadData = React.useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
+    try {
       const [loadedProducts, loadedStores] = await Promise.all([
         productService.getProducts(filters, location),
         storeService.getStores()
@@ -64,12 +66,8 @@ export const DiscoverPage: React.FC = () => {
     } catch (err) {
       console.error('Failed to load discovery data:', err);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
-  }, [filters, location]);
-
-  useEffect(() => {
-    loadData();
   }, [
     filters.category,
     filters.searchQuery,
@@ -77,9 +75,31 @@ export const DiscoverPage: React.FC = () => {
     filters.minDiscountPercent,
     filters.maxPrice,
     filters.sortBy,
-    location.lat,
-    location.lng
+    location?.lat,
+    location?.lng
   ]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  // Silent debounced reload on external updates (e.g. retailer toggles active product)
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    const handleProductsChanged = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        loadData(true);
+      }, 300);
+    };
+    window.addEventListener('tschuess_products_changed', handleProductsChanged);
+    window.addEventListener('storage', handleProductsChanged);
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('tschuess_products_changed', handleProductsChanged);
+      window.removeEventListener('storage', handleProductsChanged);
+    };
+  }, [loadData]);
 
   const handleCategoryChange = (category: string) => {
     setFilters(prev => ({ ...prev, category }));

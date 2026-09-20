@@ -183,4 +183,5 @@ export interface FilterOptions {
   storeId?: string;
   expiryUrgency?: 'all' | 'today' | 'tomorrow' | '2days';
   sortBy?: 'distance' | 'cheapest' | 'discount' | 'expiry' | 'newest';
+  includeAllStatuses?: boolean;
 }

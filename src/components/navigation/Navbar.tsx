@@ -44,16 +44,22 @@ export const Navbar: React.FC = () => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const userId = currentUser?.uid || userProfile?.uid || 'demo_consumer_123';
+  const isLoggedIn = !!(currentUser || userProfile);
+  const userId = currentUser?.uid || userProfile?.uid || null;
 
-  // Listen to unread notifications
+  // Listen to unread notifications only if someone is actually logged in
   useEffect(() => {
+    if (!isLoggedIn || !userId) {
+      setUnreadCount(0);
+      return;
+    }
+
     const unsub = notificationService.subscribeToNotifications(userId, (notifs) => {
       const count = notifs.filter(n => !n.read).length;
       setUnreadCount(count);
     });
     return () => unsub();
-  }, [userId]);
+  }, [userId, isLoggedIn]);
 
   const navLinks = [
     { name: t('nav.discover', 'Discover'), path: '/app/discover', icon: Compass },
@@ -207,7 +213,7 @@ export const Navbar: React.FC = () => {
                 aria-label="Notifications"
               >
                 <Bell className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                {unreadCount > 0 && (
+                {isLoggedIn && unreadCount > 0 && (
                   <span className="absolute -top-0.5 -right-0.5 min-w-[15px] h-3.5 px-0.5 bg-emerald-600 text-white rounded-full text-[9px] leading-none flex items-center justify-center font-black shadow-2xs animate-in zoom-in-50">
                     {unreadCount > 99 ? '99+' : unreadCount}
                   </span>
@@ -255,6 +261,18 @@ export const Navbar: React.FC = () => {
                 >
                   <Store className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
                   <span>Retailer</span>
+                </Link>
+              )}
+
+              {/* Tschüss Corporate Admin Link */}
+              {currentUser && role === 'admin' && (
+                <Link
+                  to="/admin"
+                  id="btn-nav-admin-dashboard"
+                  className="hidden xl:flex items-center gap-1.5 px-3.5 h-8.5 rounded-full bg-indigo-50 hover:bg-indigo-100/80 text-indigo-900 border border-indigo-200 text-xs font-bold transition-all shadow-2xs whitespace-nowrap no-underline shrink-0 active:scale-95"
+                >
+                  <Shield className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                  <span>Tschüss Admin</span>
                 </Link>
               )}
 
@@ -466,7 +484,7 @@ export const Navbar: React.FC = () => {
                   <Bell className="w-4 h-4 text-emerald-600 shrink-0" />
                   <span className="truncate">{language === 'de' ? 'Mitteilungen' : 'Notifications'}</span>
                 </div>
-                {unreadCount > 0 && (
+                {isLoggedIn && unreadCount > 0 && (
                   <span className="px-1.5 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-bold">
                     {unreadCount}
                   </span>

@@ -46,25 +46,34 @@ const getInitialDemoNotifications = (userId: string): AppNotification[] => [
   }
 ];
 
+export function sortNotificationsNewestFirst(notifs: AppNotification[]): AppNotification[] {
+  return [...notifs].sort((a, b) => {
+    const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+    const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+    return timeB - timeA;
+  });
+}
+
 function getLocalNotifications(userId: string): AppNotification[] {
   try {
     const key = `tschuess_notifs_${userId}`;
     const raw = localStorage.getItem(key);
     if (raw) {
-      return JSON.parse(raw);
+      return sortNotificationsNewestFirst(JSON.parse(raw));
     }
-    const initial = getInitialDemoNotifications(userId);
+    const initial = sortNotificationsNewestFirst(getInitialDemoNotifications(userId));
     localStorage.setItem(key, JSON.stringify(initial));
     return initial;
   } catch (e) {
-    return getInitialDemoNotifications(userId);
+    return sortNotificationsNewestFirst(getInitialDemoNotifications(userId));
   }
 }
 
 function saveLocalNotifications(userId: string, notifs: AppNotification[]) {
   try {
     const key = `tschuess_notifs_${userId}`;
-    localStorage.setItem(key, JSON.stringify(notifs));
+    const sorted = sortNotificationsNewestFirst(notifs);
+    localStorage.setItem(key, JSON.stringify(sorted));
     window.dispatchEvent(new CustomEvent('tschuess_notifications_changed', { detail: { userId } }));
   } catch (e) {
     console.warn('Could not save notifications locally:', e);
@@ -82,9 +91,9 @@ export const notificationService = {
       const snap = await getDocs(q);
       if (!snap.empty) {
         const firestoreNotifs = snap.docs.map(d => ({ ...d.data(), id: d.id } as AppNotification));
-        // Merge with local state to preserve read state if newer
-        saveLocalNotifications(userId, firestoreNotifs);
-        return firestoreNotifs;
+        const sorted = sortNotificationsNewestFirst(firestoreNotifs);
+        saveLocalNotifications(userId, sorted);
+        return sorted;
       }
       return local;
     } catch (e) {
@@ -208,8 +217,9 @@ export const notificationService = {
       unsubscribeFirestore = onSnapshot(q, (snapshot) => {
         if (!snapshot.empty) {
           const notifs = snapshot.docs.map(d => ({ ...d.data(), id: d.id } as AppNotification));
-          saveLocalNotifications(userId, notifs);
-          callback(notifs);
+          const sorted = sortNotificationsNewestFirst(notifs);
+          saveLocalNotifications(userId, sorted);
+          callback(sorted);
         }
       }, (err) => {
         console.warn('Notification snapshot warning:', err);

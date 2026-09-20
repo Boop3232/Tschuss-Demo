@@ -18,7 +18,8 @@ import { productService } from '../../services/productService';
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { DiscountBadge } from '../../components/common/DiscountBadge';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
-import { formatCurrency, formatExpiry } from '../../utils/businessLogic';
+import { formatCurrency, formatExpiry, isExpired } from '../../utils/businessLogic';
+import { seedDemoDataIfEmpty } from '../../services/seedDataService';
 import { TableSkeleton } from '../../components/common/LoadingSkeleton';
 
 const STORE_TABS = [
@@ -39,12 +40,22 @@ export const RetailerProductsPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [deletingProductId, setDeletingProductId] = useState<string | null>(null);
+  const [togglingProductId, setTogglingProductId] = useState<string | null>(null);
+  const [feedbackToast, setFeedbackToast] = useState<{ message: string; type: 'success' | 'info' } | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'info' = 'success') => {
+    setFeedbackToast({ message, type });
+    setTimeout(() => {
+      setFeedbackToast(null);
+    }, 4000);
+  };
 
   const loadProducts = async () => {
     setLoading(true);
     try {
       const items = await productService.getProducts({ 
-        storeId: selectedStoreId === 'all' ? undefined : selectedStoreId 
+        storeId: selectedStoreId === 'all' ? undefined : selectedStoreId,
+        includeAllStatuses: true
       });
       setProducts(items);
     } catch (err) {
@@ -76,21 +87,65 @@ export const RetailerProductsPage: React.FC = () => {
     setProducts(prev => prev.filter(p => p.id !== idToDelete));
     try {
       await productService.deleteProduct(idToDelete);
+      showToast('Product successfully removed from catalogue.', 'info');
     } catch (err) {
       console.error('Error deleting product:', err);
     }
   };
 
   const handleToggleStatus = async (product: Product) => {
+    if (togglingProductId) return;
+    setTogglingProductId(product.id);
     const newStatus: ProductStatus = product.status === 'active' ? 'paused' : 'active';
-    setProducts(prev => prev.map(p => p.id === product.id ? { ...p, status: newStatus } : p));
-    await productService.updateProduct(product.id, { status: newStatus });
+    
+    // When activating, ensure expiry date is in the future (+24 hours) and available stock is at least 5 units
+    const needsExpiryRefresh = newStatus === 'active' && isExpired(product.expiryAt);
+    const newExpiryAt = needsExpiryRefresh 
+      ? new Date(Date.now() + 24 * 3600 * 1000).toISOString()
+      : product.expiryAt;
+    const newQuantity = (newStatus === 'active' && product.quantityAvailable <= 0) 
+      ? 5 
+      : product.quantityAvailable;
+
+    const updates: Partial<Product> = {
+      status: newStatus,
+      expiryAt: newExpiryAt,
+      quantityAvailable: newQuantity
+    };
+
+    // Strictly update ONLY this targeted product in component state
+    setProducts(prev => prev.map(p => p.id === product.id ? { ...p, ...updates } : p));
+    try {
+      await productService.updateProduct(product.id, updates);
+      if (newStatus === 'active') {
+        showToast(`"${product.name}" is now ACTIVE and visible on the Discover page.`, 'success');
+      } else {
+        showToast(`"${product.name}" is PAUSED and hidden from shoppers.`, 'info');
+      }
+    } catch (err) {
+      console.error('Error toggling product status:', err);
+      // Revert if failed
+      setProducts(prev => prev.map(p => p.id === product.id ? { ...p, status: product.status } : p));
+    } finally {
+      setTogglingProductId(null);
+    }
+  };
+
+  // Status counts
+  const statusCounts = {
+    all: products.length,
+    active: products.filter(p => p.status === 'active').length,
+    paused: products.filter(p => p.status === 'paused').length,
+    expired: products.filter(p => p.status === 'expired').length,
+    sold_out: products.filter(p => p.status === 'sold_out').length
   };
 
   const filteredProducts = products.filter(p => {
-    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          p.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          p.storeName.toLowerCase().includes(searchQuery.toLowerCase());
+    const q = searchQuery.toLowerCase().trim();
+    const name = (p.name || '').toLowerCase();
+    const cat = (p.category || '').toLowerCase();
+    const store = (p.storeName || '').toLowerCase();
+    const matchesSearch = !q || name.includes(q) || cat.includes(q) || store.includes(q);
     const matchesStatus = statusFilter === 'all' ? true : p.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -117,6 +172,20 @@ export const RetailerProductsPage: React.FC = () => {
           <span>Add Rescue Product</span>
         </Link>
       </div>
+
+      {/* Feedback Toast Notification */}
+      {feedbackToast && (
+        <div className={`p-3.5 rounded-2xl border flex items-center gap-2.5 text-xs font-medium animate-in fade-in slide-in-from-top-2 duration-200 ${
+          feedbackToast.type === 'success'
+            ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
+            : 'bg-stone-50 border-stone-200 text-stone-900'
+        }`}>
+          <CheckCircle className={`w-4 h-4 shrink-0 ${
+            feedbackToast.type === 'success' ? 'text-emerald-700' : 'text-stone-600'
+          }`} />
+          <span className="flex-1">{feedbackToast.message}</span>
+        </div>
+      )}
 
       {/* Store Branch Selector */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1">
@@ -158,20 +227,28 @@ export const RetailerProductsPage: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
-          {['all', 'active', 'paused', 'expired', 'sold_out'].map((st) => (
-            <button
-              key={st}
-              id={`filter-status-${st}`}
-              onClick={() => setStatusFilter(st)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold capitalize whitespace-nowrap transition-all border ${
-                statusFilter === st
-                  ? 'bg-stone-900 text-white border-stone-900'
-                  : 'bg-white hover:bg-stone-50 text-stone-600 border-stone-200'
-              }`}
-            >
-              {st.replace('_', ' ')}
-            </button>
-          ))}
+          {(['all', 'active', 'paused', 'expired', 'sold_out'] as const).map((st) => {
+            const count = statusCounts[st];
+            return (
+              <button
+                key={st}
+                id={`filter-status-${st}`}
+                onClick={() => setStatusFilter(st)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold capitalize whitespace-nowrap transition-all border flex items-center gap-1.5 ${
+                  statusFilter === st
+                    ? 'bg-stone-900 text-white border-stone-900'
+                    : 'bg-white hover:bg-stone-50 text-stone-600 border-stone-200'
+                }`}
+              >
+                <span>{st.replace('_', ' ')}</span>
+                <span className={`text-3xs px-1.5 py-0.2 rounded-full font-bold ${
+                  statusFilter === st ? 'bg-stone-800 text-stone-200' : 'bg-stone-100 text-stone-600'
+                }`}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -258,10 +335,22 @@ export const RetailerProductsPage: React.FC = () => {
                             type="button"
                             id={`btn-toggle-status-${prod.id}`}
                             onClick={() => handleToggleStatus(prod)}
-                            className="px-2 py-1 rounded-lg border border-stone-200 text-stone-600 hover:bg-stone-100 hover:text-stone-900 text-2xs font-semibold transition-colors"
-                            title="Toggle active / paused"
+                            disabled={togglingProductId === prod.id}
+                            className={`px-2.5 py-1 rounded-lg border text-2xs font-semibold transition-colors cursor-pointer ${
+                              prod.status === 'active'
+                                ? 'border-amber-200 text-amber-800 hover:bg-amber-50'
+                                : 'border-emerald-200 text-emerald-800 hover:bg-emerald-50'
+                            }`}
+                            title={prod.status === 'active' ? 'Pause product' : 'Activate product'}
                           >
-                            {prod.status === 'active' ? 'Pause' : 'Activate'}
+                            {togglingProductId === prod.id ? (
+                              <span className="inline-flex items-center gap-1">
+                                <RefreshCw className="w-3 h-3 animate-spin" />
+                                <span>Updating...</span>
+                              </span>
+                            ) : (
+                              prod.status === 'active' ? 'Pause' : 'Activate'
+                            )}
                           </button>
 
                           <button
