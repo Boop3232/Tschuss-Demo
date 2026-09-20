@@ -98,20 +98,38 @@ export const CategoryCarousel: React.FC = () => {
   const navigate = useNavigate();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
+  const [isTouching, setIsTouching] = useState(false);
+  const [isInView, setIsInView] = useState(true);
 
-  // Auto-scroll loop using requestAnimationFrame for butter-smooth motion
+  // Pause RAF when out of viewport to save battery/CPU on mobile
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container || typeof IntersectionObserver === 'undefined') return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        setIsInView(entries[0]?.isIntersecting ?? true);
+      },
+      { threshold: 0.05 }
+    );
+
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, []);
+
+  // Auto-scroll loop using requestAnimationFrame with touch-pause and view-detection
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
 
     let animationFrameId: number;
-    const speed = 0.75; // pixels per frame
+    const speed = 0.65; // pixels per frame
 
     const step = () => {
-      if (!isHovered && container) {
+      if (!isHovered && !isTouching && isInView && container) {
         container.scrollLeft += speed;
 
-        // Infinite loop wrap-around: when reaching half (first full set of cards), reset smoothly
+        // Infinite loop wrap-around: when reaching half, reset smoothly
         const maxScroll = container.scrollWidth / 2;
         if (container.scrollLeft >= maxScroll) {
           container.scrollLeft = 0;
@@ -125,7 +143,7 @@ export const CategoryCarousel: React.FC = () => {
     return () => {
       cancelAnimationFrame(animationFrameId);
     };
-  }, [isHovered]);
+  }, [isHovered, isTouching, isInView]);
 
   const handleCardClick = (categoryParam: string) => {
     navigate(`/app/discover?category=${encodeURIComponent(categoryParam)}`);
@@ -135,15 +153,15 @@ export const CategoryCarousel: React.FC = () => {
   const displayItems = [...CATEGORY_ITEMS, ...CATEGORY_ITEMS];
 
   return (
-    <section className="relative overflow-hidden py-10 bg-white">
+    <section className="relative overflow-hidden py-8 sm:py-10 bg-white">
       {/* Top Text Header directly inspired by image 2 */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6 sm:mb-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-4 sm:mb-6">
         <div className="max-w-3xl space-y-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-2xs font-bold uppercase tracking-wider">
             <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
             <span>Category Variety Explorer</span>
           </div>
-          <p className="text-base sm:text-lg text-stone-700 leading-relaxed font-normal">
+          <p className="text-sm sm:text-base lg:text-lg text-stone-700 leading-relaxed font-normal">
             <strong className="text-stone-900 font-bold">Discover our variety:</strong> Choose your favorite surplus categories directly from the rescue menu and fill your kitchen with artisan bakery, crispy snacks, gourmet desserts, and organic produce at up to 70% off.
           </p>
         </div>
@@ -154,25 +172,27 @@ export const CategoryCarousel: React.FC = () => {
         className="relative w-full overflow-hidden group"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
+        onTouchStart={() => setIsTouching(true)}
+        onTouchEnd={() => setIsTouching(false)}
       >
         {/* Left subtle fade mask */}
-        <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-12 sm:w-28 bg-gradient-to-r from-white via-white/80 to-transparent z-10" />
+        <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-8 sm:w-24 bg-gradient-to-r from-white via-white/80 to-transparent z-10" />
 
         {/* Right subtle fade mask */}
-        <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-12 sm:w-28 bg-gradient-to-l from-white via-white/80 to-transparent z-10" />
+        <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 sm:w-24 bg-gradient-to-l from-white via-white/80 to-transparent z-10" />
 
         {/* Scrollable track */}
         <div
           ref={scrollContainerRef}
-          className="flex items-center gap-5 sm:gap-6 overflow-x-auto no-scrollbar py-2 px-6 sm:px-12 select-none cursor-grab active:cursor-grabbing"
+          className="flex items-center gap-4 sm:gap-6 overflow-x-auto no-scrollbar py-2 px-4 sm:px-12 select-none cursor-grab active:cursor-grabbing -webkit-overflow-scrolling-touch"
           style={{ scrollBehavior: 'auto' }}
         >
           {displayItems.map((item, index) => (
             <motion.div
               key={`${item.id}-${index}`}
               onClick={() => handleCardClick(item.categoryParam)}
-              whileHover={{ y: -6, transition: { duration: 0.25 } }}
-              className="group/card relative shrink-0 w-72 sm:w-88 md:w-[26rem] aspect-16/10 rounded-3xl overflow-hidden border border-stone-200 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer bg-stone-100"
+              whileHover={{ y: -4, transition: { duration: 0.2 } }}
+              className="group/card relative shrink-0 w-[72vw] max-w-[280px] xs:w-72 sm:w-88 md:w-[26rem] aspect-16/10 rounded-3xl overflow-hidden border border-stone-200 shadow-xs hover:shadow-lg transition-all duration-300 cursor-pointer bg-stone-100 hardware-accelerated"
             >
               {/* Card Image */}
               <img

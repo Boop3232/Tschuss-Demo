@@ -252,124 +252,219 @@ export const RetailerProductsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Table of Products */}
+      {/* Product List: Mobile Cards + Desktop Table */}
       {loading ? (
         <TableSkeleton rows={6} />
       ) : filteredProducts.length > 0 ? (
-        <div className="bg-white rounded-3xl border border-stone-200 shadow-2xs overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-stone-700">
-              <thead className="bg-stone-50/80 border-b border-stone-200/80 text-3xs uppercase font-bold text-stone-400 tracking-wider">
-                <tr>
-                  <th className="py-3.5 px-4">Product Details</th>
-                  <th className="py-3.5 px-4">Store & Category</th>
-                  <th className="py-3.5 px-4">Pricing</th>
-                  <th className="py-3.5 px-4">Stock</th>
-                  <th className="py-3.5 px-4">Expiry</th>
-                  <th className="py-3.5 px-4">Status</th>
-                  <th className="py-3.5 px-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-stone-100">
-                {filteredProducts.map((prod) => {
-                  const exp = formatExpiry(prod.expiryAt);
+        <div className="space-y-4">
+          {/* Mobile Card Layout (md:hidden) */}
+          <div className="grid grid-cols-1 gap-3.5 md:hidden">
+            {filteredProducts.map((prod) => {
+              const exp = formatExpiry(prod.expiryAt);
 
-                  return (
-                    <tr key={prod.id} className="hover:bg-stone-50/70 transition-colors">
-                      {/* Product details */}
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-3">
-                          <img
-                            src={prod.imageUrl}
-                            alt={prod.name}
-                            className="w-11 h-11 rounded-xl object-cover border border-stone-200 shrink-0"
-                          />
-                          <div className="min-w-0">
-                            <span className="font-bold text-stone-900 block truncate max-w-xs">{prod.name}</span>
-                            <span className="text-2xs text-stone-500">{prod.unit || 'Standard unit'}</span>
-                          </div>
-                        </div>
-                      </td>
-
-                      {/* Store & Category */}
-                      <td className="py-3 px-4">
-                        <span className="font-bold text-stone-900 block">{prod.storeName}</span>
-                        <span className="text-2xs text-stone-500 font-semibold">{prod.category}</span>
-                      </td>
-
-                      {/* Pricing */}
-                      <td className="py-3 px-4">
-                        <div className="flex items-baseline gap-1.5">
-                          <span className="font-extrabold text-stone-900">{formatCurrency(prod.rescuePrice)}</span>
-                          <span className="text-2xs text-stone-400 line-through">{formatCurrency(prod.originalPrice)}</span>
-                        </div>
-                        <DiscountBadge percent={prod.discountPercent} size="sm" className="mt-0.5" />
-                      </td>
-
-                      {/* Stock */}
-                      <td className="py-3 px-4">
-                        <span className={`font-bold ${prod.quantityAvailable <= 3 ? 'text-amber-700' : 'text-stone-900'}`}>
-                          {prod.quantityAvailable} units
+              return (
+                <div 
+                  key={`mobile-${prod.id}`}
+                  className="bg-white rounded-2xl border border-stone-200/90 p-4 shadow-2xs space-y-3"
+                >
+                  <div className="flex items-start gap-3">
+                    <img
+                      src={prod.imageUrl}
+                      alt={prod.name}
+                      className="w-16 h-16 rounded-xl object-cover border border-stone-200 shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="text-2xs font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md truncate">
+                          {prod.category}
                         </span>
-                      </td>
+                        <StatusBadge status={prod.status} />
+                      </div>
+                      <h4 className="font-bold text-stone-900 text-sm mt-1 truncate">
+                        {prod.name}
+                      </h4>
+                      <p className="text-2xs text-stone-500 truncate">
+                        {prod.storeName} • {prod.unit || 'Standard unit'}
+                      </p>
+                    </div>
+                  </div>
 
-                      {/* Expiry */}
-                      <td className="py-3 px-4">
-                        <span className={`inline-flex items-center gap-1 font-semibold ${
-                          exp.urgency === 'critical' ? 'text-rose-700 font-bold' : 'text-stone-600'
-                        }`}>
-                          <Clock className="w-3.5 h-3.5" />
+                  {/* Pricing and Stock Row */}
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-stone-100 text-xs">
+                    <div>
+                      <span className="text-3xs text-stone-400 uppercase font-bold block">Price</span>
+                      <div className="flex items-baseline gap-1.5 mt-0.5">
+                        <span className="font-extrabold text-stone-900">{formatCurrency(prod.rescuePrice)}</span>
+                        <span className="text-3xs text-stone-400 line-through">{formatCurrency(prod.originalPrice)}</span>
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-3xs text-stone-400 uppercase font-bold block">Stock & Expiry</span>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className="font-bold text-stone-800">{prod.quantityAvailable} units</span>
+                        <span className="text-stone-300">•</span>
+                        <span className={`text-2xs font-semibold ${exp.urgency === 'critical' ? 'text-rose-700 font-bold' : 'text-stone-600'}`}>
                           {exp.text}
                         </span>
-                      </td>
+                      </div>
+                    </div>
+                  </div>
 
-                      {/* Status */}
-                      <td className="py-3 px-4">
-                        <StatusBadge status={prod.status} />
-                      </td>
+                  {/* Actions Row */}
+                  <div className="flex items-center justify-between gap-2 pt-2.5 border-t border-stone-100">
+                    <button
+                      type="button"
+                      id={`btn-mobile-toggle-status-${prod.id}`}
+                      onClick={() => handleToggleStatus(prod)}
+                      disabled={togglingProductId === prod.id}
+                      className={`flex-1 py-2 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 active:scale-98 ${
+                        prod.status === 'active'
+                          ? 'border-amber-300 bg-amber-50/80 text-amber-900 hover:bg-amber-100'
+                          : 'border-emerald-300 bg-emerald-50/80 text-emerald-900 hover:bg-emerald-100'
+                      }`}
+                    >
+                      {togglingProductId === prod.id ? (
+                        <span className="inline-flex items-center gap-1.5">
+                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                          <span>Updating...</span>
+                        </span>
+                      ) : (
+                        prod.status === 'active' ? 'Pause Listing' : 'Activate Deal'
+                      )}
+                    </button>
 
-                      {/* Actions */}
-                      <td className="py-3 px-4 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <button
-                            type="button"
-                            id={`btn-toggle-status-${prod.id}`}
-                            onClick={() => handleToggleStatus(prod)}
-                            disabled={togglingProductId === prod.id}
-                            className={`px-2.5 py-1 rounded-lg border text-2xs font-semibold transition-colors cursor-pointer ${
-                              prod.status === 'active'
-                                ? 'border-amber-200 text-amber-800 hover:bg-amber-50'
-                                : 'border-emerald-200 text-emerald-800 hover:bg-emerald-50'
-                            }`}
-                            title={prod.status === 'active' ? 'Pause product' : 'Activate product'}
-                          >
-                            {togglingProductId === prod.id ? (
-                              <span className="inline-flex items-center gap-1">
-                                <RefreshCw className="w-3 h-3 animate-spin" />
-                                <span>Updating...</span>
-                              </span>
-                            ) : (
-                              prod.status === 'active' ? 'Pause' : 'Activate'
-                            )}
-                          </button>
+                    <button
+                      type="button"
+                      id={`btn-mobile-delete-product-${prod.id}`}
+                      onClick={() => setDeletingProductId(prod.id)}
+                      className="p-2 rounded-xl text-rose-600 bg-rose-50/60 hover:bg-rose-100 border border-rose-200 transition-colors shrink-0"
+                      title="Delete product"
+                      aria-label={`Delete ${prod.name}`}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
 
-                          <button
-                            type="button"
-                            id={`btn-delete-product-${prod.id}`}
-                            onClick={() => setDeletingProductId(prod.id)}
-                            className="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 hover:text-rose-700 transition-colors"
-                            title="Delete product"
-                            aria-label={`Delete ${prod.name}`}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+          {/* Desktop Table View (hidden on mobile, visible on md+) */}
+          <div className="hidden md:block bg-white rounded-3xl border border-stone-200 shadow-2xs overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs text-stone-700">
+                <thead className="bg-stone-50/80 border-b border-stone-200/80 text-3xs uppercase font-bold text-stone-400 tracking-wider">
+                  <tr>
+                    <th className="py-3.5 px-4">Product Details</th>
+                    <th className="py-3.5 px-4">Store & Category</th>
+                    <th className="py-3.5 px-4">Pricing</th>
+                    <th className="py-3.5 px-4">Stock</th>
+                    <th className="py-3.5 px-4">Expiry</th>
+                    <th className="py-3.5 px-4">Status</th>
+                    <th className="py-3.5 px-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-stone-100">
+                  {filteredProducts.map((prod) => {
+                    const exp = formatExpiry(prod.expiryAt);
+
+                    return (
+                      <tr key={prod.id} className="hover:bg-stone-50/70 transition-colors">
+                        {/* Product details */}
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={prod.imageUrl}
+                              alt={prod.name}
+                              className="w-11 h-11 rounded-xl object-cover border border-stone-200 shrink-0"
+                            />
+                            <div className="min-w-0">
+                              <span className="font-bold text-stone-900 block truncate max-w-xs">{prod.name}</span>
+                              <span className="text-2xs text-stone-500">{prod.unit || 'Standard unit'}</span>
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Store & Category */}
+                        <td className="py-3 px-4">
+                          <span className="font-bold text-stone-900 block">{prod.storeName}</span>
+                          <span className="text-2xs text-stone-500 font-semibold">{prod.category}</span>
+                        </td>
+
+                        {/* Pricing */}
+                        <td className="py-3 px-4">
+                          <div className="flex items-baseline gap-1.5">
+                            <span className="font-extrabold text-stone-900">{formatCurrency(prod.rescuePrice)}</span>
+                            <span className="text-2xs text-stone-400 line-through">{formatCurrency(prod.originalPrice)}</span>
+                          </div>
+                          <DiscountBadge percent={prod.discountPercent} size="sm" className="mt-0.5" />
+                        </td>
+
+                        {/* Stock */}
+                        <td className="py-3 px-4">
+                          <span className={`font-bold ${prod.quantityAvailable <= 3 ? 'text-amber-700' : 'text-stone-900'}`}>
+                            {prod.quantityAvailable} units
+                          </span>
+                        </td>
+
+                        {/* Expiry */}
+                        <td className="py-3 px-4">
+                          <span className={`inline-flex items-center gap-1 font-semibold ${
+                            exp.urgency === 'critical' ? 'text-rose-700 font-bold' : 'text-stone-600'
+                          }`}>
+                            <Clock className="w-3.5 h-3.5" />
+                            {exp.text}
+                          </span>
+                        </td>
+
+                        {/* Status */}
+                        <td className="py-3 px-4">
+                          <StatusBadge status={prod.status} />
+                        </td>
+
+                        {/* Actions */}
+                        <td className="py-3 px-4 text-right">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              type="button"
+                              id={`btn-toggle-status-${prod.id}`}
+                              onClick={() => handleToggleStatus(prod)}
+                              disabled={togglingProductId === prod.id}
+                              className={`px-2.5 py-1 rounded-lg border text-2xs font-semibold transition-colors cursor-pointer ${
+                                prod.status === 'active'
+                                  ? 'border-amber-200 text-amber-800 hover:bg-amber-50'
+                                  : 'border-emerald-200 text-emerald-800 hover:bg-emerald-50'
+                              }`}
+                              title={prod.status === 'active' ? 'Pause product' : 'Activate product'}
+                            >
+                              {togglingProductId === prod.id ? (
+                                <span className="inline-flex items-center gap-1">
+                                  <RefreshCw className="w-3 h-3 animate-spin" />
+                                  <span>Updating...</span>
+                                </span>
+                              ) : (
+                                prod.status === 'active' ? 'Pause' : 'Activate'
+                              )}
+                            </button>
+
+                            <button
+                              type="button"
+                              id={`btn-delete-product-${prod.id}`}
+                              onClick={() => setDeletingProductId(prod.id)}
+                              className="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 hover:text-rose-700 transition-colors"
+                              title="Delete product"
+                              aria-label={`Delete ${prod.name}`}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       ) : (

@@ -15,12 +15,12 @@ export const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
           {/* Brand Col */}
           <div className="space-y-4 md:col-span-2">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white flex items-center justify-center font-black text-sm shadow-xs">
+            <Link to="/" className="flex items-center gap-2.5 no-underline group w-fit">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white flex items-center justify-center font-black text-sm shadow-xs group-hover:scale-105 transition-transform">
                 T
               </div>
               <span className="font-extrabold text-lg text-stone-900 font-display">Tschüss</span>
-            </div>
+            </Link>
             <p className="text-stone-600 text-xs max-w-md leading-relaxed">
               "Connecting Retailers and Consumers to Profit from Near Food Expiry."
               High-precision surplus inventory recovery platform empowering local supermarkets, bakeries, and smart shoppers to eliminate organic discard.
@@ -98,7 +98,14 @@ export const Footer: React.FC = () => {
 
         {/* Bottom bar */}
         <div className="pt-8 border-t border-stone-200 flex flex-col sm:flex-row items-center justify-between gap-4 text-3xs text-stone-500">
-          <p>© {new Date().getFullYear()} Tschüss Platform GmbH. High-efficiency food rescue infrastructure.</p>
+          <div className="space-y-1 text-center sm:text-left">
+            <p>© {new Date().getFullYear()} Tschüss Platform. High-efficiency food rescue infrastructure.</p>
+            <p className="text-stone-600 font-medium flex items-center justify-center sm:justify-start gap-1">
+              <span>Made with</span>
+              <span className="text-rose-500 inline-block animate-pulse">❤️</span>
+              <span>by Eddy Nakaana and Abhiraj Singh Anand</span>
+            </p>
+          </div>
 
           <div className="flex items-center gap-4">
             <span className="font-semibold text-stone-600">Language:</span>

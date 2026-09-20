@@ -25,9 +25,23 @@
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    -webkit-text-size-adjust: 100%;
     margin: 0;
     padding: 0;
     letter-spacing: -0.011em;
+    overflow-x: hidden;
+    overflow-wrap: break-word;
+  }
+
+  /* Optimize scrolling and touch performance on mobile */
+  html {
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+
+  * {
+    box-sizing: border-box;
   }
 
   /* Consistent, uniform typography scales across the website */
@@ -199,10 +213,20 @@ a:visited {
   color: inherit;
 }
 
-/* Prevent horizontal window overflow */
+/* Prevent horizontal window overflow and enable smooth touch scrolling */
 html, body {
   max-width: 100%;
   overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Hardware accelerated layer utility for smooth mobile animations */
+.hardware-accelerated {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  will-change: transform, opacity;
 }
 
 /* Apple-style Smooth Scrollbar */

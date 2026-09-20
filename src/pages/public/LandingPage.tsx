@@ -139,52 +139,43 @@ export const LandingPage: React.FC = () => {
             
             {/* Left Col: Headlines & CTAs */}
             <div className="lg:col-span-7 text-center lg:text-left space-y-6 relative py-4 sm:py-6 px-1 sm:px-3">
-              {/* Mobile Video Background behind text */}
+              {/* Mobile Lightweight Background - fast, zero-lag, no thermal GPU throttling */}
               <div 
                 id="hero-mobile-video-bg"
-                className="lg:hidden absolute -inset-x-3 -inset-y-4 sm:-inset-x-6 sm:-inset-y-6 z-0 rounded-3xl overflow-hidden pointer-events-none shadow-sm border border-emerald-900/15"
+                className="lg:hidden absolute -inset-x-2 -inset-y-3 sm:-inset-x-4 sm:-inset-y-4 z-0 rounded-3xl overflow-hidden pointer-events-none shadow-xs border border-emerald-900/10 bg-gradient-to-b from-emerald-50/70 via-stone-50/50 to-white"
               >
-                <video
-                  ref={mobileVideoRef}
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  poster="/assets/food_hero_poster.jpg"
-                  className="w-full h-full object-cover object-center scale-105 filter saturate-140 contrast-[1.08] brightness-100 opacity-95"
-                >
-                  <source src="/assets/food_hero_mobile.mp4" type="video/mp4" />
-                </video>
-                
-                {/* Visual Scrim Overlays - calibrated for higher video visibility while keeping text crisp */}
-                <div className="absolute inset-0 bg-gradient-to-b from-white/65 via-white/40 to-white/70 backdrop-blur-[0.5px]" />
-                <div className="absolute inset-0 bg-radial-[at_center] from-transparent via-white/20 to-white/65" />
-                <div className="absolute inset-0 ring-1 ring-inset ring-emerald-950/10 rounded-3xl" />
+                <img
+                  src={heroFoodPlatterImg}
+                  alt="Fresh rescue foods"
+                  loading="eager"
+                  className="w-full h-full object-cover object-center opacity-25 filter blur-xs scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-white/60 to-white/95" />
               </div>
 
               {/* Pilot Location Badge */}
               <motion.div
-                initial={{ opacity: 0, y: -16, scale: 0.9 }}
+                initial={{ opacity: 0, y: -12, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ duration: 0.5, ease: 'easeOut' }}
-                className="relative z-10 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/90 backdrop-blur-md border border-emerald-300 text-emerald-900 text-xs font-bold uppercase tracking-wider shadow-sm"
+                transition={{ duration: 0.4, ease: 'easeOut' }}
+                className="relative z-10 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/95 backdrop-blur-md border border-emerald-300 text-emerald-900 text-2xs sm:text-xs font-bold uppercase tracking-wider shadow-xs max-w-full truncate"
               >
-                <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse shadow-xs" />
-                <span>Retail Food Rescue · Pilot {location.name}</span>
+                <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse shadow-xs shrink-0" />
+                <span className="truncate">Retail Food Rescue · Pilot {location.name}</span>
               </motion.div>
 
               {/* Title & Tagline with Smooth Entry */}
               <motion.div 
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.1, ease: 'easeOut' }}
+                transition={{ duration: 0.5, delay: 0.08, ease: 'easeOut' }}
                 className="space-y-4 relative z-10"
               >
-                <h1 className="text-4xl sm:text-5xl xl:text-6xl font-black font-display tracking-tight text-stone-950 leading-[1.08] drop-shadow-[0_1px_2px_rgba(255,255,255,0.9)] lg:drop-shadow-none">
+                <h1 className="text-3xl xs:text-4xl sm:text-5xl xl:text-6xl font-black font-display tracking-tight text-stone-950 leading-[1.1] break-words hyphens-auto">
                   Profit from <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700">Near Food Expiry</span>.
                 </h1>
                 <div className="max-w-xl mx-auto lg:mx-0">
-                  <p className="text-base sm:text-lg text-stone-900 font-medium leading-relaxed bg-white/75 lg:bg-transparent backdrop-blur-xs px-3.5 py-2.5 lg:p-0 rounded-2xl border border-white/80 lg:border-transparent shadow-xs lg:shadow-none">
+                  <p className="text-sm sm:text-base lg:text-lg text-stone-800 lg:text-stone-700 font-normal leading-relaxed bg-white/80 lg:bg-transparent backdrop-blur-xs px-3 py-2 sm:px-3.5 sm:py-2.5 lg:p-0 rounded-2xl border border-white/90 lg:border-transparent shadow-2xs lg:shadow-none break-words">
                     Tschüss brings local supermarkets, bakeries, and conscious shoppers together. Retailers rescue lost margin — consumers enjoy up to 70% off high-quality, delicious goods.
                   </p>
                 </div>
@@ -525,24 +516,24 @@ export const LandingPage: React.FC = () => {
 
       {/* Live Community Impact Showcase Banner */}
       <motion.section
-        initial={{ opacity: 0, y: 30, scale: 0.98 }}
+        initial={{ opacity: 0, y: 24, scale: 0.99 }}
         whileInView={{ opacity: 1, y: 0, scale: 1 }}
-        viewport={{ once: true, margin: "-50px" }}
-        transition={{ duration: 0.6, ease: 'easeOut' }}
+        viewport={{ once: true, margin: "-40px" }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
         className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
       >
-        <div className="bg-gradient-to-br from-stone-900 via-stone-900 to-emerald-950 rounded-3xl p-8 sm:p-12 text-white relative overflow-hidden shadow-xl border border-stone-800">
-          {/* Subtle glowing ambient lights */}
-          <div className="absolute -top-20 -right-20 w-80 h-80 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="bg-gradient-to-br from-stone-900 via-stone-900 to-emerald-950 rounded-3xl p-6 sm:p-10 lg:p-12 text-white relative overflow-hidden shadow-xl border border-stone-800">
+          {/* Subtle glowing ambient lights - hidden on small mobile to maximize 60fps performance */}
+          <div className="hidden sm:block absolute -top-20 -right-20 w-80 h-80 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
+          <div className="hidden sm:block absolute -bottom-20 -left-20 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
-          <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left items-center">
+          <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 text-center md:text-left items-center">
             <div className="space-y-2 md:col-span-1">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-2xs font-bold uppercase tracking-wider border border-emerald-500/40 shadow-xs">
                 <Leaf className="w-3.5 h-3.5" />
                 <span>Our Shared Impact</span>
               </span>
-              <h3 className="text-2xl sm:text-3xl font-black font-display tracking-tight text-white">
+              <h3 className="text-2xl sm:text-3xl font-black font-display tracking-tight text-white break-words">
                 Every meal saved matters.
               </h3>
               <p className="text-xs text-stone-300 leading-relaxed">
@@ -550,7 +541,7 @@ export const LandingPage: React.FC = () => {
               </p>
             </div>
 
-            <div className="md:col-span-2 grid grid-cols-3 gap-4">
+            <div className="md:col-span-2 grid grid-cols-1 xs:grid-cols-3 gap-3 sm:gap-4">
               <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 text-center hover:border-emerald-500/40 transition-colors">
                 <span className="block text-2xl sm:text-3xl font-black text-emerald-400">1,420+</span>
                 <span className="text-3xs text-stone-300 uppercase font-bold tracking-wide">Meals Rescued</span>
