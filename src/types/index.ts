@@ -185,3 +185,18 @@ export interface FilterOptions {
   sortBy?: 'distance' | 'cheapest' | 'discount' | 'expiry' | 'newest';
   includeAllStatuses?: boolean;
 }
+
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  timestamp: string;
+  suggestedActions?: { label: string; path: string }[];
+}
+
+export interface ChatApiResponse {
+  reply: string;
+  suggestedActions?: { label: string; path: string }[];
+  error?: string;
+}
+

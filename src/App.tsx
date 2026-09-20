@@ -52,6 +52,9 @@ import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
 // Development Helper
 import { DevRoleSwitcher } from './components/common/DevRoleSwitcher';
 
+// Tschüss AI Assistant Chatbot
+import { TschussAIChatBubble } from './components/chat/TschussAIChatBubble';
+
 export default function App() {
   return (
     <LanguageProvider>
@@ -121,6 +124,9 @@ export default function App() {
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
 
+            {/* Tschüss AI Chatbot Bubble */}
+            <TschussAIChatBubble />
+
             {/* Development Role Switcher Floating Widget */}
             <DevRoleSwitcher />
           </BrowserRouter>
@@ -129,3 +135,4 @@ export default function App() {
     </LanguageProvider>
   );
 }
+

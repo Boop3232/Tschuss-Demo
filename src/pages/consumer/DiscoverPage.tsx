@@ -40,7 +40,7 @@ export const DiscoverPage: React.FC = () => {
 
   // Filters
   const [filters, setFilters] = useState<FilterOptions>({
-    category: searchParams.get('category') || 'All',
+    category: (searchParams.get('category') as any) || 'All',
     searchQuery: searchParams.get('q') || '',
     maxDistanceKm: 15,
     minDiscountPercent: 0,
@@ -102,7 +102,7 @@ export const DiscoverPage: React.FC = () => {
   }, [loadData]);
 
   const handleCategoryChange = (category: string) => {
-    setFilters(prev => ({ ...prev, category }));
+    setFilters(prev => ({ ...prev, category: category as any }));
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -285,7 +285,7 @@ export const DiscoverPage: React.FC = () => {
               <strong className="text-stone-900">{location.name}</strong>
             </span>
             <button
-              onClick={loadData}
+              onClick={() => loadData()}
               className="hover:text-emerald-900 font-medium flex items-center gap-1 transition-colors"
             >
               <RefreshCw className="w-3 h-3" />

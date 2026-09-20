@@ -57,7 +57,7 @@ export const RetailerAnalyticsPage: React.FC = () => {
     { month: 'Jun', foodSavedKg: 120, revenueRecovered: 450 },
     { month: 'Jul', foodSavedKg: 180, revenueRecovered: 680 },
     { month: 'Aug', foodSavedKg: 240, revenueRecovered: 890 },
-    { month: 'Sep', foodSavedKg: impact?.foodSavedKg || 310, revenueRecovered: impact?.revenueRecovered || 1180 }
+    { month: 'Sep', foodSavedKg: impact?.foodDivertedKg || 310, revenueRecovered: impact?.revenueRecovered || 1180 }
   ];
 
   const handleExportCSV = () => {
