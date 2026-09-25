@@ -25,8 +25,13 @@ export const LoginPage: React.FC = () => {
   // If already logged in, redirect
   React.useEffect(() => {
     if (currentUser) {
+      const isDevMock = currentUser.uid.startsWith('dev_') || localStorage.getItem('tschuess_dev_mock_user') === 'true';
+      if (!currentUser.emailVerified && !isDevMock) {
+        navigate('/verify-email', { state: { email: currentUser.email, unverified: true }, replace: true });
+        return;
+      }
       const fromPath = (location.state as any)?.from?.pathname;
-      if (fromPath) {
+      if (fromPath && !fromPath.includes('/login') && !fromPath.includes('/verify-email')) {
         navigate(fromPath, { replace: true });
       }
     }
@@ -49,9 +54,16 @@ export const LoginPage: React.FC = () => {
     try {
       const profile = await login(email, password);
 
+      // Check if user's email is verified
+      const isDevMock = currentUser?.uid.startsWith('dev_') || localStorage.getItem('tschuess_dev_mock_user') === 'true';
+      if (profile && !isDevMock && currentUser && !currentUser.emailVerified) {
+        navigate('/verify-email', { state: { email: currentUser.email, unverified: true }, replace: true });
+        return;
+      }
+
       // Determine redirection destination
       const fromPath = (location.state as any)?.from?.pathname;
-      if (fromPath && !fromPath.includes('/login')) {
+      if (fromPath && !fromPath.includes('/login') && !fromPath.includes('/verify-email')) {
         navigate(fromPath, { replace: true });
         return;
       }

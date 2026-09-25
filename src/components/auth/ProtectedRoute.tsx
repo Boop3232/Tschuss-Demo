@@ -26,7 +26,13 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // 3. If specific roles are required (e.g. Retailer or Admin)
+  // 3. Enforce email verification for all real accounts (except dev mock sessions)
+  const isDevMock = currentUser.uid.startsWith('dev_') || localStorage.getItem('tschuess_dev_mock_user') === 'true';
+  if (!currentUser.emailVerified && !isDevMock) {
+    return <Navigate to="/verify-email" state={{ email: currentUser.email, unverified: true }} replace />;
+  }
+
+  // 4. If specific roles are required (e.g. Retailer or Admin)
   if (allowedRoles && allowedRoles.length > 0) {
     // If user profile is still being retrieved from Firestore
     if (!userProfile) {

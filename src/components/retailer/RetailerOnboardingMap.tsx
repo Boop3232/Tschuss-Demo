@@ -133,12 +133,14 @@ export const RetailerOnboardingMap: React.FC<RetailerOnboardingMapProps> = ({
   useEffect(() => {
     const matched = CITY_PRESETS.find((c) => c.name.toLowerCase() === city.toLowerCase());
     if (matched && mapInstanceRef.current && markerRef.current && radiusCircleRef.current) {
-      const newPos = { lat: matched.lat, lng: matched.lng };
-      mapInstanceRef.current.setView([matched.lat, matched.lng], 14);
-      markerRef.current.setLatLng([matched.lat, matched.lng]);
-      radiusCircleRef.current.setLatLng([matched.lat, matched.lng]);
-      setCoords(newPos);
-      onCoordinatesChange(newPos);
+      if (Math.abs(coords.lat - matched.lat) > 0.0001 || Math.abs(coords.lng - matched.lng) > 0.0001) {
+        const newPos = { lat: matched.lat, lng: matched.lng };
+        mapInstanceRef.current.setView([matched.lat, matched.lng], 14);
+        markerRef.current.setLatLng([matched.lat, matched.lng]);
+        radiusCircleRef.current.setLatLng([matched.lat, matched.lng]);
+        setCoords(newPos);
+        onCoordinatesChange(newPos);
+      }
     }
   }, [city]);
 

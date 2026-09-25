@@ -84,12 +84,17 @@ export const DiscoverPage: React.FC = () => {
   }, [loadData]);
 
   // Silent debounced reload on external updates (e.g. retailer toggles active product)
+  const loadDataRef = React.useRef(loadData);
+  useEffect(() => {
+    loadDataRef.current = loadData;
+  }, [loadData]);
+
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
     const handleProductsChanged = () => {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
-        loadData(true);
+        loadDataRef.current(true);
       }, 300);
     };
     window.addEventListener('tschuess_products_changed', handleProductsChanged);
@@ -99,7 +104,7 @@ export const DiscoverPage: React.FC = () => {
       window.removeEventListener('tschuess_products_changed', handleProductsChanged);
       window.removeEventListener('storage', handleProductsChanged);
     };
-  }, [loadData]);
+  }, []);
 
   const handleCategoryChange = (category: string) => {
     setFilters(prev => ({ ...prev, category: category as any }));

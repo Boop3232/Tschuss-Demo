@@ -301,11 +301,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // 2. Set Firebase User Display Name
       await updateFirebaseProfile(cred.user, { displayName: trimmedName });
 
-      // 3. Dispatch Firebase Verification Email
+      // 3. Dispatch Firebase Verification Email with direct app redirect link
       try {
-        await sendEmailVerification(cred.user);
+        const actionCodeSettings = typeof window !== 'undefined' ? {
+          url: `${window.location.origin}/verify-email?verified=true`,
+          handleCodeInApp: true,
+        } : undefined;
+        await sendEmailVerification(cred.user, actionCodeSettings);
+        console.info('Verification email dispatched to:', trimmedEmail);
       } catch (emailErr) {
-        console.warn('Could not send immediate verification email:', emailErr);
+        console.error('Error dispatching initial verification email:', emailErr);
       }
 
       // 4. Create Firestore profile with strictly role = "consumer"
@@ -360,15 +365,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!auth.currentUser) {
       throw new Error('auth/user-not-found');
     }
-    await sendEmailVerification(auth.currentUser);
+    const actionCodeSettings = typeof window !== 'undefined' ? {
+      url: `${window.location.origin}/verify-email?verified=true`,
+      handleCodeInApp: true,
+    } : undefined;
+    await sendEmailVerification(auth.currentUser, actionCodeSettings);
   }, []);
 
-  // Refresh Profile
+  // Refresh Profile & Auth State
   const refreshUserProfile = useCallback(async (): Promise<UserProfile | null> => {
     if (auth.currentUser) {
       await auth.currentUser.reload();
-      setCurrentUser(auth.currentUser);
-      return await fetchUserProfile(auth.currentUser);
+      // Fresh user reference so React triggers update for emailVerified
+      const refreshed = auth.currentUser;
+      setCurrentUser(refreshed ? (Object.assign(Object.create(Object.getPrototypeOf(refreshed)), refreshed) as User) : null);
+      return await fetchUserProfile(refreshed);
     }
     return null;
   }, [fetchUserProfile]);

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Mail, CheckCircle2, AlertCircle, RefreshCw, ArrowRight, LogOut } from 'lucide-react';
+import { Mail, CheckCircle2, AlertCircle, RefreshCw, ArrowRight, LogOut, ShieldAlert, Inbox } from 'lucide-react';
+import { applyActionCode } from 'firebase/auth';
+import { auth } from '../../lib/firebase';
 import { useAuth } from '../../context/AuthContext';
 import { getFriendlyAuthErrorMessage } from '../../utils/authErrors';
 
@@ -16,7 +18,33 @@ export const VerifyEmailPage: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Email to display: from auth user or navigation state
-  const displayEmail = currentUser?.email || (location.state as any)?.email || 'your email';
+  const displayEmail = currentUser?.email || (location.state as any)?.email || 'your email address';
+
+  // Handle URL with action code if clicked from verification link (e.g. ?oobCode=... or mode=verifyEmail)
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const oobCode = searchParams.get('oobCode');
+    const mode = searchParams.get('mode');
+
+    if (oobCode && (mode === 'verifyEmail' || !mode)) {
+      setChecking(true);
+      applyActionCode(auth, oobCode)
+        .then(async () => {
+          await refreshUserProfile();
+          setSuccessMessage('Email verified successfully! Taking you to your Tschüss dashboard...');
+          setTimeout(() => {
+            navigate('/app/discover', { replace: true });
+          }, 1500);
+        })
+        .catch((err) => {
+          console.error('Error applying action code:', err);
+          setErrorMessage('The verification link has expired or has already been used. Please request a new one below.');
+        })
+        .finally(() => {
+          setChecking(false);
+        });
+    }
+  }, [location.search, navigate, refreshUserProfile]);
 
   // Countdown timer for cooldown
   useEffect(() => {
@@ -35,7 +63,7 @@ export const VerifyEmailPage: React.FC = () => {
 
     try {
       await resendVerificationEmail();
-      setSuccessMessage('A fresh verification link has been dispatched to your inbox.');
+      setSuccessMessage(`A fresh verification link was sent to ${displayEmail}. Please check your inbox and Spam/Junk folder.`);
       setCooldown(60); // 60 seconds cooldown
     } catch (err: any) {
       setErrorMessage(getFriendlyAuthErrorMessage(err));
@@ -48,14 +76,15 @@ export const VerifyEmailPage: React.FC = () => {
     setChecking(true);
     setErrorMessage(null);
     try {
-      await refreshUserProfile();
-      if (currentUser?.emailVerified) {
+      const profile = await refreshUserProfile();
+      const updatedUser = auth.currentUser;
+      if (updatedUser?.emailVerified) {
         setSuccessMessage('Email verified successfully! Redirecting to your dashboard...');
         setTimeout(() => {
           navigate('/app/discover', { replace: true });
         }, 1200);
       } else {
-        setErrorMessage('Your email address has not been verified yet. Please check your inbox and click the link in the email.');
+        setErrorMessage('Your email address is not yet verified. Please click the verification link sent to your email, then click this button again.');
       }
     } catch (err: any) {
       setErrorMessage(getFriendlyAuthErrorMessage(err));
@@ -73,11 +102,11 @@ export const VerifyEmailPage: React.FC = () => {
 
         <div>
           <h1 className="text-2xl sm:text-3xl font-black font-display text-stone-900 tracking-tight">
-            Verify your email
+            Verify your email address
           </h1>
           <p className="text-xs sm:text-sm text-stone-600 mt-1 max-w-xs mx-auto">
-            We sent a verification link to{' '}
-            <span className="font-bold text-stone-900">{displayEmail}</span>.
+            A verification link was dispatched to{' '}
+            <span className="font-bold text-stone-900 break-all">{displayEmail}</span>.
           </p>
         </div>
       </div>
@@ -99,18 +128,26 @@ export const VerifyEmailPage: React.FC = () => {
             </div>
           )}
 
+          {/* Spam / Junk Notice Box */}
+          <div className="p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200/70 text-amber-900 text-xs flex items-start gap-2.5">
+            <Inbox className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <p className="font-bold text-amber-950">Don't see the email?</p>
+              <p className="text-2xs text-amber-900/90 leading-relaxed">
+                Automated security emails often land in your <strong>Spam</strong>, <strong>Junk</strong>, or <strong>Promotions</strong> folder. Sender: <code className="bg-amber-100/70 px-1 py-0.5 rounded text-amber-900 text-3xs break-all">noreply@project-37091182-0939-4d22-a92.firebaseapp.com</code>.
+              </p>
+            </div>
+          </div>
+
           <div className="space-y-3 text-xs text-stone-600 leading-relaxed bg-stone-50 p-4 rounded-2xl border border-stone-100">
             <p className="font-semibold text-stone-800">
               Steps to verify:
             </p>
             <ol className="list-decimal list-inside space-y-1 text-stone-500">
-              <li>Open your email client and look for an email from Tschüss.</li>
+              <li>Open your email inbox (and check Spam/Junk folder).</li>
               <li>Click the verification link provided in the message.</li>
-              <li>Return here and click "Check Verification Status" below.</li>
+              <li>Return to this page and click <strong>"I've Verified My Email"</strong> below.</li>
             </ol>
-            <p className="text-2xs text-stone-400 pt-1">
-              If you don't see the email, check your spam or promotions folder.
-            </p>
           </div>
 
           <div className="space-y-3 pt-2">
@@ -126,7 +163,7 @@ export const VerifyEmailPage: React.FC = () => {
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
                 <>
-                  <span>Check Verification Status</span>
+                  <span>I've Verified My Email</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
@@ -152,7 +189,7 @@ export const VerifyEmailPage: React.FC = () => {
           </div>
 
           {/* Log out / Switch Account */}
-          <div className="pt-4 border-t border-stone-100 flex items-center justify-between text-xs">
+          <div className="pt-4 border-t border-stone-100 flex items-center justify-center text-xs">
             <button
               type="button"
               onClick={async () => {
@@ -162,15 +199,8 @@ export const VerifyEmailPage: React.FC = () => {
               className="text-stone-500 hover:text-stone-800 flex items-center gap-1.5"
             >
               <LogOut className="w-3.5 h-3.5" />
-              <span>Use a different account</span>
+              <span>Use a different account or sign out</span>
             </button>
-
-            <Link
-              to="/app/discover"
-              className="text-emerald-700 font-bold hover:text-emerald-900 transition-colors"
-            >
-              Continue to app
-            </Link>
           </div>
         </div>
       </div>
