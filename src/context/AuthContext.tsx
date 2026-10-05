@@ -24,7 +24,7 @@ export interface AuthContextType {
   isAuthenticated: boolean;
   isEmailVerified: boolean;
   login: (email: string, pass: string) => Promise<UserProfile | null>;
-  register: (email: string, pass: string, name: string) => Promise<UserProfile>;
+  register: (email: string, pass: string, name: string) => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   resendVerificationEmail: (email?: string, password?: string) => Promise<void>;
@@ -46,8 +46,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // Helper to fetch or create user profile from Firestore
+  // Only verified Firebase users should receive a Firestore profile.
   const fetchUserProfile = useCallback(async (firebaseUser: User): Promise<UserProfile | null> => {
+    if (!firebaseUser.emailVerified) {
+      setUserProfile(null);
+      return null;
+    }
+
     try {
       const userDocRef = doc(db, 'users', firebaseUser.uid);
       const userSnap = await getDoc(userDocRef);
@@ -98,7 +103,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setCurrentUser(user);
-        await fetchUserProfile(user);
+        if (user.emailVerified) {
+          await fetchUserProfile(user);
+        } else {
+          setUserProfile(null);
+        }
       } else {
         setCurrentUser(null);
         setUserProfile(null);
@@ -139,7 +148,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [fetchUserProfile]);
 
   // Real Email/Password consumer registration with mandatory email verification and rollback
-  const register = useCallback(async (email: string, pass: string, name: string): Promise<UserProfile> => {
+  const register = useCallback(async (email: string, pass: string, name: string): Promise<void> => {
     setLoading(true);
     try {
       const trimmedEmail = email.trim();
@@ -180,28 +189,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
 
-      // 4. Create Firestore profile with strictly role = "consumer"
-      const newProfile: UserProfile = {
-        uid: cred.user.uid,
-        name: trimmedName,
-        email: trimmedEmail,
-        role: 'consumer', // Mandatory default for public sign-up
-        language: 'de',
-        notificationPreferences: {
-          email: true,
-          push: true,
-          dealsNearMe: true,
-          reservationUpdates: true,
-          savedPriceDrops: true
-        },
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      };
-
-      await setDoc(doc(db, 'users', cred.user.uid), newProfile);
+      // The profile is created after email verification by refreshUserProfile().
       setCurrentUser(cred.user);
-      setUserProfile(newProfile);
-      return newProfile;
+      setUserProfile(null);
     } finally {
       setLoading(false);
     }
