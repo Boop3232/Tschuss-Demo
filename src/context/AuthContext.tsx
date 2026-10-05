@@ -7,7 +7,6 @@ import {
   onAuthStateChanged,
   sendPasswordResetEmail,
   sendEmailVerification,
-  deleteUser,
   updateProfile as updateFirebaseProfile
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
@@ -178,14 +177,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.info('Verification email dispatched via standard template to:', trimmedEmail);
         } catch (defaultErr: any) {
           console.error('All verification email dispatch attempts failed:', defaultErr);
-          // CRITICAL ROLLBACK: Do NOT leave a phantom account without verification!
-          try {
-            await deleteUser(cred.user);
-          } catch (deleteErr) {
-            console.error('Could not delete unverified user during rollback:', deleteErr);
-          }
-          const errorCode = defaultErr?.code || 'verification-email-failed';
-          throw new Error(`auth/${errorCode}`);
+          // Keep the Auth account so the user can retry from the verification page.
+          // Deleting it here causes every retry to create another account and can
+          // repeatedly trigger Firebase's signup and email-send limits.
+          setCurrentUser(cred.user);
+          setUserProfile(null);
+          return;
         }
       }
 
