@@ -131,9 +131,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // Strict verification check:
       if (!cred.user.emailVerified) {
-        // Immediately sign out unverified user so they cannot access protected areas
-        await firebaseSignOut(auth);
-        setCurrentUser(null);
+        // Keep the session so the verification page can resend the email.
+        // Protected routes still block this user until email verification.
+        setCurrentUser(cred.user);
         setUserProfile(null);
         throw new Error('auth/unverified-email');
       }
