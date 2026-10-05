@@ -169,10 +169,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await sendEmailVerification(cred.user, actionCodeSettings);
         emailDispatched = true;
         console.info('Verification email dispatched to:', trimmedEmail);
-      } catch (actionErr) {
-        console.warn('ActionCodeSettings dispatch failed, attempting standard dispatch:', actionErr);
-        try {
-          await sendEmailVerification(cred.user);
+        } catch (actionErr) {
+          console.warn('ActionCodeSettings dispatch failed, attempting standard dispatch:', actionErr);
+          if ((actionErr as any)?.code === 'auth/too-many-requests') {
+            throw actionErr;
+          }
+          try {
+            await sendEmailVerification(cred.user);
           emailDispatched = true;
           console.info('Verification email dispatched via standard template to:', trimmedEmail);
         } catch (defaultErr: any) {
@@ -234,9 +237,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         handleCodeInApp: true,
       } : undefined;
       await sendEmailVerification(targetUser, actionCodeSettings);
-    } catch {
-      await sendEmailVerification(targetUser);
-    } finally {
+      } catch (resendErr: any) {
+        if (resendErr?.code === 'auth/too-many-requests') {
+          throw resendErr;
+        }
+        await sendEmailVerification(targetUser);
+      } finally {
       if (temporaryLogin) {
         await firebaseSignOut(auth);
       }

@@ -29,7 +29,7 @@ export function getFriendlyAuthErrorMessage(error: unknown): string {
     return 'This account has been disabled. Please contact Tschüss platform support.';
   }
   if (message.includes('auth/too-many-requests')) {
-    return 'Too many failed attempts. Access is temporarily locked for security. Please try again in a few minutes or reset your password.';
+    return 'Firebase has temporarily limited verification emails. Please wait before trying again; repeated clicks extend the lockout.';
   }
   if (message.includes('auth/network-request-failed')) {
     return 'Unable to connect to the authentication server. Please check your internet connection.';
