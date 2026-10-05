@@ -16,13 +16,10 @@ export const RegisterPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Only redirect if currentUser is already logged in AND email is verified (or dev mock session)
+  // Only redirect if currentUser is already logged in AND email is verified
   React.useEffect(() => {
-    if (currentUser) {
-      const isDevMock = currentUser.uid.startsWith('dev_') || localStorage.getItem('tschuess_dev_mock_user') === 'true';
-      if (currentUser.emailVerified || isDevMock) {
-        navigate('/app/discover', { replace: true });
-      }
+    if (currentUser && currentUser.emailVerified) {
+      navigate('/app/discover', { replace: true });
     }
   }, [currentUser, navigate]);
 

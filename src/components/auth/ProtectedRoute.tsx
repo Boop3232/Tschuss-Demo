@@ -26,9 +26,8 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // 3. Enforce email verification for all real accounts (except dev mock sessions)
-  const isDevMock = currentUser.uid.startsWith('dev_') || localStorage.getItem('tschuess_dev_mock_user') === 'true';
-  if (!currentUser.emailVerified && !isDevMock) {
+  // 3. Enforce email verification: unverified users cannot access protected routes
+  if (!currentUser.emailVerified) {
     return <Navigate to="/verify-email" state={{ email: currentUser.email, unverified: true }} replace />;
   }
 

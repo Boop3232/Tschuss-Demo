@@ -7,7 +7,7 @@ import { getFriendlyAuthErrorMessage } from '../../utils/authErrors';
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, resetPassword, currentUser, switchToAdminDev } = useAuth();
+  const { login, resetPassword, currentUser } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -25,8 +25,7 @@ export const LoginPage: React.FC = () => {
   // If already logged in, redirect
   React.useEffect(() => {
     if (currentUser) {
-      const isDevMock = currentUser.uid.startsWith('dev_') || localStorage.getItem('tschuess_dev_mock_user') === 'true';
-      if (!currentUser.emailVerified && !isDevMock) {
+      if (!currentUser.emailVerified) {
         navigate('/verify-email', { state: { email: currentUser.email, unverified: true }, replace: true });
         return;
       }
@@ -54,13 +53,6 @@ export const LoginPage: React.FC = () => {
     try {
       const profile = await login(email, password);
 
-      // Check if user's email is verified
-      const isDevMock = currentUser?.uid.startsWith('dev_') || localStorage.getItem('tschuess_dev_mock_user') === 'true';
-      if (profile && !isDevMock && currentUser && !currentUser.emailVerified) {
-        navigate('/verify-email', { state: { email: currentUser.email, unverified: true }, replace: true });
-        return;
-      }
-
       // Determine redirection destination
       const fromPath = (location.state as any)?.from?.pathname;
       if (fromPath && !fromPath.includes('/login') && !fromPath.includes('/verify-email')) {
@@ -78,6 +70,10 @@ export const LoginPage: React.FC = () => {
         navigate('/app/discover', { replace: true });
       }
     } catch (err: any) {
+      if (err?.message?.includes('auth/unverified-email')) {
+        navigate('/verify-email', { state: { email: email.trim(), unverified: true } });
+        return;
+      }
       const friendlyMsg = getFriendlyAuthErrorMessage(err);
       setErrorMessage(friendlyMsg);
     } finally {
@@ -261,22 +257,6 @@ export const LoginPage: React.FC = () => {
               <span>
                 Supermarkets & Bakeries: Log in here with your retailer credentials to access the Store Portal.
               </span>
-            </div>
-
-            <div className="pt-2 border-t border-stone-100 flex items-center justify-between">
-              <span className="text-2xs text-stone-500 font-medium">Tschüss Company Staff?</span>
-              <button
-                type="button"
-                id="btn-login-admin-quick-access"
-                onClick={async () => {
-                  await switchToAdminDev();
-                  navigate('/admin');
-                }}
-                className="px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-900 border border-indigo-200/80 text-2xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
-              >
-                <ShieldCheck className="w-3.5 h-3.5 text-indigo-600" />
-                <span>Admin Operations Access</span>
-              </button>
             </div>
           </div>
         </div>

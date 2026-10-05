@@ -49,9 +49,6 @@ import { RetailerStorePage } from './pages/retailer/RetailerStorePage';
 // Admin Page
 import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
 
-// Development Helper
-import { DevRoleSwitcher } from './components/common/DevRoleSwitcher';
-
 // Tschüss AI Assistant Chatbot
 import { TschussAIChatBubble } from './components/chat/TschussAIChatBubble';
 
@@ -128,9 +125,6 @@ export default function App() {
 
             {/* Tschüss AI Chatbot Bubble */}
             <TschussAIChatBubble />
-
-            {/* Development Role Switcher Floating Widget */}
-            <DevRoleSwitcher />
           </BrowserRouter>
         </AuthProvider>
       </LocationProvider>

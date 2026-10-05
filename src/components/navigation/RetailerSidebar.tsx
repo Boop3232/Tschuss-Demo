@@ -16,7 +16,7 @@ import { useAuth } from '../../context/AuthContext';
 
 export const RetailerSidebar: React.FC = () => {
   const navigate = useNavigate();
-  const { userProfile, isDevRoleActive, switchToConsumerDev } = useAuth();
+  const { userProfile } = useAuth();
 
   const navItems = [
     { label: 'Overview', path: '/business', icon: LayoutDashboard, end: true },
@@ -75,33 +75,6 @@ export const RetailerSidebar: React.FC = () => {
           })}
         </nav>
       </div>
-
-      {/* Dev Mode Banner & Switch in Retailer Sidebar */}
-      {isDevRoleActive && (
-        <div className="p-3.5 rounded-2xl bg-stone-100 border border-stone-200 space-y-2 mb-2">
-          <div className="flex items-center justify-between">
-            <span className="text-3xs font-black uppercase tracking-wider text-stone-800 bg-stone-200 px-1.5 py-0.5 rounded shadow-2xs">
-              DEV MODE ACTIVE
-            </span>
-            <Code2 className="w-3.5 h-3.5 text-stone-600" />
-          </div>
-          <p className="text-3xs text-stone-600 font-medium leading-tight">
-            Operating as mock retailer. Click below to switch back to consumer.
-          </p>
-          <button
-            type="button"
-            id="btn-sidebar-dev-switch-consumer"
-            onClick={async () => {
-              await switchToConsumerDev();
-              navigate('/app/discover');
-            }}
-            className="w-full py-2 px-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 active:scale-98 text-white text-xs font-semibold transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Switch to Consumer</span>
-          </button>
-        </div>
-      )}
 
       {/* Switch to Consumer View footer */}
       <div className="pt-4 border-t border-white/60 space-y-2">

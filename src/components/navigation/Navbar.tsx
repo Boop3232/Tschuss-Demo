@@ -31,10 +31,7 @@ export const Navbar: React.FC = () => {
     currentUser, 
     userProfile, 
     role, 
-    logout,
-    switchToRetailerDev,
-    switchToConsumerDev,
-    isDevRoleActive
+    logout
   } = useAuth();
   const { language, setLanguage, t } = useLanguage();
   const { location } = useLocation();
@@ -220,62 +217,6 @@ export const Navbar: React.FC = () => {
                 )}
               </Link>
 
-              {/* Development Shortcut: Switch to Retailer / Consumer */}
-              {role !== 'retailer' && role !== 'admin' ? (
-                <button
-                  type="button"
-                  id="btn-nav-dev-switch-retailer"
-                  onClick={async () => {
-                    await switchToRetailerDev();
-                    navigate('/business');
-                  }}
-                  className="hidden 2xl:inline-flex items-center gap-2 px-3.5 h-8.5 rounded-full bg-stone-100 hover:bg-stone-200/80 text-stone-700 border border-stone-200 text-xs font-semibold transition-all shadow-2xs whitespace-nowrap cursor-pointer shrink-0 active:scale-95"
-                  title="Development Tool: Switch to Retailer portal"
-                >
-                  <span className="px-1.5 py-0.2 rounded-full text-3xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300 uppercase">DEV</span>
-                  <Store className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
-                  <span>Switch to Retailer</span>
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  id="btn-nav-dev-switch-consumer"
-                  onClick={async () => {
-                    await switchToConsumerDev();
-                    navigate('/app/discover');
-                  }}
-                  className="hidden 2xl:inline-flex items-center gap-2 px-3.5 h-8.5 rounded-full bg-stone-100 hover:bg-stone-200/80 text-stone-700 border border-stone-200 text-xs font-semibold transition-all shadow-2xs whitespace-nowrap cursor-pointer shrink-0 active:scale-95"
-                  title="Development Tool: Switch back to Consumer view"
-                >
-                  <span className="px-1.5 py-0.2 rounded-full text-3xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300 uppercase">DEV</span>
-                  <User className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
-                  <span>Switch to Consumer</span>
-                </button>
-              )}
-
-              {/* Retailer Portal Link (Visible on 2xl+ screens) */}
-              {currentUser && (role === 'retailer' || role === 'admin') && !isBusinessRoute && (
-                <Link
-                  to="/business"
-                  className="hidden 2xl:flex items-center gap-1.5 px-3.5 h-8.5 rounded-full bg-stone-100 hover:bg-stone-200/80 text-stone-700 border border-stone-200 text-xs font-semibold transition-all shadow-2xs whitespace-nowrap no-underline shrink-0 active:scale-95"
-                >
-                  <Store className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
-                  <span>Retailer</span>
-                </Link>
-              )}
-
-              {/* Tschüss Corporate Admin Link */}
-              {currentUser && role === 'admin' && (
-                <Link
-                  to="/admin"
-                  id="btn-nav-admin-dashboard"
-                  className="hidden xl:flex items-center gap-1.5 px-3.5 h-8.5 rounded-full bg-indigo-50 hover:bg-indigo-100/80 text-indigo-900 border border-indigo-200 text-xs font-bold transition-all shadow-2xs whitespace-nowrap no-underline shrink-0 active:scale-95"
-                >
-                  <Shield className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-                  <span>Tschüss Admin</span>
-                </Link>
-              )}
-
               {/* User Avatar Menu Dropdown OR Login/Register Buttons */}
               {currentUser ? (
                 <div className="relative shrink-0">
@@ -349,45 +290,6 @@ export const Navbar: React.FC = () => {
                               <span>{language === 'de' ? 'Admin-Bereich' : 'Admin Center'}</span>
                             </Link>
                           )}
-
-                          {/* Development Role Switch in Dropdown */}
-                          <div className="pt-1.5 mt-1.5 border-t border-stone-200">
-                            {role !== 'retailer' ? (
-                              <button
-                                type="button"
-                                id="btn-dropdown-dev-switch-retailer"
-                                onClick={async () => {
-                                  setIsUserMenuOpen(false);
-                                  await switchToRetailerDev();
-                                  navigate('/business');
-                                }}
-                                className="w-full px-3 py-2 rounded-2xl font-semibold text-stone-700 hover:text-stone-900 hover:bg-stone-100 flex items-center justify-between text-xs transition-colors text-left cursor-pointer"
-                              >
-                                <span className="flex items-center gap-2.5">
-                                  <Store className="w-4 h-4 text-amber-600 shrink-0" />
-                                  <span>{language === 'de' ? 'Zu Händler wechseln' : 'Switch to Retailer'}</span>
-                                </span>
-                                <span className="text-3xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 uppercase font-bold border border-emerald-300">DEV</span>
-                              </button>
-                            ) : (
-                              <button
-                                type="button"
-                                id="btn-dropdown-dev-switch-consumer"
-                                onClick={async () => {
-                                  setIsUserMenuOpen(false);
-                                  await switchToConsumerDev();
-                                  navigate('/app/discover');
-                                }}
-                                className="w-full px-3 py-2 rounded-2xl font-semibold text-stone-700 hover:text-stone-900 hover:bg-stone-100 flex items-center justify-between text-xs transition-colors text-left cursor-pointer"
-                              >
-                                <span className="flex items-center gap-2.5">
-                                  <User className="w-4 h-4 text-emerald-600 shrink-0" />
-                                  <span>{language === 'de' ? 'Zu Käufer wechseln' : 'Switch to Consumer'}</span>
-                                </span>
-                                <span className="text-3xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 uppercase font-bold border border-emerald-300">DEV</span>
-                              </button>
-                            )}
-                          </div>
 
                           <button
                             type="button"
@@ -545,48 +447,6 @@ export const Navbar: React.FC = () => {
                   <span className="relative z-10">English (EN)</span>
                 </button>
               </div>
-            </div>
-
-            {/* Development Role Switcher in Mobile Drawer */}
-            <div className="p-3 rounded-2xl bg-stone-50 border border-stone-200 flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2 min-w-0">
-                <span className="px-2 py-0.5 rounded-full text-3xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300 uppercase">DEV</span>
-                <span className="text-xs font-bold text-stone-800 truncate">
-                  {language === 'de' ? 'Rolle' : 'Role'}: <span className="text-emerald-700 capitalize">
-                    {role === 'retailer' ? (language === 'de' ? 'Händler' : 'Retailer') : (role === 'admin' ? 'Admin' : (language === 'de' ? 'Käufer' : 'Consumer'))}
-                  </span>
-                </span>
-              </div>
-
-              {role !== 'retailer' && role !== 'admin' ? (
-                <button
-                  type="button"
-                  id="btn-mobile-dev-switch-retailer"
-                  onClick={async () => {
-                    setIsMobileMenuOpen(false);
-                    await switchToRetailerDev();
-                    navigate('/business');
-                  }}
-                  className="px-3 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-xs font-bold flex items-center gap-1 shadow-xs shrink-0 cursor-pointer"
-                >
-                  <Store className="w-3.5 h-3.5" />
-                  <span>{language === 'de' ? 'Zu Händler' : 'Switch to Retailer'}</span>
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  id="btn-mobile-dev-switch-consumer"
-                  onClick={async () => {
-                    setIsMobileMenuOpen(false);
-                    await switchToConsumerDev();
-                    navigate('/app/discover');
-                  }}
-                  className="px-3 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-xs font-bold flex items-center gap-1 shadow-xs shrink-0 cursor-pointer"
-                >
-                  <User className="w-3.5 h-3.5" />
-                  <span>{language === 'de' ? 'Zu Käufer' : 'Switch to Consumer'}</span>
-                </button>
-              )}
             </div>
 
             {/* Auth actions in drawer */}

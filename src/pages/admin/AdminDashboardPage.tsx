@@ -36,7 +36,6 @@ type AdminTab = 'overview' | 'applications' | 'stores' | 'inventory' | 'reservat
 
 export const AdminDashboardPage: React.FC = () => {
   const navigate = useNavigate();
-  const { switchToConsumerDev, switchToRetailerDev } = useAuth();
 
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
   const [stores, setStores] = useState<Store[]>([]);
@@ -382,30 +381,6 @@ export const AdminDashboardPage: React.FC = () => {
               <span className="text-stone-500">
                 Sync Engine: <strong className="text-emerald-700 font-semibold">Active</strong>
               </span>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="text-stone-400 text-2xs font-medium">Quick switch view:</span>
-              <button
-                type="button"
-                onClick={async () => {
-                  await switchToConsumerDev();
-                  navigate('/app/discover');
-                }}
-                className="px-2.5 py-1 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-2xs font-semibold cursor-pointer"
-              >
-                Consumer View
-              </button>
-              <button
-                type="button"
-                onClick={async () => {
-                  await switchToRetailerDev();
-                  navigate('/business');
-                }}
-                className="px-2.5 py-1 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-2xs font-semibold cursor-pointer"
-              >
-                Store Portal
-              </button>
             </div>
           </div>
         </div>

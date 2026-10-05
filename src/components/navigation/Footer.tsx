@@ -68,14 +68,9 @@ export const Footer: React.FC = () => {
           {/* Business & Legal */}
           <div className="space-y-3">
             <h4 className="text-3xs font-bold text-stone-900 uppercase tracking-widest">
-              Enterprise & Retailer
+              Business & Safety
             </h4>
             <ul className="space-y-2.5 text-stone-600">
-              <li>
-                <Link to="/business" className="hover:text-emerald-700 transition-colors">
-                  Retailer Operations Hub
-                </Link>
-              </li>
               <li>
                 <Link to="/for-business" className="hover:text-emerald-700 transition-colors">
                   Partner Supermarket Onboarding
@@ -84,12 +79,6 @@ export const Footer: React.FC = () => {
               <li>
                 <Link to="/how-it-works" className="hover:text-emerald-700 transition-colors">
                   MHD & DIN Food Safety Standards
-                </Link>
-              </li>
-              <li>
-                <Link to="/admin" className="text-indigo-600 hover:text-indigo-800 font-semibold transition-colors flex items-center gap-1.5">
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  <span>Tschüss Company Admin Portal</span>
                 </Link>
               </li>
             </ul>

@@ -24,10 +24,7 @@ export const ConsumerProfilePage: React.FC = () => {
     updateUserProfile, 
     logout, 
     role, 
-    currentUser,
-    switchToRetailerDev,
-    switchToConsumerDev,
-    isDevRoleActive
+    currentUser
   } = useAuth();
   const { language, setLanguage } = useLanguage();
   const { location } = useLocation();
@@ -262,69 +259,6 @@ export const ConsumerProfilePage: React.FC = () => {
           </button>
         </div>
       </form>
-
-      {/* Development Mode Role Switcher */}
-      <div className="p-6 rounded-3xl bg-white border border-stone-200/90 space-y-4 shadow-xs">
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-2xl bg-stone-900 text-white flex items-center justify-center shadow-xs shrink-0">
-              <Store className="w-4.5 h-4.5" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-sm font-semibold text-stone-900">
-                  Developer Mode: Role Switcher
-                </h3>
-                <span className="px-1.5 py-0.5 rounded-md text-xs font-bold bg-stone-200 text-stone-800 uppercase shadow-2xs">
-                  DEV
-                </span>
-              </div>
-              <p className="text-xs text-stone-500 font-normal mt-0.5">
-                Instant development simulation to toggle between Consumer and Retailer portal with mock inventory access.
-              </p>
-            </div>
-          </div>
-
-          <span className="px-3 py-1 rounded-full bg-stone-100 text-stone-800 text-xs font-semibold uppercase tracking-wider border border-stone-200">
-            Active Role: {role || 'consumer'}
-          </span>
-        </div>
-
-        <div className="pt-4 border-t border-stone-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <p className="text-xs text-stone-500">
-            Test business workflows, product uploads, and reservation management:
-          </p>
-          <div className="flex items-center gap-2">
-            {role !== 'retailer' && role !== 'admin' ? (
-              <button
-                type="button"
-                id="btn-profile-dev-switch-retailer"
-                onClick={async () => {
-                  await switchToRetailerDev();
-                  navigate('/business');
-                }}
-                className="px-4 py-2 rounded-xl bg-stone-900 hover:bg-stone-800 active:scale-95 text-white text-xs font-semibold transition-all shadow-xs flex items-center gap-2 cursor-pointer"
-              >
-                <Store className="w-4 h-4" />
-                <span>Switch to Retailer & Open Portal</span>
-              </button>
-            ) : (
-              <button
-                type="button"
-                id="btn-profile-dev-switch-consumer"
-                onClick={async () => {
-                  await switchToConsumerDev();
-                  navigate('/app/discover');
-                }}
-                className="px-4 py-2 rounded-xl bg-stone-900 hover:bg-stone-800 active:scale-95 text-white text-xs font-semibold transition-all shadow-xs flex items-center gap-2 cursor-pointer"
-              >
-                <User className="w-4 h-4" />
-                <span>Switch back to Consumer</span>
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
 
       {/* Sign Out Card */}
       <div className="p-5 rounded-3xl bg-white border border-stone-200/90 flex items-center justify-between shadow-xs">
