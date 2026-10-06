@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, User, Eye, EyeOff, AlertCircle, ArrowRight, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { Mail, Lock, User, Store, Eye, EyeOff, AlertCircle, ArrowRight, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { getFriendlyAuthErrorMessage } from '../../utils/authErrors';
 
@@ -92,6 +92,28 @@ export const RegisterPage: React.FC = () => {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-6 sm:px-10 rounded-3xl border border-stone-200/70 shadow-xs space-y-6">
+          <div className="flex rounded-2xl bg-stone-100 p-1" role="tablist" aria-label="Choose account type">
+            <button
+              type="button"
+              role="tab"
+              aria-selected="true"
+              className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-white px-3 py-2 text-xs font-bold text-emerald-700 shadow-sm"
+            >
+              <User className="w-3.5 h-3.5" />
+              Consumer
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected="false"
+              onClick={() => navigate('/login', { state: { accountType: 'retailer' } })}
+              className="flex-1 flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-bold text-stone-500 transition-all hover:text-stone-700"
+            >
+              <Store className="w-3.5 h-3.5" />
+              Retailer
+            </button>
+          </div>
+
           {/* Error Message Box */}
           {errorMessage && (
             <div 

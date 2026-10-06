@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, AlertCircle, ArrowRight, CheckCircle2, Store, Sparkles, ShieldCheck } from 'lucide-react';
+import { Mail, Lock, User, Eye, EyeOff, AlertCircle, ArrowRight, CheckCircle2, Store, Sparkles, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { getFriendlyAuthErrorMessage } from '../../utils/authErrors';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, resetPassword, currentUser } = useAuth();
+  const { login, logout, resetPassword, currentUser } = useAuth();
+
+  const [loginType, setLoginType] = useState<'consumer' | 'retailer'>(
+    (location.state as any)?.accountType === 'retailer' ? 'retailer' : 'consumer'
+  );
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -52,6 +56,12 @@ export const LoginPage: React.FC = () => {
     setLoading(true);
     try {
       const profile = await login(email, password);
+
+      if (loginType === 'retailer' && profile?.role !== 'retailer' && profile?.role !== 'admin') {
+        await logout();
+        setErrorMessage('This account does not have retailer access. Choose Consumer login or use an approved retailer account.');
+        return;
+      }
 
       // Determine redirection destination
       const fromPath = (location.state as any)?.from?.pathname;
@@ -136,6 +146,35 @@ export const LoginPage: React.FC = () => {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-6 sm:px-10 rounded-3xl border border-stone-200/70 shadow-xs space-y-6">
+          <div className="flex rounded-2xl bg-stone-100 p-1" role="tablist" aria-label="Choose account type">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={loginType === 'consumer'}
+              onClick={() => {
+                setLoginType('consumer');
+                setErrorMessage(null);
+              }}
+              className={`flex-1 flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-bold transition-all ${loginType === 'consumer' ? 'bg-white text-emerald-700 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}
+            >
+              <User className="w-3.5 h-3.5" />
+              Consumer
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={loginType === 'retailer'}
+              onClick={() => {
+                setLoginType('retailer');
+                setErrorMessage(null);
+              }}
+              className={`flex-1 flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-bold transition-all ${loginType === 'retailer' ? 'bg-white text-emerald-700 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}
+            >
+              <Store className="w-3.5 h-3.5" />
+              Retailer
+            </button>
+          </div>
+
           {/* Error Message Box */}
           {errorMessage && (
             <div 
@@ -232,7 +271,7 @@ export const LoginPage: React.FC = () => {
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 ) : (
                   <>
-                    <span>Log in</span>
+                    <span>{loginType === 'retailer' ? 'Log in to Store Portal' : 'Log in'}</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
@@ -252,17 +291,6 @@ export const LoginPage: React.FC = () => {
               </Link>
             </p>
 
-            <Link
-              to="/business"
-              className="p-3 rounded-2xl bg-amber-50/60 border border-amber-200/60 text-stone-700 text-2xs flex items-center gap-2 text-left hover:bg-amber-100/70 transition-colors"
-              aria-label="Retailer login"
-            >
-              <Store className="w-4 h-4 text-amber-700 shrink-0" />
-              <span>
-                <strong className="text-amber-900">Retailer login</strong>
-                <span className="block mt-0.5">Access the Store Portal with your retailer credentials.</span>
-              </span>
-            </Link>
           </div>
         </div>
       </div>
