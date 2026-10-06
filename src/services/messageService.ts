@@ -66,6 +66,28 @@ const DEMO_MESSAGES: PlatformMessage[] = [
   }
 ];
 
+const STORE_MESSAGES_CACHE_KEY = 'tschuss_store_messages_v1';
+
+function readCachedStoreMessages(): Message[] {
+  try {
+    const value = localStorage.getItem(STORE_MESSAGES_CACHE_KEY);
+    const parsed = value ? JSON.parse(value) : [];
+    return Array.isArray(parsed) ? parsed.filter((message): message is Message =>
+      !!message && typeof message.id === 'string' && typeof message.storeId === 'string'
+    ) : [];
+  } catch {
+    return [];
+  }
+}
+
+function cacheStoreMessages(messages: Message[]): void {
+  try {
+    localStorage.setItem(STORE_MESSAGES_CACHE_KEY, JSON.stringify(messages));
+  } catch (error) {
+    console.warn('Could not cache retailer messages locally:', error);
+  }
+}
+
 export const messageService = {
   async getMessagesForUser(userId: string): Promise<PlatformMessage[]> {
     try {
@@ -81,7 +103,38 @@ export const messageService = {
   },
 
   async getStoreMessages(storeId: string): Promise<Message[]> {
-    return DEMO_STORE_MESSAGES.filter(m => m.storeId === storeId);
+    const cachedMessages = readCachedStoreMessages();
+    const messagesById = new Map<string, Message>();
+    [...DEMO_STORE_MESSAGES, ...cachedMessages]
+      .filter(message => message.storeId === storeId)
+      .forEach(message => messagesById.set(message.id, message));
+
+    try {
+      const q = query(collection(db, 'messages'), where('storeId', '==', storeId));
+      const snap = await getDocs(q);
+      for (const messageDoc of snap.docs) {
+        const data = messageDoc.data();
+        messagesById.set(messageDoc.id, {
+          id: messageDoc.id,
+          senderId: typeof data.senderId === 'string' ? data.senderId : '',
+          senderName: typeof data.senderName === 'string' ? data.senderName : 'Store team',
+          recipientId: typeof data.recipientId === 'string' ? data.recipientId : '',
+          storeId,
+          content: typeof data.content === 'string' ? data.content : '',
+          createdAt: typeof data.createdAt === 'string'
+            ? data.createdAt
+            : data.createdAt?.toDate?.()?.toISOString?.() || ''
+        });
+      }
+    } catch (error) {
+      console.warn('Could not load retailer messages from Firestore; using cached messages:', error);
+    }
+
+    const messages = Array.from(messagesById.values());
+    const allCached = new Map(readCachedStoreMessages().map(message => [message.id, message]));
+    messages.forEach(message => allCached.set(message.id, message));
+    cacheStoreMessages(Array.from(allCached.values()));
+    return messages;
   },
 
   async sendMessage(params: {
@@ -92,11 +145,24 @@ export const messageService = {
     content: string;
   }): Promise<Message> {
     const newMsg: Message = {
-      id: `msg_${Date.now()}`,
+      id: `msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
       ...params,
-      createdAt: 'Just now'
+      createdAt: new Date().toISOString()
     };
     DEMO_STORE_MESSAGES.push(newMsg);
+
+    const cachedMessages = readCachedStoreMessages();
+    cacheStoreMessages([newMsg, ...cachedMessages.filter(message => message.id !== newMsg.id)]);
+
+    try {
+      await setDoc(doc(db, 'messages', newMsg.id), {
+        ...newMsg,
+        createdAt: serverTimestamp()
+      });
+    } catch (error) {
+      console.warn('Could not persist retailer message to Firestore; it remains in this browser cache:', error);
+    }
+
     return newMsg;
   }
 };

@@ -406,11 +406,14 @@ export const reservationService = {
     try {
       const res = existingRes;
       if (!res) return;
+      const reservationItems = Array.isArray(res.items)
+        ? res.items.filter(item => item && typeof item === 'object')
+        : [];
 
       if (status === 'CANCELLED') {
         // Restore stock to inventory so items can be rescued by others
-        if (res.items && res.items.length > 0) {
-          for (const item of res.items) {
+        if (reservationItems.length > 0) {
+          for (const item of reservationItems) {
             if (item.productId) {
               try {
                 const prodRef = doc(db, 'products', item.productId);
@@ -445,7 +448,7 @@ export const reservationService = {
           await notificationService.createNotification(
             res.storeId,
             'Reservation Cancelled',
-            `Order #${res.reservationCode} (${res.items.map(i => `${i.quantity}x ${i.name}`).join(', ')}) was cancelled.`,
+            `Order #${res.reservationCode || res.id} (${reservationItems.map(i => `${Number(i.quantity) || 0}x ${i.name || 'item'}`).join(', ')}) was cancelled.`,
             'reservation_status',
             `/business/reservations`
           );
@@ -461,9 +464,9 @@ export const reservationService = {
       } else if (status === 'COLLECTED') {
         // Record environmental impact event
         const impact = calculateEnvironmentalImpact(
-          res.items.reduce((sum, i) => sum + i.quantity, 0),
-          res.totalSaved,
-          res.totalWeightKg
+          reservationItems.reduce((sum, i) => sum + (Number(i.quantity) || 0), 0),
+          Number(res.totalSaved) || 0,
+          Number(res.totalWeightKg) || 0
         );
 
         try {
@@ -473,8 +476,8 @@ export const reservationService = {
             consumerId: res.consumerId,
             storeId: res.storeId,
             reservationId,
-            productsRescued: res.items.reduce((sum, i) => sum + i.quantity, 0),
-            moneySaved: res.totalSaved,
+            productsRescued: reservationItems.reduce((sum, i) => sum + (Number(i.quantity) || 0), 0),
+            moneySaved: Number(res.totalSaved) || 0,
             co2eAvoidedKg: impact.co2eAvoidedKg,
             foodDivertedKg: impact.foodDivertedKg,
             timestamp: serverTimestamp()
@@ -486,7 +489,7 @@ export const reservationService = {
         await notificationService.createNotification(
           res.consumerId,
           'Item Rescued! 🎉',
-          `You collected #${res.reservationCode}! You saved €${res.totalSaved.toFixed(2)} and avoided ~${impact.co2eAvoidedKg} kg CO2e.`,
+          `You collected #${res.reservationCode || res.id}! You saved €${(Number(res.totalSaved) || 0).toFixed(2)} and avoided ~${impact.co2eAvoidedKg} kg CO2e.`,
           'reservation_status',
           `/app/impact`
         );

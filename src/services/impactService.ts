@@ -48,12 +48,14 @@ export const impactService = {
     const storeIds = new Set<string>();
 
     for (const r of collected) {
-      storeIds.add(r.storeId);
-      for (const item of r.items) {
-        totalProducts += item.quantity;
-        totalWeight += (item.estimatedWeightKg || IMPACT_CONFIG.DEFAULT_WEIGHT_KG) * item.quantity;
+      if (r.storeId) storeIds.add(r.storeId);
+      const items = Array.isArray(r.items) ? r.items.filter(item => item && typeof item === 'object') : [];
+      for (const item of items) {
+        const quantity = Number(item.quantity) || 0;
+        totalProducts += quantity;
+        totalWeight += (Number(item.estimatedWeightKg) || IMPACT_CONFIG.DEFAULT_WEIGHT_KG) * quantity;
       }
-      totalSaved += r.totalSaved;
+      totalSaved += Number(r.totalSaved) || 0;
     }
 
     // If fresh consumer has demo reservations, ensure base activity counts
@@ -95,10 +97,12 @@ export const impactService = {
     let weightKg = 0;
 
     for (const res of collected) {
-      revenueRecovered += res.totalAmount;
-      for (const item of res.items) {
-        productsRescued += item.quantity;
-        weightKg += (item.estimatedWeightKg || IMPACT_CONFIG.DEFAULT_WEIGHT_KG) * item.quantity;
+      revenueRecovered += Number(res.totalAmount) || 0;
+      const items = Array.isArray(res.items) ? res.items.filter(item => item && typeof item === 'object') : [];
+      for (const item of items) {
+        const quantity = Number(item.quantity) || 0;
+        productsRescued += quantity;
+        weightKg += (Number(item.estimatedWeightKg) || IMPACT_CONFIG.DEFAULT_WEIGHT_KG) * quantity;
       }
     }
 

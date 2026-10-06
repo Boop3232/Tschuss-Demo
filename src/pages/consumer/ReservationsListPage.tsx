@@ -133,7 +133,7 @@ export const ReservationsListPage: React.FC = () => {
                 <div className="space-y-1">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-mono text-xs font-extrabold text-stone-900 bg-stone-100 px-2 py-0.5 rounded-md">
-                      #{res.reservationCode}
+                      #{res.reservationCode || res.id}
                     </span>
                     <StatusBadge status={res.status} />
                     {(res.status === 'PENDING' || res.status === 'CONFIRMED' || res.status === 'READY') && 
@@ -156,7 +156,7 @@ export const ReservationsListPage: React.FC = () => {
                       {res.pickupWindow}
                     </span>
                     <span>•</span>
-                    <span>{res.items.reduce((sum, item) => sum + item.quantity, 0)} items</span>
+                    <span>{(Array.isArray(res.items) ? res.items : []).reduce((sum, item) => sum + (Number(item?.quantity) || 0), 0)} items</span>
                   </div>
                 </div>
               </div>

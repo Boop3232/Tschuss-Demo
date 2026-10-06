@@ -121,6 +121,10 @@ export const ReservationDetailPage: React.FC = () => {
     );
   }
 
+  const reservationItems = Array.isArray(reservation.items)
+    ? reservation.items.filter(item => item && typeof item === 'object')
+    : [];
+
   const handleCancelReservation = async () => {
     setActionError(null);
     setActionSuccess(null);
@@ -300,31 +304,31 @@ export const ReservationDetailPage: React.FC = () => {
         {/* Reserved Items Breakdown */}
         <div>
           <h3 className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3">
-            Reserved Items ({reservation.items.length})
+            Reserved Items ({reservationItems.length})
           </h3>
           <div className="divide-y divide-stone-100 border border-stone-200/80 rounded-2xl overflow-hidden">
-            {reservation.items.map((item, idx) => (
+            {reservationItems.map((item, idx) => (
               <div key={idx} className="p-4 flex items-center justify-between gap-3 bg-white">
                 <div className="flex items-center gap-3 min-w-0">
                   <img
-                    src={item.imageUrl}
-                    alt={item.name}
+                    src={item.imageUrl || ''}
+                    alt={item.name || 'Reserved item'}
                     className="w-12 h-12 rounded-xl object-cover border border-stone-200 shrink-0"
                   />
                   <div className="min-w-0">
-                    <span className="font-bold text-stone-900 text-sm block truncate">{item.name}</span>
+                    <span className="font-bold text-stone-900 text-sm block truncate">{item.name || 'Reserved item'}</span>
                     <span className="text-xs text-stone-500">
-                      {item.quantity}x @ {formatCurrency(item.rescuePrice)}
+                      {item.quantity ?? 0}x @ {formatCurrency(item.rescuePrice ?? 0)}
                     </span>
                   </div>
                 </div>
 
                 <div className="text-right shrink-0">
                   <span className="font-bold text-stone-900 text-sm block">
-                    {formatCurrency(item.total)}
+                    {formatCurrency(item.total ?? (item.rescuePrice || 0) * (item.quantity || 0))}
                   </span>
                   <span className="text-2xs text-stone-400 line-through block">
-                    {formatCurrency(item.originalPrice * item.quantity)}
+                    {formatCurrency((item.originalPrice || 0) * (item.quantity || 0))}
                   </span>
                 </div>
               </div>

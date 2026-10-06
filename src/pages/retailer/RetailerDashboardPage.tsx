@@ -315,7 +315,7 @@ export const RetailerDashboardPage: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="font-mono font-bold text-xs bg-stone-200 text-stone-900 px-2 py-0.5 rounded-md">
-                        #{res.reservationCode}
+                        #{res.reservationCode || res.id}
                       </span>
                       <StatusBadge status={res.status} />
                       <span className="text-2xs px-2 py-0.5 rounded-full bg-stone-200/70 text-stone-700 border border-stone-300 font-semibold truncate max-w-[130px]">
@@ -328,8 +328,8 @@ export const RetailerDashboardPage: React.FC = () => {
                   </div>
 
                   <div className="text-stone-700">
-                    <span className="font-semibold">{res.consumerName}</span> • {res.items[0]?.name}{' '}
-                    {res.items.length > 1 && `+${res.items.length - 1} more`}
+                    <span className="font-semibold">{res.consumerName || 'Customer'}</span> • {res.items?.[0]?.name || 'Reserved items'}{' '}
+                    {(res.items?.length || 0) > 1 && `+${(res.items?.length || 1) - 1} more`}
                   </div>
 
                   <div className="pt-2 border-t border-stone-200/60 flex items-center justify-between">
