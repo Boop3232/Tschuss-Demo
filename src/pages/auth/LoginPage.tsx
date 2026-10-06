@@ -252,12 +252,17 @@ export const LoginPage: React.FC = () => {
               </Link>
             </p>
 
-            <div className="p-3 rounded-2xl bg-amber-50/60 border border-amber-200/60 text-stone-700 text-2xs flex items-center gap-2 text-left">
+            <Link
+              to="/business"
+              className="p-3 rounded-2xl bg-amber-50/60 border border-amber-200/60 text-stone-700 text-2xs flex items-center gap-2 text-left hover:bg-amber-100/70 transition-colors"
+              aria-label="Retailer login"
+            >
               <Store className="w-4 h-4 text-amber-700 shrink-0" />
               <span>
-                Supermarkets & Bakeries: Log in here with your retailer credentials to access the Store Portal.
+                <strong className="text-amber-900">Retailer login</strong>
+                <span className="block mt-0.5">Access the Store Portal with your retailer credentials.</span>
               </span>
-            </div>
+            </Link>
           </div>
         </div>
       </div>
