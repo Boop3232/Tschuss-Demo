@@ -66,10 +66,12 @@ export const RetailerReservationsPage: React.FC = () => {
   };
 
   const filteredReservations = reservations.filter(r => {
-    const matchesQuery = r.reservationCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         r.consumerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         r.storeName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         r.items.some(i => i.name.toLowerCase().includes(searchQuery.toLowerCase()));
+    const query = searchQuery.trim().toLowerCase();
+    const items = Array.isArray(r.items) ? r.items : [];
+    const searchableFields = [r.reservationCode, r.consumerName, r.storeName, ...items.map(item => item?.name)];
+    const matchesQuery = !query || searchableFields.some(value =>
+      typeof value === 'string' && value.toLowerCase().includes(query)
+    );
     const matchesStatus = statusFilter === 'all' ? true : r.status === statusFilter;
     return matchesQuery && matchesStatus;
   });
@@ -160,7 +162,7 @@ export const RetailerReservationsPage: React.FC = () => {
                 <div className="flex flex-wrap items-center gap-2.5">
                   <div className="px-3 py-1 bg-stone-900 text-white font-mono text-xs font-bold rounded-lg flex items-center gap-1.5">
                     <QrCode className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>#{res.reservationCode}</span>
+                    <span>#{res.reservationCode || res.id}</span>
                   </div>
                   <StatusBadge status={res.status} />
                   <span className="px-2.5 py-0.5 rounded-full bg-stone-100 text-stone-700 text-2xs font-semibold border border-stone-200/80">
@@ -183,17 +185,17 @@ export const RetailerReservationsPage: React.FC = () => {
 
               {/* Items in this Order */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
-                {res.items.map((it, idx) => (
+                {(Array.isArray(res.items) ? res.items : []).map((it, idx) => (
                   <div key={idx} className="p-2.5 rounded-xl bg-stone-50 border border-stone-200/60 flex items-center gap-2.5">
                     <img
-                      src={it.imageUrl}
-                      alt={it.name}
+                      src={it?.imageUrl || ''}
+                      alt={it?.name || 'Reserved item'}
                       className="w-10 h-10 rounded-lg object-cover border border-stone-200 shrink-0"
                     />
                     <div className="min-w-0">
-                      <span className="font-bold text-stone-900 block truncate">{it.name}</span>
+                      <span className="font-bold text-stone-900 block truncate">{it?.name || 'Reserved item'}</span>
                       <span className="text-stone-500 text-2xs">
-                        {it.quantity}x @ {formatCurrency(it.rescuePrice)}
+                        {it?.quantity ?? 0}x @ {formatCurrency(it?.rescuePrice ?? 0)}
                       </span>
                     </div>
                   </div>
